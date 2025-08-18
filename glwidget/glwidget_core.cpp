@@ -12,11 +12,14 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <QPainter>
 #include <QFont>
+#include <cfloat> // 用于FLT_MAX和FLT_MIN
 
 GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
     ebo(QOpenGLBuffer::IndexBuffer),
     faceEbo(QOpenGLBuffer::IndexBuffer),
+    axisVbo(QOpenGLBuffer::VertexBuffer), // 初始化坐标轴VBO
+    axisEbo(QOpenGLBuffer::IndexBuffer),  // 初始化坐标轴EBO
     showWireframeOverlay(false),
     hideFaces(false)
 {
@@ -45,6 +48,9 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     initialModelCenter = QVector3D(0, 0, 0);
     initialViewDistance = 5.0f;
     initialViewScale = 1.0f;
+    
+    // 默认显示坐标轴
+    showAxis = true;
 }
 
 // 新增：设置视角缩放因子
@@ -74,6 +80,8 @@ GLWidget::~GLWidget() {
     vbo.destroy();
     ebo.destroy();
     faceEbo.destroy();
+    axisVbo.destroy();  // 销毁坐标轴VBO
+    axisEbo.destroy();  // 销毁坐标轴EBO
     doneCurrent();
 }
 
@@ -117,6 +125,40 @@ void GLWidget::initializeGL() {
     vbo.create();
     ebo.create();
     faceEbo.create();
+    
+    // 初始化坐标轴缓冲区
+    axisVbo.create();
+    axisEbo.create();
+    
+    // 坐标轴数据
+    float axisVertices[] = {
+        // 位置              // 颜色
+        0.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // X轴起点 (红色)
+        2.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // X轴终点 - 长度从1.0f增加到2.0f
+        
+        0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, // Y轴起点 (绿色)
+        0.0f, 2.0f, 0.0f,  0.0f, 1.0f, 0.0f, // Y轴终点 - 长度从1.0f增加到2.0f
+        
+        0.0f, 0.0f, 0.0f,  0.0f, 0.5f, 1.0f, // Z轴起点 (蓝色)
+        0.0f, 0.0f, 2.0f,  0.0f, 0.5f, 1.0f  // Z轴终点 - 长度从1.0f增加到2.0f
+    };
+    
+    unsigned int axisIndices[] = {
+        0, 1, // X轴
+        2, 3, // Y轴
+        4, 5  // Z轴
+    };
+    
+    axisVbo.bind();
+    axisVbo.allocate(axisVertices, sizeof(axisVertices));
+    
+    axisEbo.bind();
+    axisEbo.allocate(axisIndices, sizeof(axisIndices));
+    
+    // 初始化坐标轴着色器
+    axisProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/axis.vert");
+    axisProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/axis.frag");
+    axisProgram.link();
 
     initializeShaders();
 }
@@ -280,6 +322,11 @@ void GLWidget::paintGL() {
         }
     }
     
+    // 绘制XYZ坐标轴
+    if (showAxis) {
+        drawXYZAxis(view, projection);
+    }
+    
     glPolygonMode(GL_FRONT, oldPolygonMode[0]);
     glPolygonMode(GL_BACK, oldPolygonMode[1]);
 }
@@ -306,6 +353,10 @@ void GLWidget::keyPressEvent(QKeyEvent *event) {
         break;
     case Qt::Key_R:
         resetView();
+        break;
+    case Qt::Key_A: // 按A键切换坐标轴显示
+        showAxis = !showAxis;
+        update();
         break;
     default:
         QOpenGLWidget::keyPressEvent(event);
@@ -335,9 +386,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event) {
         
         rotationY += delta.x() * 0.5f;
         rotationX += delta.y() * 0.5f;
-        
-        rotationX = qBound(-90.0f, rotationX, 90.0f);
-        
+                
         lastMousePos = currentPos;
         update();
     }
@@ -471,4 +520,56 @@ void GLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& v
     vao.release();
     wireframeProgram.release();
     glDisable(GL_POLYGON_OFFSET_LINE);
+}
+
+void GLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection) {
+    // 保存当前深度测试状态
+    GLboolean depthTestEnabled;
+    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
+    
+    // 暂时禁用深度测试，确保坐标轴始终可见
+    glDisable(GL_DEPTH_TEST);
+    
+    axisProgram.bind();
+    
+    // 设置模型矩阵 - 坐标轴位置在原点，大小固定
+    QMatrix4x4 model;
+    model.translate(modelCenter);
+    model.scale(0.8f); // 稍微增大缩放比例
+    
+    // 应用当前旋转
+    model.rotate(rotationX, 1, 0, 0);
+    model.rotate(rotationY, 0, 1, 0);
+    
+    axisProgram.setUniformValue("model", model);
+    axisProgram.setUniformValue("view", view);
+    axisProgram.setUniformValue("projection", projection);
+    
+    axisVbo.bind();
+    axisEbo.bind();
+    
+    // 设置顶点属性指针
+    int posLoc = axisProgram.attributeLocation("aPos");
+    axisProgram.enableAttributeArray(posLoc);
+    axisProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 6 * sizeof(float));
+    
+    int colorLoc = axisProgram.attributeLocation("aColor");
+    axisProgram.enableAttributeArray(colorLoc);
+    axisProgram.setAttributeBuffer(colorLoc, GL_FLOAT, 3 * sizeof(float), 3, 6 * sizeof(float));
+    
+    // 绘制坐标轴 - 增加线宽
+    glLineWidth(3.0f); // 增加线宽到3.0f
+    glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
+    
+    // 恢复之前的深度测试状态
+    if (depthTestEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+    
+    // 清理
+    axisProgram.disableAttributeArray(posLoc);
+    axisProgram.disableAttributeArray(colorLoc);
+    axisEbo.release();
+    axisVbo.release();
+    axisProgram.release();
 }

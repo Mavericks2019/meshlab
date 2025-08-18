@@ -103,6 +103,13 @@ private:
     float initialViewDistance;
     float initialViewScale = 2.0f; // 新增：初始视角缩放因子
 
+    // XYZ坐标轴相关成员
+    void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
+    QOpenGLShaderProgram axisProgram;
+    QOpenGLBuffer axisVbo;
+    QOpenGLBuffer axisEbo;
+    bool showAxis; // 控制是否显示坐标轴
+
 protected:
     QOpenGLShaderProgram wireframeProgram;
     QOpenGLShaderProgram blinnPhongProgram;

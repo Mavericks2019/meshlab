@@ -9,5 +9,7 @@
     <file>glwidget/shaders/curvature.frag</file>
     <file>glwidget/shaders/texture.vert</file>
     <file>glwidget/shaders/texture.frag</file>
+    <file>glwidget/shaders/axis.vert</file>
+    <file>glwidget/shaders/axis.frag</file>
 </qresource>
 </RCC>

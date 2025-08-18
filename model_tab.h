@@ -56,7 +56,6 @@ QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
     QRadioButton *gaussianRadio = new QRadioButton("Gaussian Curvature");
     QRadioButton *meanRadio = new QRadioButton("Mean Curvature");
     QRadioButton *maxRadio = new QRadioButton("Max Curvature");
-    QRadioButton *textureRadio = new QRadioButton("Texture Mapping");
     
     solidRadio->setChecked(true);
     
@@ -64,7 +63,6 @@ QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
     layout->addWidget(gaussianRadio);
     layout->addWidget(meanRadio);
     layout->addWidget(maxRadio);
-    layout->addWidget(textureRadio);
     
     // 连接渲染模式信号
     auto connectMode = [glWidget](QRadioButton* radio, GLWidget::RenderMode mode) {
