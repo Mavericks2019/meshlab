@@ -105,10 +105,24 @@ void GLWidget::loadOBJ(const QString &path) {
     // 归一化处理：将模型缩放到单位球内
     centerAndScaleMesh(center, maxSize);
     
-    // 设置模型中心和视图距离
-    modelCenter = QVector3D(0, 0, 0); // 归一化后模型中心在原点
-    viewDistance = 3.0f; // 基于模型大小的距离
-    
+    // 重新计算归一化后的包围盒
+    Mesh::Point min_norm, max_norm;
+    computeBoundingBox(min_norm, max_norm);
+    Mesh::Point center_norm = (min_norm + max_norm) * 0.5f;
+    Mesh::Point size_norm = max_norm - min_norm;
+    float maxSize_norm = std::max({size_norm[0], size_norm[1], size_norm[2]});
+
+    // 设置视图参数（归一化后模型中心在原点）
+    modelCenter = QVector3D(0, 0, 0);
+    viewDistance = 1.5f * maxSize_norm; // 使用1.5倍的最大尺寸
+
+    // 保存初始视图状态
+    initialRotationX = 0;
+    initialRotationY = 0;
+    initialZoom = 1.0f;
+    initialModelCenter = modelCenter;
+    initialViewDistance = viewDistance;
+
     openMesh.request_vertex_normals();
     openMesh.request_face_normals();
     openMesh.update_normals();

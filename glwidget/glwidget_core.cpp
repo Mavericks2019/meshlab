@@ -36,6 +36,13 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     // 初始化模型中心和视图距离
     modelCenter = QVector3D(0, 0, 0);
     viewDistance = 5.0f;
+    
+    // 初始化初始视图状态
+    initialRotationX = 0;
+    initialRotationY = 0;
+    initialZoom = 1.0f;
+    initialModelCenter = QVector3D(0, 0, 0);
+    initialViewDistance = 5.0f;
 }
 
 void GLWidget::setHideFaces(bool hide) {
@@ -63,8 +70,12 @@ GLWidget::~GLWidget() {
 }
 
 void GLWidget::resetView() {
-    rotationX = rotationY = 0;
-    zoom = 1.0f;
+    // 使用保存的初始视图状态
+    rotationX = initialRotationX;
+    rotationY = initialRotationY;
+    zoom = initialZoom;
+    modelCenter = initialModelCenter;
+    viewDistance = initialViewDistance;
     update();
 }
 
@@ -356,9 +367,9 @@ void GLWidget::centerView() {
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
     
-    // 设置视图参数
+    // 设置视图参数（与模型加载时相同的计算逻辑）
     modelCenter = QVector3D(center[0], center[1], center[2]);
-    viewDistance = 3.0f * maxSize;
+    viewDistance = 1.5f * maxSize; // 使用1.5倍的最大尺寸
     
     rotationX = 0;
     rotationY = 0;
