@@ -32,8 +32,7 @@ public:
         BlinnPhong,
         GaussianCurvature,
         MeanCurvature,
-        MaxCurvature,
-        TextureMapping
+        MaxCurvature
     };
     
     explicit GLWidget(QWidget *parent = nullptr);
@@ -93,25 +92,18 @@ protected:
     QOpenGLShaderProgram wireframeProgram;
     QOpenGLShaderProgram blinnPhongProgram;
     QOpenGLShaderProgram curvatureProgram;
-    QOpenGLShaderProgram textureProgram;
 
     QOpenGLVertexArrayObject vao;
-    QOpenGLVertexArrayObject vaoTexture;
     QOpenGLBuffer vbo;
     QOpenGLBuffer ebo;
     QOpenGLBuffer faceEbo;
-    QOpenGLBuffer texCoordBuffer;
-    std::vector<float> texCoords;          // 纹理坐标
     
     bool isDragging;
     QPoint lastMousePos;
 
-    void generateCheckerboardTexture();
-    void updateTextureCoordinates();
     void updateBuffersFromOpenMesh();
     void initializeShaders();
     void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
-    void drawTextureMapping(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix);
     void drawCurvature(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix);
     void drawBlinnPhong(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix);
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);

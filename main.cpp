@@ -112,7 +112,6 @@ namespace UIUtils {
         });
         layout->addWidget(specularCheckbox);
         
-        layout->addStretch();
         return group;
     }
 

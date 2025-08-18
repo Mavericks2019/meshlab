@@ -17,7 +17,6 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
     ebo(QOpenGLBuffer::IndexBuffer),
     faceEbo(QOpenGLBuffer::IndexBuffer),
-    texCoordBuffer(QOpenGLBuffer::VertexBuffer),
     showWireframeOverlay(false),
     hideFaces(false)
 {
@@ -56,7 +55,6 @@ GLWidget::~GLWidget() {
     vbo.destroy();
     ebo.destroy();
     faceEbo.destroy();
-    texCoordBuffer.destroy();
     doneCurrent();
 }
 
@@ -92,13 +90,10 @@ void GLWidget::initializeGL() {
     glEnable(GL_MULTISAMPLE);
 
     vao.create();
-    vaoTexture.create();
     vbo.create();
     ebo.create();
     faceEbo.create();
-    texCoordBuffer.create();
 
-    generateCheckerboardTexture();
     initializeShaders();
 }
 
@@ -106,7 +101,6 @@ void GLWidget::initializeShaders() {
     wireframeProgram.removeAllShaders();
     blinnPhongProgram.removeAllShaders();
     curvatureProgram.removeAllShaders();
-    textureProgram.removeAllShaders();
 
     // Wireframe shader
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/wireframe.vert");
@@ -122,11 +116,6 @@ void GLWidget::initializeShaders() {
     curvatureProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/curvature.vert");
     curvatureProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/curvature.frag");
     curvatureProgram.link();
-    
-    // Texture shader
-    textureProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/texture.vert");
-    textureProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/texture.frag");
-    textureProgram.link();
 
     if (modelLoaded) {
         updateBuffersFromOpenMesh();
@@ -215,39 +204,6 @@ void GLWidget::updateBuffersFromOpenMesh() {
     faceEbo.allocate(faces.data(), faces.size() * sizeof(unsigned int));
     
     vao.release();
-    
-    // Set up texture shader
-    vaoTexture.bind();
-    vbo.bind();
-    
-    textureProgram.bind();
-    posLoc = textureProgram.attributeLocation("aPos");
-    if (posLoc != -1) {
-        textureProgram.enableAttributeArray(posLoc);
-        textureProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
-    }
-    
-    normalLoc = textureProgram.attributeLocation("aNormal");
-    if (normalLoc != -1) {
-        textureProgram.enableAttributeArray(normalLoc);
-        textureProgram.setAttributeBuffer(normalLoc, GL_FLOAT, vertexSize, 3, 3 * sizeof(float));
-    }
-
-    updateTextureCoordinates();
-    
-    texCoordBuffer.bind();
-    texCoordBuffer.allocate(texCoords.data(), texCoords.size() * sizeof(float));
-    
-    int texCoordLoc = textureProgram.attributeLocation("aTexCoord");
-    if (texCoordLoc != -1) {
-        textureProgram.enableAttributeArray(texCoordLoc);
-        textureProgram.setAttributeBuffer(texCoordLoc, GL_FLOAT, 0, 2, 2 * sizeof(float));
-    }
-
-    faceEbo.bind();
-    
-    vaoTexture.release();
-    textureProgram.release();
 }
 
 void GLWidget::resizeGL(int w, int h) {
@@ -279,9 +235,6 @@ void GLWidget::paintGL() {
         drawWireframe(model, view, projection);
     } else {
         switch (currentRenderMode) {
-        case TextureMapping:
-            drawTextureMapping(model, view, projection, normalMatrix);
-            break;
         case GaussianCurvature:
         case MeanCurvature:
         case MaxCurvature:
@@ -404,57 +357,6 @@ void GLWidget::centerView() {
     update();
 }
 
-void GLWidget::generateCheckerboardTexture() {
-    const int size = 512;
-    const int tileSize = 32;
-    QImage image(size, size, QImage::Format_RGB32);
-    
-    const QColor brownColor(139, 69, 19);
-    const QColor whiteColor(255, 255, 255);
-    
-    QPainter painter(&image);
-    QFont font;
-    font.setFamily("Arial");
-    font.setPixelSize(tileSize / 2);
-    font.setBold(true);
-    painter.setFont(font);
-    
-    const QString letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    
-    for (int y = 0; y < size; y += tileSize) {
-        for (int x = 0; x < size; x += tileSize) {
-            bool isBrown = ((x / tileSize) % 2) ^ ((y / tileSize) % 2);
-            QColor tileColor = isBrown ? brownColor : whiteColor;
-            
-            for (int dy = 0; dy < tileSize && y + dy < size; dy++) {
-                for (int dx = 0; dx < tileSize && x + dx < size; dx++) {
-                    image.setPixel(x + dx, y + dy, tileColor.rgb());
-                }
-            }
-            
-            int tileIndex = (y / tileSize) * (size / tileSize) + (x / tileSize);
-            char currentChar = letters.at(tileIndex % letters.length()).toLatin1();
-            
-            painter.setPen(isBrown ? whiteColor : brownColor);
-            QRect tileRect(x, y, tileSize, tileSize);
-            painter.drawText(tileRect, Qt::AlignCenter, QString(currentChar));
-        }
-    }
-    
-    painter.end();
-}
-
-void GLWidget::updateTextureCoordinates() {
-    texCoords.clear();
-    texCoords.reserve(openMesh.n_vertices() * 2);
-    
-    for (auto vh : openMesh.vertices()) {
-        const auto& p = openMesh.point(vh);
-        texCoords.push_back((p[0] + 1.0f) * 0.5f);
-        texCoords.push_back((p[1] + 1.0f) * 0.5f);
-    }
-}
-
 void GLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
     wireframeProgram.bind();
     vao.bind();
@@ -471,24 +373,6 @@ void GLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, co
     ebo.release();
     vao.release();
     wireframeProgram.release();
-}
-
-void GLWidget::drawTextureMapping(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix) {
-    textureProgram.bind();
-    vaoTexture.bind();
-    faceEbo.bind();
-    
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    textureProgram.setUniformValue("model", model);
-    textureProgram.setUniformValue("view", view);
-    textureProgram.setUniformValue("projection", projection);
-    textureProgram.setUniformValue("normalMatrix", normalMatrix);
-    
-    glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
-    
-    faceEbo.release();
-    vao.release();
-    textureProgram.release();
 }
 
 void GLWidget::drawCurvature(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix) {

@@ -77,7 +77,6 @@ QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
     connectMode(gaussianRadio, GLWidget::GaussianCurvature);
     connectMode(meanRadio, GLWidget::MeanCurvature);
     connectMode(maxRadio, GLWidget::MaxCurvature);
-    connectMode(textureRadio, GLWidget::TextureMapping);
     
     return group;
 }
