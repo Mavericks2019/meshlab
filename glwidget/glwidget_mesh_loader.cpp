@@ -117,8 +117,7 @@ void GLWidget::loadOBJ(const QString &path) {
     viewDistance = 2.0f * maxSize_norm; // 基础视图距离
     
     // 保存初始视图状态
-    initialRotationX = 0;
-    initialRotationY = 0;
+    initialRotation = QQuaternion(); // 初始旋转状态为单位四元数
     initialZoom = 1.0f;
     initialModelCenter = modelCenter;
     initialViewDistance = viewDistance;
@@ -139,7 +138,7 @@ void GLWidget::loadOBJ(const QString &path) {
     initializeShaders();
     doneCurrent();
     
-    rotationX = rotationY = 0;
+    rotation = QQuaternion(); // 重置旋转
     zoom = 1.0f;
     update();
 }

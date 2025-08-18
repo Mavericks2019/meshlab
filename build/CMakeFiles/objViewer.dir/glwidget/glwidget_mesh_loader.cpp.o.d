@@ -412,6 +412,8 @@ CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.o: \
  /usr/local/include/OpenMesh/Core/Utils/SingletonT_impl.hh \
  /usr/local/include/OpenMesh/Core/Utils/vector_cast.hh \
  /usr/local/include/OpenMesh/Core/Mesh/TriMeshT_impl.hh \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QQuaternion \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qquaternion.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QFile \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qfile.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qfiledevice.h \

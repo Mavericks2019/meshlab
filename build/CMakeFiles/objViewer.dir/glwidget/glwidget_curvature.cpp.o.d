@@ -411,4 +411,6 @@ CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.o: \
  /usr/local/include/OpenMesh/Core/Utils/SingletonT.hh \
  /usr/local/include/OpenMesh/Core/Utils/SingletonT_impl.hh \
  /usr/local/include/OpenMesh/Core/Utils/vector_cast.hh \
- /usr/local/include/OpenMesh/Core/Mesh/TriMeshT_impl.hh
+ /usr/local/include/OpenMesh/Core/Mesh/TriMeshT_impl.hh \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QQuaternion \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qquaternion.h

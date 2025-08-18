@@ -354,6 +354,7 @@ objViewer_autogen/timestamp: \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFunctions \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLShaderProgram \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLVertexArrayObject \
+	/usr/include/x86_64-linux-gnu/qt5/QtGui/QQuaternion \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QSurfaceFormat \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QVector3D \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qbrush.h \

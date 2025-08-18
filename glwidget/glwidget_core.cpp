@@ -28,7 +28,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     setFormat(format);
     
     setFocusPolicy(Qt::StrongFocus);
-    rotationX = rotationY = 0;
+    rotation = QQuaternion();  // 初始化旋转状态
     zoom = 1.0f;
     modelLoaded = false;
     isDragging = false;
@@ -42,8 +42,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     viewScale = 1.0f; // 默认缩放因子为1.0
     
     // 初始化初始视图状态
-    initialRotationX = 0;
-    initialRotationY = 0;
+    initialRotation = QQuaternion();
     initialZoom = 1.0f;
     initialModelCenter = QVector3D(0, 0, 0);
     initialViewDistance = 5.0f;
@@ -87,8 +86,7 @@ GLWidget::~GLWidget() {
 
 void GLWidget::resetView() {
     // 使用保存的初始视图状态
-    rotationX = initialRotationX;
-    rotationY = initialRotationY;
+    rotation = initialRotation; // 重置旋转四元数
     zoom = initialZoom;
     modelCenter = initialModelCenter;
     viewDistance = initialViewDistance;
@@ -285,9 +283,8 @@ void GLWidget::paintGL() {
 
     QMatrix4x4 model, view, projection;
     
-    // 模型变换：以模型中心为原点进行旋转缩放
-    model.rotate(rotationX, 1, 0, 0);
-    model.rotate(rotationY, 0, 1, 0);
+    // 模型变换：使用四元数旋转
+    model.rotate(rotation);  // 使用四元数旋转
     model.scale(zoom);
     
     // 视图变换：相机看向模型中心
@@ -334,16 +331,16 @@ void GLWidget::paintGL() {
 void GLWidget::keyPressEvent(QKeyEvent *event) {
     switch (event->key()) {
     case Qt::Key_Left:
-        rotationY -= 5;
+        rotation = QQuaternion::fromAxisAndAngle(0, 1, 0, 5) * rotation;
         break;
     case Qt::Key_Right:
-        rotationY += 5;
+        rotation = QQuaternion::fromAxisAndAngle(0, 1, 0, -5) * rotation;
         break;
     case Qt::Key_Up:
-        rotationX -= 5;
+        rotation = QQuaternion::fromAxisAndAngle(1, 0, 0, -5) * rotation;
         break;
     case Qt::Key_Down:
-        rotationX += 5;
+        rotation = QQuaternion::fromAxisAndAngle(1, 0, 0, 5) * rotation;
         break;
     case Qt::Key_Plus:
         zoom *= 1.1;
@@ -382,14 +379,45 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
 void GLWidget::mouseMoveEvent(QMouseEvent *event) {
     if (isDragging) {
         QPoint currentPos = event->pos();
-        QPoint delta = currentPos - lastMousePos;
         
-        rotationY += delta.x() * 0.5f;
-        rotationX += delta.y() * 0.5f;
-                
+        // 轨迹球旋转实现
+        QVector3D lastPos3D = projectToTrackball(lastMousePos);
+        QVector3D currentPos3D = projectToTrackball(currentPos);
+        
+        // 计算旋转轴和旋转角度（增加灵敏度系数）
+        QVector3D axis = QVector3D::crossProduct(lastPos3D, currentPos3D).normalized();
+        float angle = acos(qMin(1.0f, QVector3D::dotProduct(lastPos3D, currentPos3D))) 
+                    * 180.0f / M_PI * rotationSensitivity; // 乘以灵敏度系数
+        
+        // 创建旋转四元数并累积到当前旋转
+        QQuaternion newRot = QQuaternion::fromAxisAndAngle(axis, angle);
+        rotation = newRot * rotation;
+        
         lastMousePos = currentPos;
         update();
     }
+}
+
+// 轨迹球投影函数
+QVector3D GLWidget::projectToTrackball(const QPoint& screenPos) {
+    // 将屏幕坐标映射到 [-1, 1] 范围
+    float x = (2.0f * screenPos.x()) / width() - 1.0f;
+    float y = 1.0f - (2.0f * screenPos.y()) / height();
+    float z = 0.0f;
+    
+    // 计算在轨迹球上的投影点
+    float lengthSquared = x * x + y * y;
+    if (lengthSquared <= 1.0f) {
+        // 在球体内
+        z = sqrt(1.0f - lengthSquared);
+    } else {
+        // 在球体外，归一化到球面上
+        float length = sqrt(lengthSquared);
+        x /= length;
+        y /= length;
+    }
+    
+    return QVector3D(x, y, z);
 }
 
 void GLWidget::wheelEvent(QWheelEvent *event) {
@@ -400,6 +428,7 @@ void GLWidget::wheelEvent(QWheelEvent *event) {
         zoom = qBound(0.1f, zoom, 10.0f);
         update();
     }
+    event->accept();
 }
 
 void GLWidget::setSurfaceColor(const QVector3D& color) {
@@ -430,8 +459,7 @@ void GLWidget::centerView() {
     modelCenter = QVector3D(center[0], center[1], center[2]);
     viewDistance = 2.0f * maxSize; // 基础视图距离
     
-    rotationX = 0;
-    rotationY = 0;
+    rotation = QQuaternion(); // 重置旋转
     zoom = 1.0f;
     update();
 }
@@ -538,8 +566,7 @@ void GLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection)
     model.scale(0.8f); // 稍微增大缩放比例
     
     // 应用当前旋转
-    model.rotate(rotationX, 1, 0, 0);
-    model.rotate(rotationY, 0, 1, 0);
+    model.rotate(rotation);
     
     axisProgram.setUniformValue("model", model);
     axisProgram.setUniformValue("view", view);

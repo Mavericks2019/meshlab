@@ -11,6 +11,7 @@
 #include <QColor>
 #include <vector>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include <QQuaternion>  // 添加四元数支持
 
 struct MyTraits : public OpenMesh::DefaultTraits {
     VertexAttributes(OpenMesh::Attributes::Normal | 
@@ -82,7 +83,7 @@ public:
     std::vector<unsigned int> faces;
     std::vector<unsigned int> edges;
     
-    float rotationX, rotationY;
+    QQuaternion rotation;   // 使用四元数替代欧拉角
     float zoom;
     
     bool showWireframeOverlay;
@@ -96,8 +97,8 @@ public:
 
 private:
     // 初始视图状态
-    float initialRotationX;
-    float initialRotationY;
+    QQuaternion initialRotation;  // 初始旋转状态
+    float rotationSensitivity = 2.0f; // 默认值，可根据需要调整
     float initialZoom;
     QVector3D initialModelCenter;
     float initialViewDistance;
@@ -109,6 +110,9 @@ private:
     QOpenGLBuffer axisVbo;
     QOpenGLBuffer axisEbo;
     bool showAxis; // 控制是否显示坐标轴
+
+    // 轨迹球相关
+    QVector3D projectToTrackball(const QPoint& screenPos);
 
 protected:
     QOpenGLShaderProgram wireframeProgram;
