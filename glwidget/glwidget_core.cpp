@@ -32,6 +32,10 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     bgColor = QColor(0, 0, 0);
     currentRenderMode = BlinnPhong;
     wireframeColor = QVector4D(1.0f, 0.0f, 0.0f, 1.0f);
+    
+    // 初始化模型中心和视图距离
+    modelCenter = QVector3D(0, 0, 0);
+    viewDistance = 5.0f;
 }
 
 void GLWidget::setHideFaces(bool hide) {
@@ -218,12 +222,17 @@ void GLWidget::paintGL() {
     }
 
     QMatrix4x4 model, view, projection;
-    model.translate(0, 0, -2.5);
+    
+    // 模型变换：以模型中心为原点进行旋转缩放
     model.rotate(rotationX, 1, 0, 0);
     model.rotate(rotationY, 0, 1, 0);
     model.scale(zoom);
     
-    view.lookAt(QVector3D(0, 0, 5), QVector3D(0, 0, 0), QVector3D(0, 1, 0));
+    // 视图变换：相机看向模型中心
+    QVector3D eyePosition(0, 0, viewDistance);
+    view.lookAt(eyePosition, modelCenter, QVector3D(0, 1, 0));
+    
+    // 投影变换
     projection.perspective(45.0f, width() / float(height()), 0.1f, 100.0f);
     
     QMatrix3x3 normalMatrix = model.normalMatrix();
@@ -347,13 +356,13 @@ void GLWidget::centerView() {
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
     
-    zoom = 1.0f;
-    if (maxSize > 0.1f) {
-        zoom = 1.0f / maxSize;
-    }
+    // 设置视图参数
+    modelCenter = QVector3D(center[0], center[1], center[2]);
+    viewDistance = 3.0f * maxSize;
     
     rotationX = 0;
     rotationY = 0;
+    zoom = 1.0f;
     update();
 }
 
@@ -405,7 +414,7 @@ void GLWidget::drawBlinnPhong(const QMatrix4x4& model, const QMatrix4x4& view, c
     blinnPhongProgram.setUniformValue("projection", projection);
     blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
     blinnPhongProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
-    blinnPhongProgram.setUniformValue("viewPos", QVector3D(0.0f, 0.0f, 5.0f));
+    blinnPhongProgram.setUniformValue("viewPos", eyePosition);
     blinnPhongProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
     blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
     blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);

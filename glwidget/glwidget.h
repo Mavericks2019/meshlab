@@ -88,6 +88,9 @@ public:
     bool hideFaces;
     bool modelLoaded;
 
+    QVector3D modelCenter;   // 模型中心位置
+    float viewDistance;      // 相机到模型中心的距离
+    QVector3D eyePosition;   // 相机位置
 protected:
     QOpenGLShaderProgram wireframeProgram;
     QOpenGLShaderProgram blinnPhongProgram;

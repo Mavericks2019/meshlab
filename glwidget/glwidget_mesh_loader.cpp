@@ -26,6 +26,7 @@ void GLWidget::computeBoundingBox(Mesh::Point& min, Mesh::Point& max) {
 }
 
 void GLWidget::centerAndScaleMesh(const Mesh::Point& center, float maxSize) {
+    // 归一化处理：将模型缩放到单位球内
     float scaleFactor = 2.0f / maxSize;
     for (auto vh : openMesh.vertices()) {
         Mesh::Point p = openMesh.point(vh);
@@ -100,7 +101,13 @@ void GLWidget::loadOBJ(const QString &path) {
     Mesh::Point center = (min + max) * 0.5f;
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
+    
+    // 归一化处理：将模型缩放到单位球内
     centerAndScaleMesh(center, maxSize);
+    
+    // 设置模型中心和视图距离
+    modelCenter = QVector3D(0, 0, 0); // 归一化后模型中心在原点
+    viewDistance = 3.0f; // 基于模型大小的距离
     
     openMesh.request_vertex_normals();
     openMesh.request_face_normals();
