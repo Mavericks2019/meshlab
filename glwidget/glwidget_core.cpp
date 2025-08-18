@@ -52,6 +52,12 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     showAxis = true;
 }
 
+// 新增：设置坐标轴显示状态
+void GLWidget::setShowAxis(bool show) {
+    showAxis = show;
+    update(); // 触发重绘
+}
+
 // 新增：设置视角缩放因子
 void GLWidget::setViewScale(float scale) {
     viewScale = scale;

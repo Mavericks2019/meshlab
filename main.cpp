@@ -112,6 +112,15 @@ namespace UIUtils {
         });
         layout->addWidget(specularCheckbox);
         
+        // 新增：坐标轴显示控制复选框
+        QCheckBox *axisCheckbox = new QCheckBox("Show XYZ Axis");
+        axisCheckbox->setStyleSheet("color: white;");
+        axisCheckbox->setChecked(true); // 默认显示坐标轴
+        QObject::connect(axisCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
+            glWidget->setShowAxis(state == Qt::Checked);
+        });
+        layout->addWidget(axisCheckbox);
+        
         return group;
     }
 

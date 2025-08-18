@@ -57,6 +57,7 @@ public:
     void setSpecularEnabled(bool enabled);
     void setShowWireframeOverlay(bool show);
     void setHideFaces(bool hide);
+    void setShowAxis(bool show); // 新增：设置坐标轴显示状态
     void resetView();
     void centerView();
     void loadOBJ(const QString &path);
