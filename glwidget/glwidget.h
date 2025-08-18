@@ -67,6 +67,7 @@ public:
     void prepareEdgeIndices();
     void saveOriginalMesh();
     void calculateCurvatures();
+    void setViewScale(float scale); // 新增：设置视角缩放因子
 
     QVector3D surfaceColor = QVector3D(1.0f, 1.0f, 0.0f);
     bool specularEnabled = true;
@@ -89,7 +90,8 @@ public:
     bool modelLoaded;
 
     QVector3D modelCenter;   // 模型中心位置
-    float viewDistance;      // 相机到模型中心的距离
+    float viewDistance;      // 基础视图距离（未缩放）
+    float viewScale = 1.5f;  // 新增：视角缩放因子
     QVector3D eyePosition;   // 相机位置
 
 private:
@@ -99,6 +101,7 @@ private:
     float initialZoom;
     QVector3D initialModelCenter;
     float initialViewDistance;
+    float initialViewScale = 2.0f; // 新增：初始视角缩放因子
 
 protected:
     QOpenGLShaderProgram wireframeProgram;

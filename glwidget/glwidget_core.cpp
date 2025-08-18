@@ -36,6 +36,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     // 初始化模型中心和视图距离
     modelCenter = QVector3D(0, 0, 0);
     viewDistance = 5.0f;
+    viewScale = 1.0f; // 默认缩放因子为1.0
     
     // 初始化初始视图状态
     initialRotationX = 0;
@@ -43,6 +44,13 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     initialZoom = 1.0f;
     initialModelCenter = QVector3D(0, 0, 0);
     initialViewDistance = 5.0f;
+    initialViewScale = 1.0f;
+}
+
+// 新增：设置视角缩放因子
+void GLWidget::setViewScale(float scale) {
+    viewScale = scale;
+    update(); // 触发重绘
 }
 
 void GLWidget::setHideFaces(bool hide) {
@@ -76,6 +84,7 @@ void GLWidget::resetView() {
     zoom = initialZoom;
     modelCenter = initialModelCenter;
     viewDistance = initialViewDistance;
+    viewScale = initialViewScale; // 重置视角缩放因子
     update();
 }
 
@@ -240,7 +249,8 @@ void GLWidget::paintGL() {
     model.scale(zoom);
     
     // 视图变换：相机看向模型中心
-    QVector3D eyePosition(0, 0, viewDistance);
+    // 应用视角缩放因子
+    QVector3D eyePosition(0, 0, viewDistance * viewScale);
     view.lookAt(eyePosition, modelCenter, QVector3D(0, 1, 0));
     
     // 投影变换
@@ -369,7 +379,7 @@ void GLWidget::centerView() {
     
     // 设置视图参数（与模型加载时相同的计算逻辑）
     modelCenter = QVector3D(center[0], center[1], center[2]);
-    viewDistance = 1.5f * maxSize; // 使用1.5倍的最大尺寸
+    viewDistance = 2.0f * maxSize; // 基础视图距离
     
     rotationX = 0;
     rotationY = 0;
@@ -425,7 +435,10 @@ void GLWidget::drawBlinnPhong(const QMatrix4x4& model, const QMatrix4x4& view, c
     blinnPhongProgram.setUniformValue("projection", projection);
     blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
     blinnPhongProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
-    blinnPhongProgram.setUniformValue("viewPos", eyePosition);
+    
+    // 注意：这里也需要使用缩放后的眼位置
+    blinnPhongProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
+    
     blinnPhongProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
     blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
     blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);

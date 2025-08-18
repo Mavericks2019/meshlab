@@ -114,14 +114,15 @@ void GLWidget::loadOBJ(const QString &path) {
 
     // 设置视图参数（归一化后模型中心在原点）
     modelCenter = QVector3D(0, 0, 0);
-    viewDistance = 1.5f * maxSize_norm; // 使用1.5倍的最大尺寸
-
+    viewDistance = 2.0f * maxSize_norm; // 基础视图距离
+    
     // 保存初始视图状态
     initialRotationX = 0;
     initialRotationY = 0;
     initialZoom = 1.0f;
     initialModelCenter = modelCenter;
     initialViewDistance = viewDistance;
+    initialViewScale = viewScale; // 保存当前视角缩放因子
 
     openMesh.request_vertex_normals();
     openMesh.request_face_normals();
