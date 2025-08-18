@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource>
+    <file>glwidget/shaders/wireframe.vert</file>
+    <file>glwidget/shaders/wireframe.frag</file>
+    <file>glwidget/shaders/blinnphong.vert</file>
+    <file>glwidget/shaders/blinnphong.frag</file>
+    <file>glwidget/shaders/curvature.vert</file>
+    <file>glwidget/shaders/curvature.frag</file>
+    <file>glwidget/shaders/texture.vert</file>
+    <file>glwidget/shaders/texture.frag</file>
+</qresource>
+</RCC>

@@ -1,0 +1,161 @@
+#include "glwidget/glwidget.h"
+#include <QApplication>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QLabel>
+#include <QGroupBox>
+#include <QFormLayout>
+#include <QSlider>
+#include <QRadioButton>
+#include <QCheckBox>
+
+// 创建模型标签页
+QWidget* createModelTab(GLWidget* glWidget) {
+    QWidget *tab = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout(tab);
+    layout->addWidget(glWidget);
+    return tab;
+}
+
+// 创建OBJ文件加载按钮
+QWidget* createModelLoadButton(GLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+    QPushButton *button = new QPushButton("Load OBJ File");
+    button->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(button, &QPushButton::clicked, [glWidget, infoLabel, mainWindow]() {
+        QString filePath = QFileDialog::getOpenFileName(
+            mainWindow, "Open OBJ File", "", "OBJ Files (*.obj)");
+        
+        if (!filePath.isEmpty()) {
+            glWidget->loadOBJ(filePath);
+            infoLabel->setText("Model loaded: " + QFileInfo(filePath).fileName());
+            mainWindow->setWindowTitle("OBJ Viewer - " + QFileInfo(filePath).fileName());
+        }
+    });
+    return button;
+}
+
+// 创建渲染模式选择组
+QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
+    QGroupBox *group = new QGroupBox("Rendering Mode");
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    
+    QRadioButton *solidRadio = new QRadioButton("Solid (Blinn-Phong)");
+    QRadioButton *gaussianRadio = new QRadioButton("Gaussian Curvature");
+    QRadioButton *meanRadio = new QRadioButton("Mean Curvature");
+    QRadioButton *maxRadio = new QRadioButton("Max Curvature");
+    QRadioButton *textureRadio = new QRadioButton("Texture Mapping");
+    
+    solidRadio->setChecked(true);
+    
+    layout->addWidget(solidRadio);
+    layout->addWidget(gaussianRadio);
+    layout->addWidget(meanRadio);
+    layout->addWidget(maxRadio);
+    layout->addWidget(textureRadio);
+    
+    // 连接渲染模式信号
+    auto connectMode = [glWidget](QRadioButton* radio, GLWidget::RenderMode mode) {
+        QObject::connect(radio, &QRadioButton::clicked, [glWidget, mode]() {
+            glWidget->setRenderMode(mode);
+        });
+    };
+    
+    connectMode(solidRadio, GLWidget::BlinnPhong);
+    connectMode(gaussianRadio, GLWidget::GaussianCurvature);
+    connectMode(meanRadio, GLWidget::MeanCurvature);
+    connectMode(maxRadio, GLWidget::MaxCurvature);
+    connectMode(textureRadio, GLWidget::TextureMapping);
+    
+    return group;
+}
+
+// 创建显示选项组
+QGroupBox* createDisplayOptionsGroup(GLWidget* glWidget) {
+    QGroupBox *group = new QGroupBox("Display Options");
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    
+    QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe Overlay");
+    wireframeCheckbox->setStyleSheet("color: white;");
+    QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
+        glWidget->setShowWireframeOverlay(state == Qt::Checked);
+    });
+    
+    QCheckBox *faceCheckbox = new QCheckBox("Hide Faces");
+    faceCheckbox->setStyleSheet("color: white;");
+    QObject::connect(faceCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
+        glWidget->setHideFaces(state == Qt::Checked);
+    });
+    
+    layout->addWidget(wireframeCheckbox);
+    layout->addWidget(faceCheckbox);
+    return group;
+}
+
+// 创建视图重置按钮
+QPushButton* createViewResetButton(GLWidget* glWidget) {
+    QPushButton *button = new QPushButton("Reset View");
+    button->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(button, &QPushButton::clicked, [glWidget]() {
+        glWidget->resetView();
+    });
+    return button;
+}
+
+// 创建自适应视图按钮
+QPushButton* createCenterViewButton(GLWidget* glWidget) {
+    QPushButton *button = new QPushButton("Center View");
+    button->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(button, &QPushButton::clicked, [glWidget]() {
+        glWidget->centerView();
+    });
+    return button;
+}
+
+// 创建模型控制面板
+QWidget* createModelControlPanel(GLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+    QWidget *panel = new QWidget;
+    QVBoxLayout *layout = new QVBoxLayout(panel);
+    
+    // 添加控件组
+    layout->addWidget(createModelLoadButton(glWidget, infoLabel, mainWindow));
+    layout->addWidget(createRenderingModeGroup(glWidget));
+    layout->addWidget(createDisplayOptionsGroup(glWidget));
+    layout->addWidget(createViewResetButton(glWidget));
+    layout->addWidget(createCenterViewButton(glWidget));
+    
+    layout->addStretch();
+    return panel;
+}
