@@ -12,12 +12,13 @@ set(CMAKE_AUTOUIC ON)
 
 # 查找Qt5组件
 find_package(Qt5 COMPONENTS Widgets OpenGL REQUIRED)
-
 # 添加着色器资源文件
 qt5_add_resources(RESOURCE_FILES shaders.qrc)
 
 find_package(OpenMesh REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(CGAL REQUIRED)
+include_directories(${CGAL_INCLUDE_DIRS})
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME}
@@ -26,6 +27,8 @@ add_executable(${PROJECT_NAME}
     glwidget/baseglwidget.cpp
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
+    glwidget/cgalglwidget.h  # 新增
+    glwidget/cgalglwidget.cpp  # 新增
     # glwidget/glwidget_core.cpp
     # glwidget/glwidget.h
     # glwidget/glwidget_curvature.cpp
@@ -41,6 +44,7 @@ target_link_libraries(${PROJECT_NAME}
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
+    CGAL::CGAL  # 新增
 )
 
 # 设置安装路径

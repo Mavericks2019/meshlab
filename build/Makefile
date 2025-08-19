@@ -224,6 +224,30 @@ glwidget/baseglwidget.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.s
 .PHONY : glwidget/baseglwidget.cpp.s
 
+glwidget/cgalglwidget.o: glwidget/cgalglwidget.cpp.o
+.PHONY : glwidget/cgalglwidget.o
+
+# target to build an object file
+glwidget/cgalglwidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o
+.PHONY : glwidget/cgalglwidget.cpp.o
+
+glwidget/cgalglwidget.i: glwidget/cgalglwidget.cpp.i
+.PHONY : glwidget/cgalglwidget.i
+
+# target to preprocess a source file
+glwidget/cgalglwidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.i
+.PHONY : glwidget/cgalglwidget.cpp.i
+
+glwidget/cgalglwidget.s: glwidget/cgalglwidget.cpp.s
+.PHONY : glwidget/cgalglwidget.s
+
+# target to generate assembly for a file
+glwidget/cgalglwidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.s
+.PHONY : glwidget/cgalglwidget.cpp.s
+
 glwidget/modelglwidget.o: glwidget/modelglwidget.cpp.o
 .PHONY : glwidget/modelglwidget.o
 
@@ -338,6 +362,9 @@ help:
 	@echo "... glwidget/baseglwidget.o"
 	@echo "... glwidget/baseglwidget.i"
 	@echo "... glwidget/baseglwidget.s"
+	@echo "... glwidget/cgalglwidget.o"
+	@echo "... glwidget/cgalglwidget.i"
+	@echo "... glwidget/cgalglwidget.s"
 	@echo "... glwidget/modelglwidget.o"
 	@echo "... glwidget/modelglwidget.i"
 	@echo "... glwidget/modelglwidget.s"

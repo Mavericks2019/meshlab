@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "objViewer_autogen"
   "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
+  "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o"
+  "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/main.cpp.o"

@@ -533,3 +533,47 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/usr/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_SetupCGALDependencies.cmake:111 (find_package)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_setup_target_dependencies.cmake:3 (CGAL_setup_CGAL_dependencies)"
+      - "/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGALConfig.cmake:185 (CGAL_setup_target_dependencies)"
+      - "CMakeLists.txt:16 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm"
+      binary: "/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/usr/lib/x86_64-linux-gnu/cmake/CGAL;/usr/lib/x86_64-linux-gnu/cmake/CGAL;/usr/lib/x86_64-linux-gnu/cmake/CGAL"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_13564/fast
+        gmake[1]: Entering directory '/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm'
+        /usr/bin/gmake  -f CMakeFiles/cmTC_13564.dir/build.make CMakeFiles/cmTC_13564.dir/build
+        gmake[2]: Entering directory '/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm'
+        Building C object CMakeFiles/cmTC_13564.dir/src.c.o
+        /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_13564.dir/src.c.o -c /opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm/src.c
+        Linking C executable cmTC_13564
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_13564.dir/link.txt --verbose=1
+        /usr/bin/cc CMakeFiles/cmTC_13564.dir/src.c.o -o cmTC_13564 
+        gmake[2]: Leaving directory '/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm'
+        gmake[1]: Leaving directory '/opt/meshoperator/build/CMakeFiles/CMakeScratch/TryCompile-dj04Rm'
+        
+      exitCode: 0
+...

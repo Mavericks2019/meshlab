@@ -1,3 +1,4 @@
+// main.cpp
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -6,8 +7,12 @@
 #include <QStyleFactory>
 #include <QColorDialog>
 #include <QPalette>
+#include "glwidget/modelglwidget.h"
+#include "glwidget/baseglwidget.h"
+#include "glwidget/cgalglwidget.h"
 #include "model_tab.h"
 #include "basic_tab.h"
+#include "cgal_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -53,6 +58,8 @@ namespace UIUtils {
                     modelGlWidget->setBackgroundColor(color);
                 } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
                     baseGlWidget->setBackgroundColor(color);
+                } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
+                    cgalGlWidget->setBackgroundColor(color);
                 }
             }
         });
@@ -84,6 +91,8 @@ namespace UIUtils {
                     modelGlWidget->setWireframeColor(wireframeColor);
                 } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
                     baseGlWidget->setWireframeColor(wireframeColor);
+                } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
+                    cgalGlWidget->setWireframeColor(wireframeColor);
                 }
             }
         });
@@ -114,6 +123,8 @@ namespace UIUtils {
                     modelGlWidget->setSurfaceColor(surfaceColor);
                 } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
                     baseGlWidget->setSurfaceColor(surfaceColor);
+                } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
+                    cgalGlWidget->setSurfaceColor(surfaceColor);
                 }
             }
         });
@@ -128,6 +139,8 @@ namespace UIUtils {
                 modelGlWidget->setSpecularEnabled(enabled);
             } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
                 baseGlWidget->setSpecularEnabled(enabled);
+            } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
+                cgalGlWidget->setSpecularEnabled(enabled);
             }
         });
         layout->addWidget(specularCheckbox);
@@ -142,6 +155,8 @@ namespace UIUtils {
                 modelGlWidget->setShowAxis(show);
             } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
                 baseGlWidget->setShowAxis(show);
+            } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
+                cgalGlWidget->setShowAxis(show);
             }
         });
         layout->addWidget(axisCheckbox);
@@ -190,11 +205,13 @@ int main(int argc, char *argv[])
     // 创建OpenGL窗口
     ModelGLWidget *modelGlWidget = new ModelGLWidget;
     BaseGLWidget *basicGlWidget = new BaseGLWidget;
+    CGALGLWidget *cgalGlWidget = new CGALGLWidget; // 新增CGAL窗口
     
     // 创建标签页
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(createModelTab(modelGlWidget), "Model");
     tabWidget->addTab(createBasicTab(basicGlWidget), "Basic");
+    tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL"); // 新增CGAL标签页
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -202,6 +219,7 @@ int main(int argc, char *argv[])
     // 模型信息组
     QLabel *modelInfoLabel = nullptr;
     QLabel *basicInfoLabel = nullptr;
+    QLabel *cgalInfoLabel = nullptr; // 新增CGAL信息标签
     
     // 创建模型标签页的控制面板
     QWidget *modelControlPanel = new QWidget;
@@ -219,9 +237,18 @@ int main(int argc, char *argv[])
     basicControlLayout->addWidget(UIUtils::createModelInfoGroup(&basicInfoLabel));
     basicControlLayout->addWidget(createBasicControlPanel(basicGlWidget, basicInfoLabel, &mainWindow));
     
+    // 创建CGAL标签页的控制面板
+    QWidget *cgalControlPanel = new QWidget;
+    QVBoxLayout *cgalControlLayout = new QVBoxLayout(cgalControlPanel);
+    cgalControlLayout->setAlignment(Qt::AlignTop);
+    cgalControlLayout->addWidget(UIUtils::createColorSettingsGroup(cgalGlWidget));
+    cgalControlLayout->addWidget(UIUtils::createModelInfoGroup(&cgalInfoLabel));
+    cgalControlLayout->addWidget(createCGALControlPanel(cgalGlWidget, cgalInfoLabel, &mainWindow));
+    
     // 添加到堆栈
     controlStack->addWidget(modelControlPanel);
     controlStack->addWidget(basicControlPanel);
+    controlStack->addWidget(cgalControlPanel); // 添加CGAL控制面板
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {

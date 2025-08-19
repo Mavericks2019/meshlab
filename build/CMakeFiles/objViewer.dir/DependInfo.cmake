@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "objViewer_autogen/timestamp" "custom" "objViewer_autogen/deps"
   "/opt/meshoperator/glwidget/baseglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
+  "/opt/meshoperator/glwidget/cgalglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "/opt/meshoperator/glwidget/modelglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
   "/opt/meshoperator/main.cpp" "CMakeFiles/objViewer.dir/main.cpp.o" "gcc" "CMakeFiles/objViewer.dir/main.cpp.o.d"
   "/opt/meshoperator/build/objViewer_autogen/mocs_compilation.cpp" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o.d"
