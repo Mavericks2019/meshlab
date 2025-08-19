@@ -9,9 +9,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "objViewer_autogen/timestamp" "custom" "objViewer_autogen/deps"
-  "/opt/meshoperator/glwidget/glwidget_core.cpp" "CMakeFiles/objViewer.dir/glwidget/glwidget_core.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/glwidget_core.cpp.o.d"
-  "/opt/meshoperator/glwidget/glwidget_curvature.cpp" "CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.o.d"
-  "/opt/meshoperator/glwidget/glwidget_mesh_loader.cpp" "CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.o.d"
+  "/opt/meshoperator/glwidget/baseglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
+  "/opt/meshoperator/glwidget/modelglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
   "/opt/meshoperator/main.cpp" "CMakeFiles/objViewer.dir/main.cpp.o" "gcc" "CMakeFiles/objViewer.dir/main.cpp.o.d"
   "/opt/meshoperator/build/objViewer_autogen/mocs_compilation.cpp" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o.d"
   "/opt/meshoperator/build/qrc_shaders.cpp" "CMakeFiles/objViewer.dir/qrc_shaders.cpp.o" "gcc" "CMakeFiles/objViewer.dir/qrc_shaders.cpp.o.d"

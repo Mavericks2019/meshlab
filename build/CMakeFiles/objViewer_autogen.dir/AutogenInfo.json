@@ -88,9 +88,15 @@
 	"HEADERS" : 
 	[
 		[
-			"/opt/meshoperator/glwidget/glwidget.h",
+			"/opt/meshoperator/glwidget/baseglwidget.h",
 			"MU",
-			"KTNQVRIVIS/moc_glwidget.cpp",
+			"KTNQVRIVIS/moc_baseglwidget.cpp",
+			null
+		],
+		[
+			"/opt/meshoperator/glwidget/modelglwidget.h",
+			"MU",
+			"KTNQVRIVIS/moc_modelglwidget.cpp",
 			null
 		]
 	],
@@ -154,9 +160,8 @@
 	"SETTINGS_FILE" : "/opt/meshoperator/build/CMakeFiles/objViewer_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
-		[ "/opt/meshoperator/glwidget/glwidget_core.cpp", "MU", null ],
-		[ "/opt/meshoperator/glwidget/glwidget_curvature.cpp", "MU", null ],
-		[ "/opt/meshoperator/glwidget/glwidget_mesh_loader.cpp", "MU", null ],
+		[ "/opt/meshoperator/glwidget/baseglwidget.cpp", "MU", null ],
+		[ "/opt/meshoperator/glwidget/modelglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/main.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],

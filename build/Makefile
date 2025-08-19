@@ -200,77 +200,53 @@ objViewer_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer_autogen.dir/build.make CMakeFiles/objViewer_autogen.dir/build
 .PHONY : objViewer_autogen/fast
 
-glwidget/glwidget_core.o: glwidget/glwidget_core.cpp.o
-.PHONY : glwidget/glwidget_core.o
+glwidget/baseglwidget.o: glwidget/baseglwidget.cpp.o
+.PHONY : glwidget/baseglwidget.o
 
 # target to build an object file
-glwidget/glwidget_core.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_core.cpp.o
-.PHONY : glwidget/glwidget_core.cpp.o
+glwidget/baseglwidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o
+.PHONY : glwidget/baseglwidget.cpp.o
 
-glwidget/glwidget_core.i: glwidget/glwidget_core.cpp.i
-.PHONY : glwidget/glwidget_core.i
+glwidget/baseglwidget.i: glwidget/baseglwidget.cpp.i
+.PHONY : glwidget/baseglwidget.i
 
 # target to preprocess a source file
-glwidget/glwidget_core.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_core.cpp.i
-.PHONY : glwidget/glwidget_core.cpp.i
+glwidget/baseglwidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.i
+.PHONY : glwidget/baseglwidget.cpp.i
 
-glwidget/glwidget_core.s: glwidget/glwidget_core.cpp.s
-.PHONY : glwidget/glwidget_core.s
+glwidget/baseglwidget.s: glwidget/baseglwidget.cpp.s
+.PHONY : glwidget/baseglwidget.s
 
 # target to generate assembly for a file
-glwidget/glwidget_core.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_core.cpp.s
-.PHONY : glwidget/glwidget_core.cpp.s
+glwidget/baseglwidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.s
+.PHONY : glwidget/baseglwidget.cpp.s
 
-glwidget/glwidget_curvature.o: glwidget/glwidget_curvature.cpp.o
-.PHONY : glwidget/glwidget_curvature.o
+glwidget/modelglwidget.o: glwidget/modelglwidget.cpp.o
+.PHONY : glwidget/modelglwidget.o
 
 # target to build an object file
-glwidget/glwidget_curvature.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.o
-.PHONY : glwidget/glwidget_curvature.cpp.o
+glwidget/modelglwidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o
+.PHONY : glwidget/modelglwidget.cpp.o
 
-glwidget/glwidget_curvature.i: glwidget/glwidget_curvature.cpp.i
-.PHONY : glwidget/glwidget_curvature.i
-
-# target to preprocess a source file
-glwidget/glwidget_curvature.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.i
-.PHONY : glwidget/glwidget_curvature.cpp.i
-
-glwidget/glwidget_curvature.s: glwidget/glwidget_curvature.cpp.s
-.PHONY : glwidget/glwidget_curvature.s
-
-# target to generate assembly for a file
-glwidget/glwidget_curvature.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_curvature.cpp.s
-.PHONY : glwidget/glwidget_curvature.cpp.s
-
-glwidget/glwidget_mesh_loader.o: glwidget/glwidget_mesh_loader.cpp.o
-.PHONY : glwidget/glwidget_mesh_loader.o
-
-# target to build an object file
-glwidget/glwidget_mesh_loader.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.o
-.PHONY : glwidget/glwidget_mesh_loader.cpp.o
-
-glwidget/glwidget_mesh_loader.i: glwidget/glwidget_mesh_loader.cpp.i
-.PHONY : glwidget/glwidget_mesh_loader.i
+glwidget/modelglwidget.i: glwidget/modelglwidget.cpp.i
+.PHONY : glwidget/modelglwidget.i
 
 # target to preprocess a source file
-glwidget/glwidget_mesh_loader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.i
-.PHONY : glwidget/glwidget_mesh_loader.cpp.i
+glwidget/modelglwidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.i
+.PHONY : glwidget/modelglwidget.cpp.i
 
-glwidget/glwidget_mesh_loader.s: glwidget/glwidget_mesh_loader.cpp.s
-.PHONY : glwidget/glwidget_mesh_loader.s
+glwidget/modelglwidget.s: glwidget/modelglwidget.cpp.s
+.PHONY : glwidget/modelglwidget.s
 
 # target to generate assembly for a file
-glwidget/glwidget_mesh_loader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/glwidget_mesh_loader.cpp.s
-.PHONY : glwidget/glwidget_mesh_loader.cpp.s
+glwidget/modelglwidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.s
+.PHONY : glwidget/modelglwidget.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -359,15 +335,12 @@ help:
 	@echo "... objViewer_autogen"
 	@echo "... objViewer_autogen_timestamp_deps"
 	@echo "... objViewer"
-	@echo "... glwidget/glwidget_core.o"
-	@echo "... glwidget/glwidget_core.i"
-	@echo "... glwidget/glwidget_core.s"
-	@echo "... glwidget/glwidget_curvature.o"
-	@echo "... glwidget/glwidget_curvature.i"
-	@echo "... glwidget/glwidget_curvature.s"
-	@echo "... glwidget/glwidget_mesh_loader.o"
-	@echo "... glwidget/glwidget_mesh_loader.i"
-	@echo "... glwidget/glwidget_mesh_loader.s"
+	@echo "... glwidget/baseglwidget.o"
+	@echo "... glwidget/baseglwidget.i"
+	@echo "... glwidget/baseglwidget.s"
+	@echo "... glwidget/modelglwidget.o"
+	@echo "... glwidget/modelglwidget.i"
+	@echo "... glwidget/modelglwidget.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

@@ -4,10 +4,10 @@ objViewer_autogen/timestamp: \
 	/opt/meshoperator/build/CMakeFiles/3.28.3/CMakeCXXCompiler.cmake \
 	/opt/meshoperator/build/CMakeFiles/3.28.3/CMakeSystem.cmake \
 	/opt/meshoperator/build/objViewer_autogen/moc_predefs.h \
-	/opt/meshoperator/glwidget/glwidget.h \
-	/opt/meshoperator/glwidget/glwidget_core.cpp \
-	/opt/meshoperator/glwidget/glwidget_curvature.cpp \
-	/opt/meshoperator/glwidget/glwidget_mesh_loader.cpp \
+	/opt/meshoperator/glwidget/baseglwidget.cpp \
+	/opt/meshoperator/glwidget/baseglwidget.h \
+	/opt/meshoperator/glwidget/modelglwidget.cpp \
+	/opt/meshoperator/glwidget/modelglwidget.h \
 	/opt/meshoperator/main.cpp \
 	/opt/meshoperator/shaders.qrc \
 	/usr/include/GL/gl.h \

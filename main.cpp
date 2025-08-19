@@ -27,7 +27,7 @@ namespace UIUtils {
     }
 
     // 创建颜色设置组
-    QGroupBox* createColorSettingsGroup(GLWidget* glWidget) {
+    QGroupBox* createColorSettingsGroup(ModelGLWidget* glWidget) {
         QGroupBox *group = new QGroupBox("Color Settings");
         QVBoxLayout *layout = new QVBoxLayout(group);
         layout->setSpacing(10);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     mainLayout->setContentsMargins(10, 10, 10, 10);
     
     // 创建OpenGL窗口
-    GLWidget *glWidget = new GLWidget;
+    ModelGLWidget *glWidget = new ModelGLWidget;
     
     // 创建模型标签页
     QWidget *modelTab = createModelTab(glWidget);

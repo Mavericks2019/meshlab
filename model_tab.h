@@ -1,4 +1,4 @@
-#include "glwidget/glwidget.h"
+#include "glwidget/modelglwidget.h"
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -13,7 +13,7 @@
 #include <QCheckBox>
 
 // 创建模型标签页
-QWidget* createModelTab(GLWidget* glWidget) {
+QWidget* createModelTab(ModelGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
@@ -21,7 +21,7 @@ QWidget* createModelTab(GLWidget* glWidget) {
 }
 
 // 创建OBJ文件加载按钮
-QWidget* createModelLoadButton(GLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File");
     button->setStyleSheet(
         "QPushButton {"
@@ -48,7 +48,7 @@ QWidget* createModelLoadButton(GLWidget* glWidget, QLabel* infoLabel, QWidget* m
 }
 
 // 创建渲染模式选择组
-QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
+QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -65,22 +65,22 @@ QGroupBox* createRenderingModeGroup(GLWidget* glWidget) {
     layout->addWidget(maxRadio);
     
     // 连接渲染模式信号
-    auto connectMode = [glWidget](QRadioButton* radio, GLWidget::RenderMode mode) {
+    auto connectMode = [glWidget](QRadioButton* radio, ModelGLWidget::RenderMode mode) {
         QObject::connect(radio, &QRadioButton::clicked, [glWidget, mode]() {
             glWidget->setRenderMode(mode);
         });
     };
     
-    connectMode(solidRadio, GLWidget::BlinnPhong);
-    connectMode(gaussianRadio, GLWidget::GaussianCurvature);
-    connectMode(meanRadio, GLWidget::MeanCurvature);
-    connectMode(maxRadio, GLWidget::MaxCurvature);
+    connectMode(solidRadio, ModelGLWidget ::BlinnPhong);
+    connectMode(gaussianRadio, ModelGLWidget ::GaussianCurvature);
+    connectMode(meanRadio, ModelGLWidget ::MeanCurvature);
+    connectMode(maxRadio, ModelGLWidget ::MaxCurvature);
     
     return group;
 }
 
 // 创建显示选项组
-QGroupBox* createDisplayOptionsGroup(GLWidget* glWidget) {
+QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -102,7 +102,7 @@ QGroupBox* createDisplayOptionsGroup(GLWidget* glWidget) {
 }
 
 // 创建视图重置按钮
-QPushButton* createViewResetButton(GLWidget* glWidget) {
+QPushButton* createViewResetButton(ModelGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Reset View");
     button->setStyleSheet(
         "QPushButton {"
@@ -122,7 +122,7 @@ QPushButton* createViewResetButton(GLWidget* glWidget) {
 }
 
 // 创建自适应视图按钮
-QPushButton* createCenterViewButton(GLWidget* glWidget) {
+QPushButton* createCenterViewButton(ModelGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Center View");
     button->setStyleSheet(
         "QPushButton {"
@@ -142,7 +142,7 @@ QPushButton* createCenterViewButton(GLWidget* glWidget) {
 }
 
 // 创建模型控制面板
-QWidget* createModelControlPanel(GLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+QWidget* createModelControlPanel(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

@@ -1,4 +1,5 @@
-#include "glwidget.h"
+// baseglwidget.cpp
+#include "baseglwidget.h"
 #include <QFile>
 #include <QDebug>
 #include <QMouseEvent>
@@ -12,14 +13,14 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <QPainter>
 #include <QFont>
-#include <cfloat> // 用于FLT_MAX和FLT_MIN
+#include <cfloat>
 
-GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
+BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
     ebo(QOpenGLBuffer::IndexBuffer),
     faceEbo(QOpenGLBuffer::IndexBuffer),
-    axisVbo(QOpenGLBuffer::VertexBuffer), // 初始化坐标轴VBO
-    axisEbo(QOpenGLBuffer::IndexBuffer),  // 初始化坐标轴EBO
+    axisVbo(QOpenGLBuffer::VertexBuffer),
+    axisEbo(QOpenGLBuffer::IndexBuffer),
     showWireframeOverlay(false),
     hideFaces(false)
 {
@@ -28,7 +29,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     setFormat(format);
     
     setFocusPolicy(Qt::StrongFocus);
-    rotation = QQuaternion();  // 初始化旋转状态
+    rotation = QQuaternion();
     zoom = 1.0f;
     modelLoaded = false;
     isDragging = false;
@@ -36,71 +37,65 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent),
     currentRenderMode = BlinnPhong;
     wireframeColor = QVector4D(1.0f, 0.0f, 0.0f, 1.0f);
     
-    // 初始化模型中心和视图距离
     modelCenter = QVector3D(0, 0, 0);
     viewDistance = 5.0f;
-    viewScale = 1.0f; // 默认缩放因子为1.0
+    viewScale = 1.0f;
     
-    // 初始化初始视图状态
     initialRotation = QQuaternion();
     initialZoom = 1.0f;
     initialModelCenter = QVector3D(0, 0, 0);
     initialViewDistance = 5.0f;
     initialViewScale = 1.0f;
     
-    // 默认显示坐标轴
     showAxis = true;
 }
 
-// 新增：设置坐标轴显示状态
-void GLWidget::setShowAxis(bool show) {
+void BaseGLWidget::setShowAxis(bool show) {
     showAxis = show;
-    update(); // 触发重绘
+    update();
 }
 
-// 新增：设置视角缩放因子
-void GLWidget::setViewScale(float scale) {
+void BaseGLWidget::setViewScale(float scale) {
     viewScale = scale;
-    update(); // 触发重绘
+    update();
 }
 
-void GLWidget::setHideFaces(bool hide) {
+void BaseGLWidget::setHideFaces(bool hide) {
     hideFaces = hide;
     update();
 }
 
-void GLWidget::setShowWireframeOverlay(bool show) {
+void BaseGLWidget::setShowWireframeOverlay(bool show) {
     showWireframeOverlay = show;
     update();
 }
 
-void GLWidget::setWireframeColor(const QVector4D& color) {
+void BaseGLWidget::setWireframeColor(const QVector4D& color) {
     wireframeColor = color;
     update();
 }
 
-GLWidget::~GLWidget() {
+BaseGLWidget::~BaseGLWidget() {
     makeCurrent();
     vao.destroy();
     vbo.destroy();
     ebo.destroy();
     faceEbo.destroy();
-    axisVbo.destroy();  // 销毁坐标轴VBO
-    axisEbo.destroy();  // 销毁坐标轴EBO
+    axisVbo.destroy();
+    axisEbo.destroy();
     doneCurrent();
 }
 
-void GLWidget::resetView() {
-    // 使用保存的初始视图状态
-    rotation = initialRotation; // 重置旋转四元数
+void BaseGLWidget::resetView() {
+    rotation = initialRotation;
     zoom = initialZoom;
     modelCenter = initialModelCenter;
     viewDistance = initialViewDistance;
-    viewScale = initialViewScale; // 重置视角缩放因子
+    viewScale = initialViewScale;
     update();
 }
 
-void GLWidget::setBackgroundColor(const QColor& color) {
+void BaseGLWidget::setBackgroundColor(const QColor& color) {
     bgColor = color;
     makeCurrent();
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
@@ -108,18 +103,7 @@ void GLWidget::setBackgroundColor(const QColor& color) {
     update();
 }
 
-void GLWidget::setRenderMode(RenderMode mode) {
-    currentRenderMode = mode;
-    if (modelLoaded) {
-        calculateCurvatures();
-        makeCurrent();
-        initializeShaders();
-        doneCurrent();
-    }
-    update();
-}
-
-void GLWidget::initializeGL() {
+void BaseGLWidget::initializeGL() {
     initializeOpenGLFunctions();
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     glEnable(GL_DEPTH_TEST);
@@ -130,27 +114,24 @@ void GLWidget::initializeGL() {
     ebo.create();
     faceEbo.create();
     
-    // 初始化坐标轴缓冲区
     axisVbo.create();
     axisEbo.create();
     
-    // 坐标轴数据
     float axisVertices[] = {
-        // 位置              // 颜色
-        0.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // X轴起点 (红色)
-        2.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // X轴终点 - 长度从1.0f增加到2.0f
+        0.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
+        2.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
         
-        0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, // Y轴起点 (绿色)
-        0.0f, 2.0f, 0.0f,  0.0f, 1.0f, 0.0f, // Y轴终点 - 长度从1.0f增加到2.0f
+        0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
+        0.0f, 2.0f, 0.0f,  0.0f, 1.0f, 0.0f,
         
-        0.0f, 0.0f, 0.0f,  0.0f, 0.5f, 1.0f, // Z轴起点 (蓝色)
-        0.0f, 0.0f, 2.0f,  0.0f, 0.5f, 1.0f  // Z轴终点 - 长度从1.0f增加到2.0f
+        0.0f, 0.0f, 0.0f,  0.0f, 0.5f, 1.0f,
+        0.0f, 0.0f, 2.0f,  0.0f, 0.5f, 1.0f
     };
     
     unsigned int axisIndices[] = {
-        0, 1, // X轴
-        2, 3, // Y轴
-        4, 5  // Z轴
+        0, 1,
+        2, 3,
+        4, 5
     };
     
     axisVbo.bind();
@@ -159,7 +140,6 @@ void GLWidget::initializeGL() {
     axisEbo.bind();
     axisEbo.allocate(axisIndices, sizeof(axisIndices));
     
-    // 初始化坐标轴着色器
     axisProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/axis.vert");
     axisProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/axis.frag");
     axisProgram.link();
@@ -167,32 +147,24 @@ void GLWidget::initializeGL() {
     initializeShaders();
 }
 
-void GLWidget::initializeShaders() {
+void BaseGLWidget::initializeShaders() {
     wireframeProgram.removeAllShaders();
     blinnPhongProgram.removeAllShaders();
-    curvatureProgram.removeAllShaders();
 
-    // Wireframe shader
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/wireframe.vert");
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/wireframe.frag");
     wireframeProgram.link();
     
-    // Blinn-Phong shader
     blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/blinnphong.vert");
     blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/blinnphong.frag");
     blinnPhongProgram.link();
-    
-    // Curvature shader
-    curvatureProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/curvature.vert");
-    curvatureProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/curvature.frag");
-    curvatureProgram.link();
 
     if (modelLoaded) {
         updateBuffersFromOpenMesh();
     }
 }
 
-void GLWidget::updateBuffersFromOpenMesh() {
+void BaseGLWidget::updateBuffersFromOpenMesh() {
     if (openMesh.n_vertices() == 0) return;
     
     std::vector<float> vertices(openMesh.n_vertices() * 3);
@@ -225,7 +197,6 @@ void GLWidget::updateBuffersFromOpenMesh() {
     vbo.write(vertexSize, normals.data(), normalSize);
     vbo.write(vertexSize + normalSize, curvatures.data(), curvatureSize);
     
-    // Set up wireframe shader
     wireframeProgram.bind();
     int posLoc = wireframeProgram.attributeLocation("aPos");
     if (posLoc != -1) {
@@ -233,7 +204,6 @@ void GLWidget::updateBuffersFromOpenMesh() {
         wireframeProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
     }
     
-    // Set up Blinn-Phong shader
     blinnPhongProgram.bind();
     posLoc = blinnPhongProgram.attributeLocation("aPos");
     if (posLoc != -1) {
@@ -247,26 +217,6 @@ void GLWidget::updateBuffersFromOpenMesh() {
         blinnPhongProgram.setAttributeBuffer(normalLoc, GL_FLOAT, vertexSize, 3, 3 * sizeof(float));
     }
 
-    // Set up curvature shader
-    curvatureProgram.bind();
-    posLoc = curvatureProgram.attributeLocation("aPos");
-    if (posLoc != -1) {
-        curvatureProgram.enableAttributeArray(posLoc);
-        curvatureProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
-    }
-    
-    normalLoc = curvatureProgram.attributeLocation("aNormal");
-    if (normalLoc != -1) {
-        curvatureProgram.enableAttributeArray(normalLoc);
-        curvatureProgram.setAttributeBuffer(normalLoc, GL_FLOAT, vertexSize, 3, 3 * sizeof(float));
-    }
-    
-    int curvatureLoc = curvatureProgram.attributeLocation("aCurvature");
-    if (curvatureLoc != -1) {
-        curvatureProgram.enableAttributeArray(curvatureLoc);
-        curvatureProgram.setAttributeBuffer(curvatureLoc, GL_FLOAT, vertexSize + normalSize, 1, sizeof(float));
-    }
-
     ebo.bind();
     ebo.allocate(edges.data(), edges.size() * sizeof(unsigned int));
     
@@ -276,11 +226,11 @@ void GLWidget::updateBuffersFromOpenMesh() {
     vao.release();
 }
 
-void GLWidget::resizeGL(int w, int h) {
+void BaseGLWidget::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
 }
 
-void GLWidget::paintGL() {
+void BaseGLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (!modelLoaded || openMesh.n_vertices() == 0) {
@@ -289,16 +239,12 @@ void GLWidget::paintGL() {
 
     QMatrix4x4 model, view, projection;
     
-    // 模型变换：使用四元数旋转
-    model.rotate(rotation);  // 使用四元数旋转
+    model.rotate(rotation);
     model.scale(zoom);
     
-    // 视图变换：相机看向模型中心
-    // 应用视角缩放因子
     QVector3D eyePosition(0, 0, viewDistance * viewScale);
     view.lookAt(eyePosition, modelCenter, QVector3D(0, 1, 0));
     
-    // 投影变换
     projection.perspective(45.0f, width() / float(height()), 0.1f, 100.0f);
     
     QMatrix3x3 normalMatrix = model.normalMatrix();
@@ -309,15 +255,28 @@ void GLWidget::paintGL() {
     if (hideFaces) {
         drawWireframe(model, view, projection);
     } else {
-        switch (currentRenderMode) {
-        case GaussianCurvature:
-        case MeanCurvature:
-        case MaxCurvature:
-            drawCurvature(model, view, projection, normalMatrix);
-            break;
-        default:
-            drawBlinnPhong(model, view, projection, normalMatrix);
-            break;
+        // 基类只实现BlinnPhong渲染，曲率渲染在派生类中实现
+        if (currentRenderMode == BlinnPhong) {
+            blinnPhongProgram.bind();
+            vao.bind();
+            faceEbo.bind();
+            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            blinnPhongProgram.setUniformValue("model", model);
+            blinnPhongProgram.setUniformValue("view", view);
+            blinnPhongProgram.setUniformValue("projection", projection);
+            blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
+            blinnPhongProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
+            blinnPhongProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
+            blinnPhongProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
+            blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
+            blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);
+
+            glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+
+            faceEbo.release();
+            vao.release();
+            blinnPhongProgram.release();
         }
 
         if (showWireframeOverlay) {
@@ -325,7 +284,6 @@ void GLWidget::paintGL() {
         }
     }
     
-    // 绘制XYZ坐标轴
     if (showAxis) {
         drawXYZAxis(view, projection);
     }
@@ -334,7 +292,7 @@ void GLWidget::paintGL() {
     glPolygonMode(GL_BACK, oldPolygonMode[1]);
 }
 
-void GLWidget::keyPressEvent(QKeyEvent *event) {
+void BaseGLWidget::keyPressEvent(QKeyEvent *event) {
     switch (event->key()) {
     case Qt::Key_Left:
         rotation = QQuaternion::fromAxisAndAngle(0, 1, 0, 5) * rotation;
@@ -357,7 +315,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event) {
     case Qt::Key_R:
         resetView();
         break;
-    case Qt::Key_A: // 按A键切换坐标轴显示
+    case Qt::Key_A:
         showAxis = !showAxis;
         update();
         break;
@@ -367,7 +325,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event) {
     update();
 }
 
-void GLWidget::mousePressEvent(QMouseEvent *event) {
+void BaseGLWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         isDragging = true;
         lastMousePos = event->pos();
@@ -375,27 +333,24 @@ void GLWidget::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void GLWidget::mouseReleaseEvent(QMouseEvent *event) {
+void BaseGLWidget::mouseReleaseEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         isDragging = false;
         setCursor(Qt::ArrowCursor);
     }
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event) {
+void BaseGLWidget::mouseMoveEvent(QMouseEvent *event) {
     if (isDragging) {
         QPoint currentPos = event->pos();
         
-        // 轨迹球旋转实现
         QVector3D lastPos3D = projectToTrackball(lastMousePos);
         QVector3D currentPos3D = projectToTrackball(currentPos);
         
-        // 计算旋转轴和旋转角度（增加灵敏度系数）
         QVector3D axis = QVector3D::crossProduct(lastPos3D, currentPos3D).normalized();
         float angle = acos(qMin(1.0f, QVector3D::dotProduct(lastPos3D, currentPos3D))) 
-                    * 180.0f / M_PI * rotationSensitivity; // 乘以灵敏度系数
+                    * 180.0f / M_PI * rotationSensitivity;
         
-        // 创建旋转四元数并累积到当前旋转
         QQuaternion newRot = QQuaternion::fromAxisAndAngle(axis, angle);
         rotation = newRot * rotation;
         
@@ -404,20 +359,15 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event) {
     }
 }
 
-// 轨迹球投影函数
-QVector3D GLWidget::projectToTrackball(const QPoint& screenPos) {
-    // 将屏幕坐标映射到 [-1, 1] 范围
+QVector3D BaseGLWidget::projectToTrackball(const QPoint& screenPos) {
     float x = (2.0f * screenPos.x()) / width() - 1.0f;
     float y = 1.0f - (2.0f * screenPos.y()) / height();
     float z = 0.0f;
     
-    // 计算在轨迹球上的投影点
     float lengthSquared = x * x + y * y;
     if (lengthSquared <= 1.0f) {
-        // 在球体内
         z = sqrt(1.0f - lengthSquared);
     } else {
-        // 在球体外，归一化到球面上
         float length = sqrt(lengthSquared);
         x /= length;
         y /= length;
@@ -426,7 +376,7 @@ QVector3D GLWidget::projectToTrackball(const QPoint& screenPos) {
     return QVector3D(x, y, z);
 }
 
-void GLWidget::wheelEvent(QWheelEvent *event) {
+void BaseGLWidget::wheelEvent(QWheelEvent *event) {
     QPoint numDegrees = event->angleDelta() / 8;
     if (!numDegrees.isNull()) {
         float delta = numDegrees.y() > 0 ? 1.1f : 0.9f;
@@ -437,17 +387,17 @@ void GLWidget::wheelEvent(QWheelEvent *event) {
     event->accept();
 }
 
-void GLWidget::setSurfaceColor(const QVector3D& color) {
+void BaseGLWidget::setSurfaceColor(const QVector3D& color) {
     surfaceColor = color;
     update();
 }
 
-void GLWidget::setSpecularEnabled(bool enabled) {
+void BaseGLWidget::setSpecularEnabled(bool enabled) {
     specularEnabled = enabled;
     update();
 }
 
-void GLWidget::centerView() {
+void BaseGLWidget::centerView() {
     if (openMesh.n_vertices() == 0) return;
     
     Mesh::Point min, max;
@@ -461,16 +411,15 @@ void GLWidget::centerView() {
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
     
-    // 设置视图参数（与模型加载时相同的计算逻辑）
     modelCenter = QVector3D(center[0], center[1], center[2]);
-    viewDistance = 2.0f * maxSize; // 基础视图距离
+    viewDistance = 2.0f * maxSize;
     
-    rotation = QQuaternion(); // 重置旋转
+    rotation = QQuaternion();
     zoom = 1.0f;
     update();
 }
 
-void GLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
+void BaseGLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
     wireframeProgram.bind();
     vao.bind();
     ebo.bind();
@@ -488,52 +437,7 @@ void GLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, co
     wireframeProgram.release();
 }
 
-void GLWidget::drawCurvature(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix) {
-    curvatureProgram.bind();
-    vao.bind();
-    faceEbo.bind();
-    
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    curvatureProgram.setUniformValue("model", model);
-    curvatureProgram.setUniformValue("view", view);
-    curvatureProgram.setUniformValue("projection", projection);
-    curvatureProgram.setUniformValue("normalMatrix", normalMatrix);
-    curvatureProgram.setUniformValue("curvatureType", static_cast<int>(currentRenderMode));
-    
-    glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
-    
-    faceEbo.release();
-    vao.release();
-    curvatureProgram.release();
-}
-
-void GLWidget::drawBlinnPhong(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix) {
-    blinnPhongProgram.bind();
-    vao.bind();
-    faceEbo.bind();
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    blinnPhongProgram.setUniformValue("model", model);
-    blinnPhongProgram.setUniformValue("view", view);
-    blinnPhongProgram.setUniformValue("projection", projection);
-    blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
-    blinnPhongProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
-    
-    // 注意：这里也需要使用缩放后的眼位置
-    blinnPhongProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
-    
-    blinnPhongProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
-    blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
-    blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);
-
-    glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
-
-    faceEbo.release();
-    vao.release();
-    blinnPhongProgram.release();
-}
-
-void GLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
+void BaseGLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
     glEnable(GL_POLYGON_OFFSET_LINE);
     glPolygonOffset(-1.0, -1.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -556,22 +460,17 @@ void GLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& v
     glDisable(GL_POLYGON_OFFSET_LINE);
 }
 
-void GLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection) {
-    // 保存当前深度测试状态
+void BaseGLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection) {
     GLboolean depthTestEnabled;
     glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
     
-    // 暂时禁用深度测试，确保坐标轴始终可见
     glDisable(GL_DEPTH_TEST);
     
     axisProgram.bind();
     
-    // 设置模型矩阵 - 坐标轴位置在原点，大小固定
     QMatrix4x4 model;
     model.translate(modelCenter);
-    model.scale(0.8f); // 稍微增大缩放比例
-    
-    // 应用当前旋转
+    model.scale(0.8f);
     model.rotate(rotation);
     
     axisProgram.setUniformValue("model", model);
@@ -581,7 +480,6 @@ void GLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection)
     axisVbo.bind();
     axisEbo.bind();
     
-    // 设置顶点属性指针
     int posLoc = axisProgram.attributeLocation("aPos");
     axisProgram.enableAttributeArray(posLoc);
     axisProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 6 * sizeof(float));
@@ -590,19 +488,150 @@ void GLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection)
     axisProgram.enableAttributeArray(colorLoc);
     axisProgram.setAttributeBuffer(colorLoc, GL_FLOAT, 3 * sizeof(float), 3, 6 * sizeof(float));
     
-    // 绘制坐标轴 - 增加线宽
-    glLineWidth(3.0f); // 增加线宽到3.0f
+    glLineWidth(3.0f);
     glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
     
-    // 恢复之前的深度测试状态
     if (depthTestEnabled) {
         glEnable(GL_DEPTH_TEST);
     }
     
-    // 清理
     axisProgram.disableAttributeArray(posLoc);
     axisProgram.disableAttributeArray(colorLoc);
     axisEbo.release();
     axisVbo.release();
     axisProgram.release();
+}
+
+void BaseGLWidget::clearMeshData() {
+    openMesh.clear();
+    faces.clear();
+    edges.clear();
+    modelLoaded = false;
+}
+
+bool BaseGLWidget::loadOBJToOpenMesh(const QString &path) {
+    OpenMesh::IO::Options opt = OpenMesh::IO::Options::Default;
+    return OpenMesh::IO::read_mesh(openMesh, path.toStdString(), opt);
+}
+
+void BaseGLWidget::computeBoundingBox(Mesh::Point& min, Mesh::Point& max) {
+    if (openMesh.n_vertices() > 0) {
+        min = max = openMesh.point(*openMesh.vertices_begin());
+        for (auto vh : openMesh.vertices()) {
+            min.minimize(openMesh.point(vh));
+            max.maximize(openMesh.point(vh));
+        }
+    }
+}
+
+void BaseGLWidget::centerAndScaleMesh(const Mesh::Point& center, float maxSize) {
+    float scaleFactor = 2.0f / maxSize;
+    for (auto vh : openMesh.vertices()) {
+        Mesh::Point p = openMesh.point(vh);
+        p = (p - center) * scaleFactor;
+        openMesh.set_point(vh, p);
+    }
+}
+
+void BaseGLWidget::prepareFaceIndices() {
+    for (auto fh : openMesh.faces()) {
+        auto fv_it = openMesh.fv_ccwbegin(fh);
+        auto fv_end = openMesh.fv_ccwend(fh);
+        int vertexCount = openMesh.valence(fh);
+        
+        if (vertexCount < 3) continue;
+        
+        if (vertexCount == 3) {
+            faces.push_back((*fv_it).idx()); ++fv_it;
+            faces.push_back((*fv_it).idx()); ++fv_it;
+            faces.push_back((*fv_it).idx());
+        } else {
+            unsigned int centerIdx = (*fv_it).idx();
+            ++fv_it;
+            unsigned int prevIdx = (*fv_it).idx();
+            ++fv_it;
+            
+            for (int i = 2; i < vertexCount; i++) {
+                unsigned int currentIdx = (*fv_it).idx();
+                faces.push_back(centerIdx);
+                faces.push_back(prevIdx);
+                faces.push_back(currentIdx);
+                prevIdx = currentIdx;
+                ++fv_it;
+            }
+        }
+    }
+}
+
+void BaseGLWidget::prepareEdgeIndices() {
+    std::set<std::pair<unsigned int, unsigned int>> uniqueEdges;
+    for (auto heh : openMesh.halfedges()) {
+        if (openMesh.is_boundary(heh) || heh.idx() < openMesh.opposite_halfedge_handle(heh).idx()) {
+            unsigned int from = openMesh.from_vertex_handle(heh).idx();
+            unsigned int to = openMesh.to_vertex_handle(heh).idx();
+            
+            if (from > to) std::swap(from, to);
+            uniqueEdges.insert({from, to});
+        }
+    }
+    
+    for (const auto& edge : uniqueEdges) {
+        edges.push_back(edge.first);
+        edges.push_back(edge.second);
+    }
+}
+
+void BaseGLWidget::saveOriginalMesh() {
+    originalMesh = openMesh;
+    hasOriginalMesh = true;
+}
+
+void BaseGLWidget::loadOBJ(const QString &path) {
+    clearMeshData();
+    if (!loadOBJToOpenMesh(path)) {
+        qWarning() << "Failed to load mesh:" << path;
+        return;
+    }
+    
+    Mesh::Point min, max;
+    computeBoundingBox(min, max);
+    
+    Mesh::Point center = (min + max) * 0.5f;
+    Mesh::Point size = max - min;
+    float maxSize = std::max({size[0], size[1], size[2]});
+    
+    centerAndScaleMesh(center, maxSize);
+    
+    Mesh::Point min_norm, max_norm;
+    computeBoundingBox(min_norm, max_norm);
+    Mesh::Point center_norm = (min_norm + max_norm) * 0.5f;
+    Mesh::Point size_norm = max_norm - min_norm;
+    float maxSize_norm = std::max({size_norm[0], size_norm[1], size_norm[2]});
+
+    modelCenter = QVector3D(0, 0, 0);
+    viewDistance = 2.0f * maxSize_norm;
+    
+    initialRotation = QQuaternion();
+    initialZoom = 1.0f;
+    initialModelCenter = modelCenter;
+    initialViewDistance = viewDistance;
+    initialViewScale = viewScale;
+
+    openMesh.request_vertex_normals();
+    openMesh.request_face_normals();
+    openMesh.update_normals();
+    
+    prepareFaceIndices();
+    prepareEdgeIndices();
+    
+    saveOriginalMesh();
+    modelLoaded = true;
+    
+    makeCurrent();
+    initializeShaders();
+    doneCurrent();
+    
+    rotation = QQuaternion();
+    zoom = 1.0f;
+    update();
 }

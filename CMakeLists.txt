@@ -22,10 +22,10 @@ find_package(Eigen3 REQUIRED)
 # 添加可执行文件
 add_executable(${PROJECT_NAME}
     main.cpp
-    glwidget/glwidget_core.cpp
-    glwidget/glwidget_mesh_loader.cpp
-    glwidget/glwidget_curvature.cpp
-    glwidget/glwidget.h
+    glwidget/baseglwidget.h
+    glwidget/baseglwidget.cpp
+    glwidget/modelglwidget.cpp
+    glwidget/modelglwidget.h
     ${RESOURCE_FILES}
 )
 

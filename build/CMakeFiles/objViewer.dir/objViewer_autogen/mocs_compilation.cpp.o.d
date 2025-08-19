@@ -1,7 +1,7 @@
 CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/meshoperator/build/objViewer_autogen/mocs_compilation.cpp \
  /usr/include/stdc-predef.h \
- /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_glwidget.cpp \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_baseglwidget.cpp \
  /usr/include/c++/13/memory /usr/include/c++/13/bits/memoryfwd.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
@@ -116,7 +116,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/c++/13/backward/auto_ptr.h \
  /usr/include/c++/13/pstl/glue_memory_defs.h \
  /usr/include/c++/13/pstl/execution_defs.h \
- /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/glwidget.h \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtwidgetsglobal.h \
@@ -415,4 +415,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/local/include/OpenMesh/Core/Utils/vector_cast.hh \
  /usr/local/include/OpenMesh/Core/Mesh/TriMeshT_impl.hh \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QQuaternion \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qquaternion.h
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qquaternion.h \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_modelglwidget.cpp \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/modelglwidget.h \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h
