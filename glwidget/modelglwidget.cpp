@@ -70,6 +70,17 @@ void ModelGLWidget::updateBuffersFromOpenMesh() {
     vao.release();
 }
 
+void ModelGLWidget::loadOBJ(const QString &path) {
+    BaseGLWidget::loadOBJ(path); // 调用基类加载
+    if (modelLoaded) {
+        calculateCurvatures(); // 计算曲率
+        makeCurrent();
+        initializeShaders(); // 重新初始化着色器
+        doneCurrent();
+        update();
+    }
+}
+
 void ModelGLWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

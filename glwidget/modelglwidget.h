@@ -18,9 +18,10 @@ public:
     void calculateCurvatures();
     void drawCurvature(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection, const QMatrix3x3& normalMatrix);
 
-protected:
+public:
     void initializeShaders();
     void paintGL() override;
+    void loadOBJ(const QString &path);
 
 private:
     QOpenGLShaderProgram curvatureProgram;

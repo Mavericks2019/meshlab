@@ -26,6 +26,10 @@ add_executable(${PROJECT_NAME}
     glwidget/baseglwidget.cpp
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
+    # glwidget/glwidget_core.cpp
+    # glwidget/glwidget.h
+    # glwidget/glwidget_curvature.cpp
+    # glwidget/glwidget_mesh_loader.cpp
     ${RESOURCE_FILES}
 )
 
