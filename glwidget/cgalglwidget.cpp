@@ -15,6 +15,10 @@
 #include <cfloat>
 #include <fstream>
 #include <CGAL/IO/OBJ.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/measure.h>
+#include <CGAL/Polygon_mesh_processing/distance.h>
+#include <CGAL/Side_of_triangle_mesh.h>
 
 CGALGLWidget::CGALGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
@@ -148,6 +152,51 @@ void CGALGLWidget::initializeGL() {
     initializeShaders();
 }
 
+void CGALGLWidget::computeNormals() {
+    // 计算面法线
+    face_normals.clear();
+    face_normals.reserve(mesh.number_of_faces());
+    
+    for(auto face : mesh.faces()) {
+        // 获取面的顶点
+        std::vector<Point> points;
+        for(auto vertex : CGAL::vertices_around_face(mesh.halfedge(face), mesh)) {
+            points.push_back(mesh.point(vertex));
+        }
+        
+        // 计算面法线
+        if(points.size() >= 3) {
+            Vector v1 = points[1] - points[0];
+            Vector v2 = points[2] - points[0];
+            Vector normal = CGAL::cross_product(v1, v2);
+            normal = normal / std::sqrt(normal * normal); // 归一化
+            face_normals.push_back(normal);
+        } else {
+            face_normals.push_back(Vector(0, 0, 0));
+        }
+    }
+    
+    // 计算顶点法线（平均相邻面的法线）
+    vertex_normals.clear();
+    vertex_normals.resize(mesh.number_of_vertices(), Vector(0, 0, 0));
+    
+    int face_idx = 0;
+    for(auto face : mesh.faces()) {
+        for(auto vertex : CGAL::vertices_around_face(mesh.halfedge(face), mesh)) {
+            vertex_normals[vertex.idx()] = vertex_normals[vertex.idx()] + face_normals[face_idx];
+        }
+        face_idx++;
+    }
+    
+    // 归一化顶点法线
+    for(auto& normal : vertex_normals) {
+        double length = std::sqrt(normal * normal);
+        if(length > 0) {
+            normal = normal / length;
+        }
+    }
+}
+
 void CGALGLWidget::initializeShaders() {
     wireframeProgram.removeAllShaders();
     blinnPhongProgram.removeAllShaders();
@@ -178,10 +227,17 @@ void CGALGLWidget::updateBuffersFromCGALMesh() {
         vertices.push_back(p.y());
         vertices.push_back(p.z());
         
-        // 简单设置法线，实际应用中可能需要计算
-        normals.push_back(0.0f);
-        normals.push_back(1.0f);
-        normals.push_back(0.0f);
+        // 使用计算的法线
+        if(v.idx() < vertex_normals.size()) {
+            const Vector& n = vertex_normals[v.idx()];
+            normals.push_back(n.x());
+            normals.push_back(n.y());
+            normals.push_back(n.z());
+        } else {
+            normals.push_back(0.0f);
+            normals.push_back(1.0f);
+            normals.push_back(0.0f);
+        }
     }
     
     vao.bind();
@@ -501,6 +557,8 @@ void CGALGLWidget::clearMeshData() {
     mesh.clear();
     faces.clear();
     edges.clear();
+    vertex_normals.clear();
+    face_normals.clear();
     modelLoaded = false;
 }
 
@@ -624,6 +682,9 @@ void CGALGLWidget::loadOBJ(const QString &path) {
     initialViewDistance = viewDistance;
     initialViewScale = viewScale;
 
+    // 计算法线
+    computeNormals();
+    
     prepareFaceIndices();
     prepareEdgeIndices();
     

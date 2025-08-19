@@ -14,10 +14,20 @@
 #include <QQuaternion>
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/measure.h>
+#include <CGAL/Polygon_mesh_processing/distance.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_traits.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef Kernel::Point_3 Point;
+typedef Kernel::Vector_3 Vector;
 typedef CGAL::Surface_mesh<Point> CgalMesh;
+
+namespace PMP = CGAL::Polygon_mesh_processing;
 
 class CGALGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -55,6 +65,8 @@ public:
     
     std::vector<unsigned int> faces;
     std::vector<unsigned int> edges;
+    std::vector<Vector> vertex_normals;
+    std::vector<Vector> face_normals;
     
     QQuaternion rotation;
     float zoom;
@@ -90,6 +102,8 @@ protected:
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
+    
+    void computeNormals();
 
     // 初始视图状态
     QQuaternion initialRotation;
