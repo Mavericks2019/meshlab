@@ -7,6 +7,7 @@
 #include <QColorDialog>
 #include <QPalette>
 #include "model_tab.h"
+#include "basic_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -27,7 +28,7 @@ namespace UIUtils {
     }
 
     // 创建颜色设置组
-    QGroupBox* createColorSettingsGroup(ModelGLWidget* glWidget) {
+    QGroupBox* createColorSettingsGroup(QWidget* glWidget) {
         QGroupBox *group = new QGroupBox("Color Settings");
         QVBoxLayout *layout = new QVBoxLayout(group);
         layout->setSpacing(10);
@@ -48,7 +49,11 @@ namespace UIUtils {
         QObject::connect(bgColorButton, &QPushButton::clicked, [glWidget]() {
             QColor color = QColorDialog::getColor(Qt::black, nullptr, "Select Background Color");
             if (color.isValid()) {
-                glWidget->setBackgroundColor(color);
+                if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
+                    modelGlWidget->setBackgroundColor(color);
+                } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
+                    baseGlWidget->setBackgroundColor(color);
+                }
             }
         });
         layout->addWidget(bgColorButton);
@@ -69,12 +74,17 @@ namespace UIUtils {
         QObject::connect(lineColorButton, &QPushButton::clicked, [glWidget]() {
             QColor color = QColorDialog::getColor(Qt::red, nullptr, "Select Wireframe Color");
             if (color.isValid()) {
-                glWidget->setWireframeColor(QVector4D(
+                QVector4D wireframeColor(
                     color.redF(), 
                     color.greenF(), 
                     color.blueF(), 
                     1.0f
-                ));
+                );
+                if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
+                    modelGlWidget->setWireframeColor(wireframeColor);
+                } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
+                    baseGlWidget->setWireframeColor(wireframeColor);
+                }
             }
         });
         layout->addWidget(lineColorButton);
@@ -95,11 +105,16 @@ namespace UIUtils {
         QObject::connect(surfaceColorButton, &QPushButton::clicked, [glWidget]() {
             QColor color = QColorDialog::getColor(QColor(179, 179, 204), nullptr, "Select Surface Color");
             if (color.isValid()) {
-                glWidget->setSurfaceColor(QVector3D(
+                QVector3D surfaceColor(
                     color.redF(), 
                     color.greenF(), 
                     color.blueF()
-                ));
+                );
+                if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
+                    modelGlWidget->setSurfaceColor(surfaceColor);
+                } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
+                    baseGlWidget->setSurfaceColor(surfaceColor);
+                }
             }
         });
         layout->addWidget(surfaceColorButton);
@@ -108,16 +123,26 @@ namespace UIUtils {
         QCheckBox *specularCheckbox = new QCheckBox("Disable Specular Highlight");
         specularCheckbox->setStyleSheet("color: white;");
         QObject::connect(specularCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
-            glWidget->setSpecularEnabled(state != Qt::Checked);
+            bool enabled = state != Qt::Checked;
+            if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
+                modelGlWidget->setSpecularEnabled(enabled);
+            } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
+                baseGlWidget->setSpecularEnabled(enabled);
+            }
         });
         layout->addWidget(specularCheckbox);
         
-        // 新增：坐标轴显示控制复选框
+        // 坐标轴显示控制复选框
         QCheckBox *axisCheckbox = new QCheckBox("Show XYZ Axis");
         axisCheckbox->setStyleSheet("color: white;");
         axisCheckbox->setChecked(true); // 默认显示坐标轴
         QObject::connect(axisCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
-            glWidget->setShowAxis(state == Qt::Checked);
+            bool show = state == Qt::Checked;
+            if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
+                modelGlWidget->setShowAxis(show);
+            } else if (auto baseGlWidget = qobject_cast<BaseGLWidget*>(glWidget)) {
+                baseGlWidget->setShowAxis(show);
+            }
         });
         layout->addWidget(axisCheckbox);
         
@@ -163,30 +188,52 @@ int main(int argc, char *argv[])
     mainLayout->setContentsMargins(10, 10, 10, 10);
     
     // 创建OpenGL窗口
-    ModelGLWidget *glWidget = new ModelGLWidget;
+    ModelGLWidget *modelGlWidget = new ModelGLWidget;
+    BaseGLWidget *basicGlWidget = new BaseGLWidget;
     
-    // 创建模型标签页
-    QWidget *modelTab = createModelTab(glWidget);
+    // 创建标签页
+    QTabWidget *tabWidget = new QTabWidget;
+    tabWidget->addTab(createModelTab(modelGlWidget), "Model");
+    tabWidget->addTab(createBasicTab(basicGlWidget), "Basic");
     
-    // 创建右侧控制面板
-    QWidget *controlPanel = new QWidget;
-    QVBoxLayout *controlLayout = new QVBoxLayout(controlPanel);
-    controlLayout->setAlignment(Qt::AlignTop);
-    controlPanel->setFixedWidth(400);
-    
-    // 颜色设置组
-    controlLayout->addWidget(UIUtils::createColorSettingsGroup(glWidget));
+    // 创建右侧控制面板堆栈
+    QStackedWidget *controlStack = new QStackedWidget;
     
     // 模型信息组
     QLabel *modelInfoLabel = nullptr;
-    controlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
+    QLabel *basicInfoLabel = nullptr;
     
-    // 模型控制面板
-    controlLayout->addWidget(createModelControlPanel(glWidget, modelInfoLabel, &mainWindow));
+    // 创建模型标签页的控制面板
+    QWidget *modelControlPanel = new QWidget;
+    QVBoxLayout *modelControlLayout = new QVBoxLayout(modelControlPanel);
+    modelControlLayout->setAlignment(Qt::AlignTop);
+    modelControlLayout->addWidget(UIUtils::createColorSettingsGroup(modelGlWidget));
+    modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
+    modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, &mainWindow));
+    
+    // 创建基础标签页的控制面板
+    QWidget *basicControlPanel = new QWidget;
+    QVBoxLayout *basicControlLayout = new QVBoxLayout(basicControlPanel);
+    basicControlLayout->setAlignment(Qt::AlignTop);
+    basicControlLayout->addWidget(UIUtils::createColorSettingsGroup(basicGlWidget));
+    basicControlLayout->addWidget(UIUtils::createModelInfoGroup(&basicInfoLabel));
+    basicControlLayout->addWidget(createBasicControlPanel(basicGlWidget, basicInfoLabel, &mainWindow));
+    
+    // 添加到堆栈
+    controlStack->addWidget(modelControlPanel);
+    controlStack->addWidget(basicControlPanel);
+    
+    // 连接标签切换信号
+    QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
+        controlStack->setCurrentIndex(index);
+    });
+    
+    // 设置控制面板固定宽度
+    controlStack->setFixedWidth(400);
     
     // 添加控件到主布局
-    mainLayout->addWidget(modelTab, 8);
-    mainLayout->addWidget(controlPanel);
+    mainLayout->addWidget(tabWidget, 8);
+    mainLayout->addWidget(controlStack);
     
     // 设置主窗口
     mainWindow.setLayout(mainLayout);

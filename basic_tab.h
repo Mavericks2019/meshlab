@@ -1,7 +1,7 @@
-#ifndef MODEL_TAB_H
-#define MODEL_TAB_H
+#ifndef BASIC_TAB_H
+#define BASIC_TAB_H
 
-#include "glwidget/modelglwidget.h"
+#include "glwidget/baseglwidget.h"
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -14,17 +14,18 @@
 #include <QSlider>
 #include <QRadioButton>
 #include <QCheckBox>
+#include <QStackedWidget>
 
-// 创建模型标签页
-QWidget* createModelTab(ModelGLWidget* glWidget) {
+// 创建基础标签页
+QWidget* createBasicTab(BaseGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
     return tab;
 }
 
-// 创建OBJ文件加载按钮
-QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+// 创建OBJ文件加载按钮（基础版）
+QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File");
     button->setStyleSheet(
         "QPushButton {"
@@ -50,40 +51,27 @@ QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidg
     return button;
 }
 
-// 创建渲染模式选择组
-QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
+// 创建基础渲染模式选择组（只有Blinn-Phong）
+QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
     QRadioButton *solidRadio = new QRadioButton("Solid (Blinn-Phong)");
-    QRadioButton *gaussianRadio = new QRadioButton("Gaussian Curvature");
-    QRadioButton *meanRadio = new QRadioButton("Mean Curvature");
-    QRadioButton *maxRadio = new QRadioButton("Max Curvature");
-    
     solidRadio->setChecked(true);
     
     layout->addWidget(solidRadio);
-    layout->addWidget(gaussianRadio);
-    layout->addWidget(meanRadio);
-    layout->addWidget(maxRadio);
     
     // 连接渲染模式信号
-    auto connectMode = [glWidget](QRadioButton* radio, ModelGLWidget::RenderMode mode) {
-        QObject::connect(radio, &QRadioButton::clicked, [glWidget, mode]() {
-            glWidget->setRenderMode(mode);
-        });
-    };
-    
-    connectMode(solidRadio, ModelGLWidget::BlinnPhong);
-    connectMode(gaussianRadio, ModelGLWidget::GaussianCurvature);
-    connectMode(meanRadio, ModelGLWidget::MeanCurvature);
-    connectMode(maxRadio, ModelGLWidget::MaxCurvature);
+    QObject::connect(solidRadio, &QRadioButton::clicked, [glWidget]() {
+        glWidget->currentRenderMode = BaseGLWidget::BlinnPhong;
+        glWidget->update();
+    });
     
     return group;
 }
 
-// 创建显示选项组
-QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
+// 创建基础显示选项组
+QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -104,60 +92,54 @@ QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
     return group;
 }
 
-// 创建视图重置按钮
-QPushButton* createViewResetButton(ModelGLWidget* glWidget) {
-    QPushButton *button = new QPushButton("Reset View");
-    button->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #505050;"
-        "   color: white;"
-        "   border: none;"
-        "   padding: 10px 20px;"
-        "   font-size: 16px;"
-        "   border-radius: 5px;"
-        "}"
-        "QPushButton:hover { background-color: #606060; }"
-    );
-    QObject::connect(button, &QPushButton::clicked, [glWidget]() {
-        glWidget->resetView();
-    });
-    return button;
-}
-
-// 创建自适应视图按钮
-QPushButton* createCenterViewButton(ModelGLWidget* glWidget) {
-    QPushButton *button = new QPushButton("Center View");
-    button->setStyleSheet(
-        "QPushButton {"
-        "   background-color: #505050;"
-        "   color: white;"
-        "   border: none;"
-        "   padding: 10px 20px;"
-        "   font-size: 16px;"
-        "   border-radius: 5px;"
-        "}"
-        "QPushButton:hover { background-color: #606060; }"
-    );
-    QObject::connect(button, &QPushButton::clicked, [glWidget]() {
-        glWidget->centerView();
-    });
-    return button;
-}
-
-// 创建模型控制面板
-QWidget* createModelControlPanel(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+// 创建基础模型控制面板
+QWidget* createBasicControlPanel(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     
     // 添加控件组
-    layout->addWidget(createModelLoadButton(glWidget, infoLabel, mainWindow));
-    layout->addWidget(createRenderingModeGroup(glWidget));
-    layout->addWidget(createDisplayOptionsGroup(glWidget));
-    layout->addWidget(createViewResetButton(glWidget));
-    layout->addWidget(createCenterViewButton(glWidget));
+    layout->addWidget(createBasicModelLoadButton(glWidget, infoLabel, mainWindow));
+    layout->addWidget(createBasicRenderingModeGroup(glWidget));
+    layout->addWidget(createBasicDisplayOptionsGroup(glWidget));
+    
+    // 视图重置按钮
+    QPushButton *resetButton = new QPushButton("Reset View");
+    resetButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(resetButton, &QPushButton::clicked, [glWidget]() {
+        glWidget->resetView();
+    });
+    layout->addWidget(resetButton);
+    
+    // 自适应视图按钮
+    QPushButton *centerButton = new QPushButton("Center View");
+    centerButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(centerButton, &QPushButton::clicked, [glWidget]() {
+        glWidget->centerView();
+    });
+    layout->addWidget(centerButton);
     
     layout->addStretch();
     return panel;
 }
 
-#endif // MODEL_TAB_H
+#endif // BASIC_TAB_H
