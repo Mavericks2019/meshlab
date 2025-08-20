@@ -80,6 +80,8 @@ qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/texture.vert
 qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/texture.frag
 qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/axis.vert
 qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/axis.frag
+qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/flat.vert
+qrc_shaders.cpp: /opt/meshoperator/glwidget/shaders/flat.frag
 qrc_shaders.cpp: shaders.qrc.depends
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/meshoperator/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating qrc_shaders.cpp"
 	/usr/lib/qt5/bin/rcc --name shaders --output /opt/meshoperator/build/qrc_shaders.cpp /opt/meshoperator/shaders.qrc

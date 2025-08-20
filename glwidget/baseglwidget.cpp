@@ -150,6 +150,7 @@ void BaseGLWidget::initializeGL() {
 void BaseGLWidget::initializeShaders() {
     wireframeProgram.removeAllShaders();
     blinnPhongProgram.removeAllShaders();
+    flatProgram.removeAllShaders();  // 确保清除旧的着色器
 
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/wireframe.vert");
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/wireframe.frag");
@@ -158,6 +159,11 @@ void BaseGLWidget::initializeShaders() {
     blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/blinnphong.vert");
     blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/blinnphong.frag");
     blinnPhongProgram.link();
+    
+    // 添加Flat Shading着色器
+    flatProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/flat.vert");
+    flatProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/flat.frag");
+    flatProgram.link();
 
     if (modelLoaded) {
         updateBuffersFromOpenMesh();
@@ -277,6 +283,28 @@ void BaseGLWidget::paintGL() {
             faceEbo.release();
             vao.release();
             blinnPhongProgram.release();
+        } else if (currentRenderMode == FlatShading) {
+            // Flat Shading渲染
+            flatProgram.bind();
+            vao.bind();
+            faceEbo.bind();
+            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            flatProgram.setUniformValue("model", model);
+            flatProgram.setUniformValue("view", view);
+            flatProgram.setUniformValue("projection", projection);
+            flatProgram.setUniformValue("normalMatrix", normalMatrix);
+            flatProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
+            flatProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
+            flatProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
+            flatProgram.setUniformValue("objectColor", surfaceColor);
+            flatProgram.setUniformValue("specularEnabled", specularEnabled);
+
+            glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+
+            faceEbo.release();
+            vao.release();
+            flatProgram.release();
         }
 
         if (showWireframeOverlay) {

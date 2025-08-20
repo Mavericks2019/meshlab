@@ -11,5 +11,7 @@
     <file>glwidget/shaders/texture.frag</file>
     <file>glwidget/shaders/axis.vert</file>
     <file>glwidget/shaders/axis.frag</file>
+    <file>glwidget/shaders/flat.vert</file>
+    <file>glwidget/shaders/flat.frag</file>
 </qresource>
 </RCC>

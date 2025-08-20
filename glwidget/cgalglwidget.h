@@ -38,7 +38,11 @@ public:
     virtual ~CGALGLWidget();
 
     enum RenderMode { 
-        BlinnPhong
+        BlinnPhong,
+        FlatShading,  // 添加Flat Shading模式
+        GaussianCurvature,
+        MeanCurvature,
+        MaxCurvature
     };
 
     void setBackgroundColor(const QColor& color);
@@ -125,6 +129,7 @@ protected:
 
     QOpenGLShaderProgram wireframeProgram;
     QOpenGLShaderProgram blinnPhongProgram;
+    QOpenGLShaderProgram flatProgram;
 
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;

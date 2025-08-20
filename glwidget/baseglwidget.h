@@ -35,6 +35,7 @@ public:
 
     enum RenderMode { 
         BlinnPhong,
+        FlatShading,  // 添加Flat Shading模式
         GaussianCurvature,
         MeanCurvature,
         MaxCurvature
@@ -121,6 +122,7 @@ protected:
 
     QOpenGLShaderProgram wireframeProgram;
     QOpenGLShaderProgram blinnPhongProgram;
+    QOpenGLShaderProgram flatProgram;
 
     QOpenGLVertexArrayObject vao;
     QOpenGLBuffer vbo;

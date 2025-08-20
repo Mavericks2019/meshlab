@@ -52,11 +52,20 @@ QGroupBox* createCGALRenderingModeGroup(CGALGLWidget* glWidget) {
     QRadioButton *solidRadio = new QRadioButton("Solid (Blinn-Phong)");
     solidRadio->setChecked(true);
     
+    // 添加Flat Shading单选按钮
+    QRadioButton *flatRadio = new QRadioButton("Flat Shading");
+    
     layout->addWidget(solidRadio);
+    layout->addWidget(flatRadio);
     
     // 连接渲染模式信号
     QObject::connect(solidRadio, &QRadioButton::clicked, [glWidget]() {
         glWidget->currentRenderMode = CGALGLWidget::BlinnPhong;
+        glWidget->update();
+    });
+    
+    QObject::connect(flatRadio, &QRadioButton::clicked, [glWidget]() {
+        glWidget->currentRenderMode = CGALGLWidget::FlatShading;
         glWidget->update();
     });
     
