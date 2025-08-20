@@ -1,3 +1,4 @@
+// basic_tab.h
 #ifndef BASIC_TAB_H
 #define BASIC_TAB_H
 
@@ -16,7 +17,7 @@
 #include <QCheckBox>
 #include <QStackedWidget>
 
-// 创建基础标签页
+// 创建OpenMesh标签页
 QWidget* createBasicTab(BaseGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
@@ -24,9 +25,9 @@ QWidget* createBasicTab(BaseGLWidget* glWidget) {
     return tab;
 }
 
-// 创建OBJ文件加载按钮（基础版）
+// 创建OBJ文件加载按钮（OpenMesh版）
 QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
-    QPushButton *button = new QPushButton("Load OBJ File");
+    QPushButton *button = new QPushButton("Load OBJ File (OpenMesh)");
     button->setStyleSheet(
         "QPushButton {"
         "   background-color: #505050;"
@@ -44,23 +45,24 @@ QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, Q
         
         if (!filePath.isEmpty()) {
             glWidget->loadOBJ(filePath);
-            infoLabel->setText("Model loaded: " + QFileInfo(filePath).fileName());
-            mainWindow->setWindowTitle("OBJ Viewer - " + QFileInfo(filePath).fileName());
+            infoLabel->setText("Model loaded (OpenMesh): " + QFileInfo(filePath).fileName());
+            mainWindow->setWindowTitle("OBJ Viewer - " + QFileInfo(filePath).fileName() + " (OpenMesh)");
         }
     });
     return button;
 }
 
-// 创建基础渲染模式选择组（只有Blinn-Phong）
+// 创建OpenMesh渲染模式选择组
 QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
     QRadioButton *solidRadio = new QRadioButton("Solid (Blinn-Phong)");
-    solidRadio->setChecked(true);
+    solidRadio->setChecked(false); // 修改为不选中
     
     // 添加Flat Shading单选按钮
     QRadioButton *flatRadio = new QRadioButton("Flat Shading");
+    flatRadio->setChecked(true); // 修改为选中
     
     layout->addWidget(solidRadio);
     layout->addWidget(flatRadio);
@@ -79,13 +81,14 @@ QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
     return group;
 }
 
-// 创建基础显示选项组
+// 创建OpenMesh显示选项组
 QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
     QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe Overlay");
     wireframeCheckbox->setStyleSheet("color: white;");
+    wireframeCheckbox->setChecked(true); // 默认选中
     QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
         glWidget->setShowWireframeOverlay(state == Qt::Checked);
     });
@@ -101,7 +104,7 @@ QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
     return group;
 }
 
-// 创建基础模型控制面板
+// 创建OpenMesh模型控制面板
 QWidget* createBasicControlPanel(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);

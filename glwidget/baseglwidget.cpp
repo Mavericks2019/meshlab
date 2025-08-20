@@ -21,7 +21,7 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     faceEbo(QOpenGLBuffer::IndexBuffer),
     axisVbo(QOpenGLBuffer::VertexBuffer),
     axisEbo(QOpenGLBuffer::IndexBuffer),
-    showWireframeOverlay(false),
+    showWireframeOverlay(true),  // 修改为true，默认显示线框
     hideFaces(false)
 {
     QSurfaceFormat format;
@@ -33,10 +33,10 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     zoom = 1.0f;
     modelLoaded = false;
     isDragging = false;
-    bgColor = QColor(0, 0, 0);
-    currentRenderMode = BlinnPhong;
-    // 修改线框颜色为深蓝色 (0.0, 0.0, 0.25)
-    wireframeColor = QVector4D(0.0f, 0.0f, 0.25f, 1.0f);
+    bgColor = QColor(0, 0, 50);  // 修改为深蓝色
+    currentRenderMode = FlatShading;  // 修改为FlatShading
+    // 修改线框颜色为红色 (1.0, 0.0, 0.0)
+    wireframeColor = QVector4D(1.0f, 0.0f, 0.0f, 1.0f);
     // 修改表面颜色为米白色 (0.88, 0.84, 0.76)
     surfaceColor = QVector3D(0.88f, 0.84f, 0.76f);
     
@@ -50,7 +50,8 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     initialViewDistance = 5.0f;
     initialViewScale = 1.0f;
     
-    showAxis = true;
+    showAxis = false;  // 修改为false，默认不显示坐标轴
+    specularEnabled = false;  // 添加这行，默认不显示高光
 }
 
 void BaseGLWidget::setShowAxis(bool show) {

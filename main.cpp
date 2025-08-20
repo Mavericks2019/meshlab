@@ -133,6 +133,7 @@ namespace UIUtils {
         // 高光控制复选框
         QCheckBox *specularCheckbox = new QCheckBox("Disable Specular Highlight");
         specularCheckbox->setStyleSheet("color: white;");
+        specularCheckbox->setChecked(true);  // 默认选中，表示禁用高光
         QObject::connect(specularCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
             bool enabled = state != Qt::Checked;
             if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
@@ -148,7 +149,7 @@ namespace UIUtils {
         // 坐标轴显示控制复选框
         QCheckBox *axisCheckbox = new QCheckBox("Show XYZ Axis");
         axisCheckbox->setStyleSheet("color: white;");
-        axisCheckbox->setChecked(true); // 默认显示坐标轴
+        axisCheckbox->setChecked(false);  // 默认不选中，表示不显示坐标轴
         QObject::connect(axisCheckbox, &QCheckBox::stateChanged, [glWidget](int state) {
             bool show = state == Qt::Checked;
             if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
@@ -205,13 +206,13 @@ int main(int argc, char *argv[])
     // 创建OpenGL窗口
     ModelGLWidget *modelGlWidget = new ModelGLWidget;
     BaseGLWidget *basicGlWidget = new BaseGLWidget;
-    CGALGLWidget *cgalGlWidget = new CGALGLWidget; // 新增CGAL窗口
+    CGALGLWidget *cgalGlWidget = new CGALGLWidget;
     
-    // 创建标签页
+    // 创建标签页 - 调整顺序
     QTabWidget *tabWidget = new QTabWidget;
-    tabWidget->addTab(createModelTab(modelGlWidget), "Model");
-    tabWidget->addTab(createBasicTab(basicGlWidget), "Basic");
-    tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL"); // 新增CGAL标签页
+    tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh"); // 修改标签名为OpenMesh
+    tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL");
+    tabWidget->addTab(createModelTab(modelGlWidget), "Model"); // Model视图移到第三位
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -219,17 +220,9 @@ int main(int argc, char *argv[])
     // 模型信息组
     QLabel *modelInfoLabel = nullptr;
     QLabel *basicInfoLabel = nullptr;
-    QLabel *cgalInfoLabel = nullptr; // 新增CGAL信息标签
+    QLabel *cgalInfoLabel = nullptr;
     
-    // 创建模型标签页的控制面板
-    QWidget *modelControlPanel = new QWidget;
-    QVBoxLayout *modelControlLayout = new QVBoxLayout(modelControlPanel);
-    modelControlLayout->setAlignment(Qt::AlignTop);
-    modelControlLayout->addWidget(UIUtils::createColorSettingsGroup(modelGlWidget));
-    modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
-    modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, &mainWindow));
-    
-    // 创建基础标签页的控制面板
+    // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
     QVBoxLayout *basicControlLayout = new QVBoxLayout(basicControlPanel);
     basicControlLayout->setAlignment(Qt::AlignTop);
@@ -245,10 +238,18 @@ int main(int argc, char *argv[])
     cgalControlLayout->addWidget(UIUtils::createModelInfoGroup(&cgalInfoLabel));
     cgalControlLayout->addWidget(createCGALControlPanel(cgalGlWidget, cgalInfoLabel, &mainWindow));
     
-    // 添加到堆栈
-    controlStack->addWidget(modelControlPanel);
-    controlStack->addWidget(basicControlPanel);
-    controlStack->addWidget(cgalControlPanel); // 添加CGAL控制面板
+    // 创建模型标签页的控制面板
+    QWidget *modelControlPanel = new QWidget;
+    QVBoxLayout *modelControlLayout = new QVBoxLayout(modelControlPanel);
+    modelControlLayout->setAlignment(Qt::AlignTop);
+    modelControlLayout->addWidget(UIUtils::createColorSettingsGroup(modelGlWidget));
+    modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
+    modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, &mainWindow));
+    
+    // 添加到堆栈 - 调整顺序以匹配标签页顺序
+    controlStack->addWidget(basicControlPanel);   // OpenMesh
+    controlStack->addWidget(cgalControlPanel);    // CGAL
+    controlStack->addWidget(modelControlPanel);   // Model
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
