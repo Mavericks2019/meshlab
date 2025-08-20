@@ -2639,7 +2639,8 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/CGAL/Converting_construction.h \
  /usr/include/CGAL/Cartesian/Is_trivial_construction.h \
  /usr/include/CGAL/Triangulation_structural_filtering_traits.h \
- /opt/meshoperator/model_tab.h \
+ /opt/meshoperator/tabs/model_tab.h \
+ /opt/meshoperator/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qfiledialog.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qdir.h \
@@ -2665,7 +2666,9 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qradiobutton.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QCheckBox \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcheckbox.h \
- /opt/meshoperator/basic_tab.h \
+ /opt/meshoperator/tabs/basic_tab.h \
+ /opt/meshoperator/tabs/../glwidget/baseglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStackedWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstackedwidget.h \
- /opt/meshoperator/cgal_tab.h
+ /opt/meshoperator/tabs/cgal_tab.h \
+ /opt/meshoperator/tabs/../glwidget/cgalglwidget.h

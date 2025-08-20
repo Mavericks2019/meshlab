@@ -10,9 +10,9 @@
 #include "glwidget/modelglwidget.h"
 #include "glwidget/baseglwidget.h"
 #include "glwidget/cgalglwidget.h"
-#include "model_tab.h"
-#include "basic_tab.h"
-#include "cgal_tab.h"
+#include "tabs/model_tab.h"
+#include "tabs/basic_tab.h"
+#include "tabs/cgal_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
