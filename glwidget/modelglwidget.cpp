@@ -1,4 +1,3 @@
-// modelglwidget.cpp
 #include "modelglwidget.h"
 #include <cmath>
 #include <algorithm>
@@ -77,7 +76,6 @@ void ModelGLWidget::loadOBJ(const QString &path) {
         makeCurrent();
         initializeShaders(); // 重新初始化着色器
         doneCurrent();
-        update();
     }
 }
 
@@ -103,6 +101,18 @@ void ModelGLWidget::paintGL() {
     GLint oldPolygonMode[2];
     glGetIntegerv(GL_POLYGON_MODE, oldPolygonMode);
 
+    // 定义三个光源的位置和颜色
+    QVector3D lightPositions[3] = {
+        QVector3D(10.0f, 10.0f, -10.0f),
+        QVector3D(-10.0f, 10.0f, -10.0f),
+        QVector3D(0.0f, 0.0f, 10.0f)
+    };
+    QVector3D lightColors[3] = {
+        QVector3D(1.0f, 1.0f, 1.0f),
+        QVector3D(1.0f, 1.0f, 1.0f),
+        QVector3D(1.0f, 1.0f, 1.0f)
+    };
+
     if (hideFaces) {
         drawWireframe(model, view, projection);
     } else {
@@ -123,9 +133,14 @@ void ModelGLWidget::paintGL() {
             flatProgram.setUniformValue("view", view);
             flatProgram.setUniformValue("projection", projection);
             flatProgram.setUniformValue("normalMatrix", normalMatrix);
-            flatProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
+            
+            // 设置三个光源的位置和颜色
+            for (int i = 0; i < 3; i++) {
+                flatProgram.setUniformValue(QString("lightPositions[%1]").arg(i).toStdString().c_str(), lightPositions[i]);
+                flatProgram.setUniformValue(QString("lightColors[%1]").arg(i).toStdString().c_str(), lightColors[i]);
+            }
+            
             flatProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
-            flatProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
             flatProgram.setUniformValue("objectColor", surfaceColor);
             flatProgram.setUniformValue("specularEnabled", specularEnabled);
 
@@ -146,9 +161,14 @@ void ModelGLWidget::paintGL() {
             blinnPhongProgram.setUniformValue("view", view);
             blinnPhongProgram.setUniformValue("projection", projection);
             blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
-            blinnPhongProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
+            
+            // 设置三个光源的位置和颜色
+            for (int i = 0; i < 3; i++) {
+                blinnPhongProgram.setUniformValue(QString("lightPositions[%1]").arg(i).toStdString().c_str(), lightPositions[i]);
+                blinnPhongProgram.setUniformValue(QString("lightColors[%1]").arg(i).toStdString().c_str(), lightColors[i]);
+            }
+            
             blinnPhongProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
-            blinnPhongProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
             blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
             blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);
 
