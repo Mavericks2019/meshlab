@@ -112,6 +112,29 @@ void ModelGLWidget::paintGL() {
         case MaxCurvature:
             drawCurvature(model, view, projection, normalMatrix);
             break;
+        case FlatShading:
+            // Flat Shading渲染
+            flatProgram.bind();
+            vao.bind();
+            faceEbo.bind();
+            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            flatProgram.setUniformValue("model", model);
+            flatProgram.setUniformValue("view", view);
+            flatProgram.setUniformValue("projection", projection);
+            flatProgram.setUniformValue("normalMatrix", normalMatrix);
+            flatProgram.setUniformValue("lightPos", QVector3D(2.0f, 2.0f, 2.0f));
+            flatProgram.setUniformValue("viewPos", QVector3D(0, 0, viewDistance * viewScale));
+            flatProgram.setUniformValue("lightColor", QVector3D(1.0f, 1.0f, 1.0f));
+            flatProgram.setUniformValue("objectColor", surfaceColor);
+            flatProgram.setUniformValue("specularEnabled", specularEnabled);
+
+            glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+
+            faceEbo.release();
+            vao.release();
+            flatProgram.release();
+            break;
         default:
             // 调用基类的BlinnPhong渲染
             blinnPhongProgram.bind();

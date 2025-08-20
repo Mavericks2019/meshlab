@@ -56,6 +56,7 @@ QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
     QVBoxLayout *layout = new QVBoxLayout(group);
     
     QRadioButton *solidRadio = new QRadioButton("Solid (Blinn-Phong)");
+    QRadioButton *flatRadio = new QRadioButton("Flat Shading"); // 添加Flat Shading
     QRadioButton *gaussianRadio = new QRadioButton("Gaussian Curvature");
     QRadioButton *meanRadio = new QRadioButton("Mean Curvature");
     QRadioButton *maxRadio = new QRadioButton("Max Curvature");
@@ -63,6 +64,7 @@ QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
     solidRadio->setChecked(true);
     
     layout->addWidget(solidRadio);
+    layout->addWidget(flatRadio); // 添加Flat Shading
     layout->addWidget(gaussianRadio);
     layout->addWidget(meanRadio);
     layout->addWidget(maxRadio);
@@ -75,6 +77,7 @@ QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
     };
     
     connectMode(solidRadio, ModelGLWidget::BlinnPhong);
+    connectMode(flatRadio, ModelGLWidget::FlatShading); // 连接Flat Shading
     connectMode(gaussianRadio, ModelGLWidget::GaussianCurvature);
     connectMode(meanRadio, ModelGLWidget::MeanCurvature);
     connectMode(maxRadio, ModelGLWidget::MaxCurvature);

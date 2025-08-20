@@ -35,7 +35,10 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     isDragging = false;
     bgColor = QColor(0, 0, 0);
     currentRenderMode = BlinnPhong;
-    wireframeColor = QVector4D(1.0f, 0.0f, 0.0f, 1.0f);
+    // 修改线框颜色为深蓝色 (0.0, 0.0, 0.25)
+    wireframeColor = QVector4D(0.0f, 0.0f, 0.25f, 1.0f);
+    // 修改表面颜色为米白色 (0.88, 0.84, 0.76)
+    surfaceColor = QVector3D(0.88f, 0.84f, 0.76f);
     
     modelCenter = QVector3D(0, 0, 0);
     viewDistance = 5.0f;
