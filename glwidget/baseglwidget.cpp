@@ -33,7 +33,7 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     zoom = 1.0f;
     modelLoaded = false;
     isDragging = false;
-    bgColor = QColor(0, 0, 50);  // 修改为深蓝色
+    bgColor = QColor(0, 85, 127);  // 修改为深蓝色
     currentRenderMode = FlatShading;  // 修改为FlatShading
     // 修改线框颜色为红色 (1.0, 0.0, 0.0)
     wireframeColor = QVector4D(1.0f, 0.0f, 0.0f, 1.0f);

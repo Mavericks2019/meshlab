@@ -54,7 +54,7 @@ namespace UIUtils {
             "QPushButton:hover { background-color: #606060; }"
         );
         QObject::connect(bgColorButton, &QPushButton::clicked, [glWidget]() {
-            QColor color = QColorDialog::getColor(Qt::black, nullptr, "Select Background Color");
+            QColor color = QColorDialog::getColor(QColor(0, 85, 127), nullptr, "Select Background Color");
             if (color.isValid()) {
                 if (auto modelGlWidget = qobject_cast<ModelGLWidget*>(glWidget)) {
                     modelGlWidget->setBackgroundColor(color);
