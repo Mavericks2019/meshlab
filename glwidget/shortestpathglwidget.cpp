@@ -116,11 +116,15 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
 {
     makeCurrent();
     
+    // 保存当前的清除颜色
+    GLfloat oldClearColor[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, oldClearColor);
+    
     // 绑定拾取FBO
     pickingFBO->bind();
     glViewport(0, 0, width(), height());
     
-    // 清除缓冲区
+    // 使用黑色背景进行清除
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -159,6 +163,10 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     // 恢复默认FBO和视口
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glViewport(0, 0, width(), height());
+    
+    // 恢复清除颜色到BaseGLWidget中设置的值
+    QColor bgColor = this->bgColor; // 从基类获取背景颜色
+    glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     
     // 如果读取的ID有效且不超过顶点数量，则返回
     if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {
