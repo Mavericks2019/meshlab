@@ -115,7 +115,6 @@ void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
 {
     makeCurrent();
-    
     // 保存当前的清除颜色
     GLfloat oldClearColor[4];
     glGetFloatv(GL_COLOR_CLEAR_VALUE, oldClearColor);
@@ -155,7 +154,6 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     
     // 将颜色转换回顶点ID
     int vertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
-    
     vao.release();
     pickingProgram.release();
     pickingFBO->release();
@@ -191,4 +189,26 @@ void ShortestPathGLWidget::calculateShortestPath()
         pathVertices = selectedVertices;
     }
     update();
+}
+
+// 新增方法：保存拾取FBO中的图像
+void ShortestPathGLWidget::savePickingImage(const QString& filename)
+{
+    makeCurrent();
+    
+    // 绑定拾取FBO
+    pickingFBO->bind();
+    
+    // 读取FBO中的图像数据
+    QImage image = pickingFBO->toImage();
+    
+    // 释放FBO
+    pickingFBO->release();
+    
+    // 保存图像到文件
+    if (!image.save(filename)) {
+        qDebug() << "Failed to save picking image to" << filename;
+    } else {
+        qDebug() << "Picking image saved to" << filename;
+    }
 }

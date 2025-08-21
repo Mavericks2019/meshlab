@@ -20,6 +20,7 @@ public:
 
     void clearSelectedPoints();
     void calculateShortestPath(); // 占位函数，后续实现
+    void savePickingImage(const QString& filename); // 新增方法
 
 protected:
     void initializePickingShaders();
