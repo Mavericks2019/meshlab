@@ -2639,6 +2639,9 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/CGAL/Converting_construction.h \
  /usr/include/CGAL/Cartesian/Is_trivial_construction.h \
  /usr/include/CGAL/Triangulation_structural_filtering_traits.h \
+ /opt/meshoperator/glwidget/shortestpathglwidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h \
  /opt/meshoperator/tabs/model_tab.h \
  /opt/meshoperator/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
@@ -2671,4 +2674,6 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStackedWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstackedwidget.h \
  /opt/meshoperator/tabs/cgal_tab.h \
- /opt/meshoperator/tabs/../glwidget/cgalglwidget.h
+ /opt/meshoperator/tabs/../glwidget/cgalglwidget.h \
+ /opt/meshoperator/tabs/shortestpath_tab.h \
+ /opt/meshoperator/tabs/../glwidget/shortestpathglwidget.h

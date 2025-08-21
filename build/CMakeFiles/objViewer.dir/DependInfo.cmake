@@ -12,6 +12,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/opt/meshoperator/glwidget/baseglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
   "/opt/meshoperator/glwidget/cgalglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "/opt/meshoperator/glwidget/modelglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
+  "/opt/meshoperator/glwidget/shortestpathglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o.d"
   "/opt/meshoperator/main.cpp" "CMakeFiles/objViewer.dir/main.cpp.o" "gcc" "CMakeFiles/objViewer.dir/main.cpp.o.d"
   "/opt/meshoperator/build/objViewer_autogen/mocs_compilation.cpp" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o.d"
   "/opt/meshoperator/build/qrc_shaders.cpp" "CMakeFiles/objViewer.dir/qrc_shaders.cpp.o" "gcc" "CMakeFiles/objViewer.dir/qrc_shaders.cpp.o.d"

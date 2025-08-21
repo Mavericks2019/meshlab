@@ -2,3 +2,4 @@
 #include "KTNQVRIVIS/moc_baseglwidget.cpp"
 #include "KTNQVRIVIS/moc_cgalglwidget.cpp"
 #include "KTNQVRIVIS/moc_modelglwidget.cpp"
+#include "KTNQVRIVIS/moc_shortestpathglwidget.cpp"

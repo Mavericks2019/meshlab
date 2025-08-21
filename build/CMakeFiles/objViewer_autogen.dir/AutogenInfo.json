@@ -155,6 +155,12 @@
 			"MU",
 			"KTNQVRIVIS/moc_modelglwidget.cpp",
 			null
+		],
+		[
+			"/opt/meshoperator/glwidget/shortestpathglwidget.h",
+			"MU",
+			"KTNQVRIVIS/moc_shortestpathglwidget.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
@@ -221,6 +227,7 @@
 		[ "/opt/meshoperator/glwidget/baseglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/cgalglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/modelglwidget.cpp", "MU", null ],
+		[ "/opt/meshoperator/glwidget/shortestpathglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/main.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],

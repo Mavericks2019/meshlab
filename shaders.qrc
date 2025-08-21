@@ -13,5 +13,7 @@
     <file>glwidget/shaders/axis.frag</file>
     <file>glwidget/shaders/flat.vert</file>
     <file>glwidget/shaders/flat.frag</file>
+    <file>glwidget/shaders/picking.vert</file>
+    <file>glwidget/shaders/picking.frag</file>
 </qresource>
 </RCC>

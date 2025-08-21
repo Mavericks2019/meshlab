@@ -10,6 +10,8 @@ objViewer_autogen/timestamp: \
 	/opt/meshoperator/glwidget/cgalglwidget.h \
 	/opt/meshoperator/glwidget/modelglwidget.cpp \
 	/opt/meshoperator/glwidget/modelglwidget.h \
+	/opt/meshoperator/glwidget/shortestpathglwidget.cpp \
+	/opt/meshoperator/glwidget/shortestpathglwidget.h \
 	/opt/meshoperator/main.cpp \
 	/opt/meshoperator/shaders.qrc \
 	/usr/include/CGAL/AABB_face_graph_triangle_primitive.h \
@@ -2244,6 +2246,7 @@ objViewer_autogen/timestamp: \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QColor \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QMatrix4x4 \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLBuffer \
+	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFunctions \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLShaderProgram \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLVertexArrayObject \
@@ -2265,6 +2268,7 @@ objViewer_autogen/timestamp: \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglbuffer.h \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglcontext.h \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglext.h \
+	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglfunctions.h \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglshaderprogram.h \
 	/usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglversionfunctions.h \

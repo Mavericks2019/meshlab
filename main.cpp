@@ -10,9 +10,11 @@
 #include "glwidget/modelglwidget.h"
 #include "glwidget/baseglwidget.h"
 #include "glwidget/cgalglwidget.h"
+#include "glwidget/shortestpathglwidget.h"  // 新增
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
+#include "tabs/shortestpath_tab.h"  // 新增
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -207,12 +209,14 @@ int main(int argc, char *argv[])
     ModelGLWidget *modelGlWidget = new ModelGLWidget;
     BaseGLWidget *basicGlWidget = new BaseGLWidget;
     CGALGLWidget *cgalGlWidget = new CGALGLWidget;
+    ShortestPathGLWidget *shortestPathGlWidget = new ShortestPathGLWidget;  // 新增
     
     // 创建标签页 - 调整顺序
     QTabWidget *tabWidget = new QTabWidget;
-    tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh"); // 修改标签名为OpenMesh
+    tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh");
     tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL");
-    tabWidget->addTab(createModelTab(modelGlWidget), "Model"); // Model视图移到第三位
+    tabWidget->addTab(createModelTab(modelGlWidget), "Model");
+    tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");  // 新增
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -221,6 +225,7 @@ int main(int argc, char *argv[])
     QLabel *modelInfoLabel = nullptr;
     QLabel *basicInfoLabel = nullptr;
     QLabel *cgalInfoLabel = nullptr;
+    QLabel *shortestPathInfoLabel = nullptr;  // 新增
     
     // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
@@ -246,10 +251,19 @@ int main(int argc, char *argv[])
     modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
     modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, &mainWindow));
     
+    // 创建最短路径标签页的控制面板  // 新增
+    QWidget *shortestPathControlPanel = new QWidget;
+    QVBoxLayout *shortestPathControlLayout = new QVBoxLayout(shortestPathControlPanel);
+    shortestPathControlLayout->setAlignment(Qt::AlignTop);
+    shortestPathControlLayout->addWidget(UIUtils::createColorSettingsGroup(shortestPathGlWidget));
+    shortestPathControlLayout->addWidget(UIUtils::createModelInfoGroup(&shortestPathInfoLabel));
+    shortestPathControlLayout->addWidget(createShortestPathControlPanel(shortestPathGlWidget, shortestPathInfoLabel, &mainWindow));
+    
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
     controlStack->addWidget(basicControlPanel);   // OpenMesh
     controlStack->addWidget(cgalControlPanel);    // CGAL
     controlStack->addWidget(modelControlPanel);   // Model
+    controlStack->addWidget(shortestPathControlPanel);  // Shortest Path
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {

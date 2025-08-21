@@ -2614,4 +2614,8 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/CGAL/Triangulation_structural_filtering_traits.h \
  /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_modelglwidget.cpp \
  /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/modelglwidget.h \
- /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_shortestpathglwidget.cpp \
+ /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/shortestpathglwidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h
