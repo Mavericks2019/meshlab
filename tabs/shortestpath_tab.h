@@ -216,6 +216,24 @@ QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* 
     });
     layout->addWidget(centerButton);
     
+    // 创建计算所有路径按钮
+    QPushButton *calculateAllPathsButton = new QPushButton("Calculate All Paths");
+    calculateAllPathsButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(calculateAllPathsButton, &QPushButton::clicked, [glWidget]() {
+        glWidget->calculateAllShortestPaths();
+        glWidget->update();
+    });
+    layout->addWidget(calculateAllPathsButton);
     layout->addStretch();
     return panel;
 }

@@ -2415,8 +2415,10 @@ objViewer_autogen/timestamp: \
 	/usr/local/include/OpenMesh/Core/System/omstream.hh \
 	/usr/local/include/OpenMesh/Core/Utils/BaseProperty.hh \
 	/usr/local/include/OpenMesh/Core/Utils/GenProg.hh \
+	/usr/local/include/OpenMesh/Core/Utils/HandleToPropHandle.hh \
 	/usr/local/include/OpenMesh/Core/Utils/Property.hh \
 	/usr/local/include/OpenMesh/Core/Utils/PropertyContainer.hh \
+	/usr/local/include/OpenMesh/Core/Utils/PropertyManager.hh \
 	/usr/local/include/OpenMesh/Core/Utils/SingletonT.hh \
 	/usr/local/include/OpenMesh/Core/Utils/SingletonT_impl.hh \
 	/usr/local/include/OpenMesh/Core/Utils/typename.hh \

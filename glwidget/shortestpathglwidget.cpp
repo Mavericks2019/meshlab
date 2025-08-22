@@ -3,13 +3,16 @@
 #include <QOpenGLFramebufferObjectFormat>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
+#include <limits>
+
 
 ShortestPathGLWidget::ShortestPathGLWidget(QWidget *parent) 
-    : BaseGLWidget(parent), pickingFBO(nullptr)
+    : BaseGLWidget(parent), pickingFBO(nullptr), pathEdgeEbo(QOpenGLBuffer::IndexBuffer)
 {
-    // 初始化父类后，可以添加特定于ShortestPathGLWidget的初始化
+
 }
 
+// 在析构函数中销毁pathEdgeEbo
 ShortestPathGLWidget::~ShortestPathGLWidget()
 {
     makeCurrent();
@@ -17,6 +20,7 @@ ShortestPathGLWidget::~ShortestPathGLWidget()
         delete pickingFBO;
     }
     pickingProgram.removeAllShaders();
+    pathEdgeEbo.destroy(); // 添加这行
     doneCurrent();
 }
 
@@ -24,6 +28,9 @@ void ShortestPathGLWidget::initializeGL()
 {
     BaseGLWidget::initializeGL();
     initializePickingShaders();
+    
+    // 创建路径边的EBO
+    pathEdgeEbo.create();
 }
 
 void ShortestPathGLWidget::initializePickingShaders()
@@ -49,7 +56,7 @@ void ShortestPathGLWidget::paintGL()
     BaseGLWidget::paintGL();
     
     // 如果有选中的顶点，绘制高亮
-    if (!selectedVertices.empty() || !pathVertices.empty()) {
+    if (!selectedVertices.empty() || !pathVertices.empty() || !pathEdges.empty()) {
         glPointSize(10.0f);
         glEnable(GL_POINT_SMOOTH);
         
@@ -96,6 +103,11 @@ void ShortestPathGLWidget::paintGL()
             wireframeProgram.release();
         }
         
+        // 绘制路径边（如果有）
+        if (!pathEdges.empty()) {
+            renderPathEdges();
+        }
+        
         glDisable(GL_POINT_SMOOTH);
     }
 }
@@ -108,11 +120,6 @@ void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
         if (vertexId != -1) {
             selectedVertices.push_back(vertexId);
             update();
-            
-            // 如果已经选择了两个点，计算路径
-            if (selectedVertices.size() == 2) {
-                calculateShortestPath();
-            }
         }
     }
     
@@ -233,16 +240,17 @@ void ShortestPathGLWidget::clearSelectedPoints()
 {
     selectedVertices.clear();
     pathVertices.clear();
+    pathEdges.clear();
     update();
 }
 
 void ShortestPathGLWidget::calculateShortestPath()
 {
-    // 占位函数 - 后续实现最短路径算法
-    // 这里只是简单地将两个点添加到路径中作为示例
-    if (selectedVertices.size() == 2) {
-        pathVertices = selectedVertices;
+    // 如果已经选择了两个点，计算路径
+    if (selectedVertices.size() >= 2) {
+        calculateAllShortestPaths();
     }
+    std::cout << "calculateShortestPath" << std::endl;
     update();
 }
 
@@ -266,4 +274,161 @@ void ShortestPathGLWidget::savePickingImage(const QString& filename)
     } else {
         qDebug() << "Picking image saved to" << filename;
     }
+}
+
+// 新增：Dijkstra算法计算最短路径
+std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned int start, unsigned int end)
+{
+    if (start >= openMesh.n_vertices() || end >= openMesh.n_vertices()) {
+        return {};
+    }
+    
+    // 初始化距离和前驱数组
+    std::vector<double> dist(openMesh.n_vertices(), std::numeric_limits<double>::max());
+    std::vector<int> prev(openMesh.n_vertices(), -1);
+    dist[start] = 0.0;
+    
+    // 使用优先队列实现Dijkstra算法
+    using VertexDist = std::pair<double, unsigned int>;
+    std::priority_queue<VertexDist, std::vector<VertexDist>, std::greater<VertexDist>> pq;
+    pq.push({0.0, start});
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+        
+        // 如果已经找到更短的路径，跳过
+        if (d > dist[u]) {
+            continue;
+        }
+        
+        // 如果到达终点，提前退出
+        if (u == end) {
+            break;
+        }
+        
+        // 遍历所有邻接顶点
+        OpenMesh::VertexHandle vh(u);
+        for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
+            unsigned int v = vv_it->idx();
+            
+            // 计算边的权重（欧几里得距离）
+            OpenMesh::Vec3f u_pos = openMesh.point(vh);
+            OpenMesh::Vec3f v_pos = openMesh.point(*vv_it);
+            double weight = (u_pos - v_pos).norm();
+            
+            // 松弛操作
+            if (dist[v] > dist[u] + weight) {
+                dist[v] = dist[u] + weight;
+                prev[v] = u;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    // 从终点回溯构建路径
+    std::vector<unsigned int> path;
+    int current = end;
+    while (current != -1) {
+        path.push_back(current);
+        current = prev[current];
+    }
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+// 修改calculateAllShortestPaths方法，填充pathEdgeIndices
+void ShortestPathGLWidget::calculateAllShortestPaths()
+{
+    pathVertices.clear();
+    pathEdges.clear();
+    pathEdgeIndices.clear(); // 清除之前的路径边索引
+
+    if (selectedVertices.size() < 2) {
+        return;
+    }
+
+    // 计算每对相邻选中点之间的最短路径
+    for (size_t i = 0; i < selectedVertices.size() - 1; ++i) {
+        unsigned int start = selectedVertices[i];
+        unsigned int end = selectedVertices[i + 1];
+        
+        std::vector<unsigned int> path = dijkstraShortestPath(start, end);
+        
+        if (path.empty()) {
+            continue;
+        }
+        
+        // 添加路径顶点到总路径中
+        pathVertices.insert(pathVertices.end(), path.begin(), path.end());
+        
+        // 添加路径边到总边列表中
+        for (size_t j = 0; j < path.size() - 1; ++j) {
+            unsigned int v0 = path[j];
+            unsigned int v1 = path[j + 1];
+            
+            // 查找连接这两个顶点的边
+            OpenMesh::VertexHandle vh0(v0);
+            OpenMesh::VertexHandle vh1(v1);
+            
+            auto heh = openMesh.find_halfedge(vh0, vh1);
+            if (heh.is_valid()) {
+                OpenMesh::EdgeHandle eh = openMesh.edge_handle(heh);
+                pathEdges.push_back(eh.idx());
+
+                // 将两个顶点索引添加到pathEdgeIndices
+                pathEdgeIndices.push_back(v0);
+                pathEdgeIndices.push_back(v1);
+            }
+        }
+    }
+
+    // 更新EBO
+    makeCurrent();
+    pathEdgeEbo.bind();
+    if (!pathEdgeIndices.empty()) {
+        pathEdgeEbo.allocate(pathEdgeIndices.data(), pathEdgeIndices.size() * sizeof(unsigned int));
+    } else {
+        pathEdgeEbo.allocate(0);
+    }
+    pathEdgeEbo.release();
+    doneCurrent();
+}
+
+// 修改renderPathEdges方法，使用正确的索引数量
+void ShortestPathGLWidget::renderPathEdges()
+{
+    if (pathEdgeIndices.empty()) {
+        return;
+    }
+    
+    QMatrix4x4 model, view, projection;
+    
+    model.rotate(rotation);
+    model.scale(zoom);
+    
+    QVector3D eyePosition(0, 0, viewDistance * viewScale);
+    view.lookAt(eyePosition, modelCenter, QVector3D(0, 1, 0));
+    
+    projection.perspective(45.0f, width() / float(height()), 0.1f, 100.0f);
+    
+    // 设置线宽
+    glLineWidth(5.0f);
+    glEnable(GL_LINE_SMOOTH);
+    
+    wireframeProgram.bind();
+    vao.bind();
+    pathEdgeEbo.bind(); // 绑定路径边的EBO
+    
+    wireframeProgram.setUniformValue("model", model);
+    wireframeProgram.setUniformValue("view", view);
+    wireframeProgram.setUniformValue("projection", projection);
+    wireframeProgram.setUniformValue("lineColor", QVector4D(0.0f, 1.0f, 0.0f, 1.0f)); // 绿色路径
+    
+    // 使用正确的索引数量
+    glDrawElements(GL_LINES, pathEdgeIndices.size(), GL_UNSIGNED_INT, 0);
+    
+    pathEdgeEbo.release();
+    vao.release();
+    wireframeProgram.release();
+    
+    glDisable(GL_LINE_SMOOTH);
 }

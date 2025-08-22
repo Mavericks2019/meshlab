@@ -2617,5 +2617,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h \
  /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_shortestpathglwidget.cpp \
  /opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/shortestpathglwidget.h \
+ /usr/local/include/OpenMesh/Core/Utils/PropertyManager.hh \
+ /usr/local/include/OpenMesh/Core/Utils/HandleToPropHandle.hh \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h

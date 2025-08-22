@@ -2640,6 +2640,8 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/CGAL/Cartesian/Is_trivial_construction.h \
  /usr/include/CGAL/Triangulation_structural_filtering_traits.h \
  /opt/meshoperator/glwidget/shortestpathglwidget.h \
+ /usr/local/include/OpenMesh/Core/Utils/PropertyManager.hh \
+ /usr/local/include/OpenMesh/Core/Utils/HandleToPropHandle.hh \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h \
  /opt/meshoperator/tabs/model_tab.h \
