@@ -28,9 +28,15 @@ void ShortestPathGLWidget::initializeGL()
 
 void ShortestPathGLWidget::initializePickingShaders()
 {
+    // 顶点拾取着色器
     pickingProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/picking.vert");
     pickingProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/picking.frag");
     pickingProgram.link();
+    
+    // 面元拾取着色器
+    facePickingProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/picking.vert");
+    facePickingProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/face_picking.frag");
+    facePickingProgram.link();
     
     // 创建帧缓冲对象用于颜色编码拾取
     QOpenGLFramebufferObjectFormat format;
@@ -115,21 +121,20 @@ void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
 {
     makeCurrent();
-    // 保存当前的清除颜色
+    // 保存当前的清除颜色和深度测试状态
     GLfloat oldClearColor[4];
     glGetFloatv(GL_COLOR_CLEAR_VALUE, oldClearColor);
+    GLboolean depthTestEnabled;
+    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
     
     // 绑定拾取FBO
     pickingFBO->bind();
     glViewport(0, 0, width(), height());
     
-    // 使用黑色背景进行清除
+    // 使用黑色背景进行清除，并启用深度测试
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_DEPTH_TEST);  // 启用深度测试
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    // 设置拾取着色器
-    pickingProgram.bind();
-    vao.bind();
     
     QMatrix4x4 model, view, projection;
     
@@ -140,6 +145,25 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     view.lookAt(eyePosition, modelCenter, QVector3D(0, 1, 0));
     
     projection.perspective(45.0f, width() / float(height()), 0.1f, 100.0f);
+    
+    // 首先绘制面元（黑色）
+    facePickingProgram.bind();
+    vao.bind();
+    faceEbo.bind();
+    
+    facePickingProgram.setUniformValue("model", model);
+    facePickingProgram.setUniformValue("view", view);
+    facePickingProgram.setUniformValue("projection", projection);
+    
+    glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+    
+    faceEbo.release();
+    vao.release();
+    facePickingProgram.release();
+    
+    // 然后绘制顶点（使用ID编码颜色）
+    pickingProgram.bind();
+    vao.bind();
     
     pickingProgram.setUniformValue("model", model);
     pickingProgram.setUniformValue("view", view);
@@ -162,9 +186,16 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glViewport(0, 0, width(), height());
     
+    // 恢复深度测试状态
+    if (!depthTestEnabled) {
+        glDisable(GL_DEPTH_TEST);
+    }
+    
     // 恢复清除颜色到BaseGLWidget中设置的值
     QColor bgColor = this->bgColor; // 从基类获取背景颜色
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
+    
+
     
     // 如果读取的ID有效且不超过顶点数量，则返回
     if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {

@@ -29,6 +29,7 @@ protected:
 
 private:
     QOpenGLShaderProgram pickingProgram;
+    QOpenGLShaderProgram facePickingProgram; // 新增：面元拾取着色器
     QOpenGLFramebufferObject *pickingFBO;
     
     std::vector<unsigned int> selectedVertices;
