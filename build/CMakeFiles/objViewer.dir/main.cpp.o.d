@@ -2676,4 +2676,6 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /opt/meshoperator/tabs/cgal_tab.h \
  /opt/meshoperator/tabs/../glwidget/cgalglwidget.h \
  /opt/meshoperator/tabs/shortestpath_tab.h \
- /opt/meshoperator/tabs/../glwidget/shortestpathglwidget.h
+ /opt/meshoperator/tabs/../glwidget/shortestpathglwidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtCore/QDateTime \
+ /usr/include/x86_64-linux-gnu/qt5/QtCore/qdatetime.h

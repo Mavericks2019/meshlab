@@ -15,6 +15,7 @@
 #include <QRadioButton>
 #include <QCheckBox>
 #include <QStackedWidget>
+#include <QDateTime>
 
 // 创建最短路径标签页
 QWidget* createShortestPathTab(ShortestPathGLWidget* glWidget) {
@@ -91,6 +92,38 @@ QWidget* createClearSelectionButton(ShortestPathGLWidget* glWidget) {
     return button;
 }
 
+// 创建保存拾取图像按钮
+QWidget* createSavePickingImageButton(ShortestPathGLWidget* glWidget) {
+    QPushButton *button = new QPushButton("Save Picking Image");
+    button->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(button, &QPushButton::clicked, [glWidget]() {
+        // 生成带时间戳的文件名
+        QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+        QString defaultFileName = QString("picking_image_%1.png").arg(timestamp);
+        
+        // 获取保存路径
+        QString filePath = QFileDialog::getSaveFileName(
+            nullptr, "Save Picking Image", defaultFileName, "PNG Images (*.png)");
+        
+        if (!filePath.isEmpty()) {
+            glWidget->savePickingImage(filePath);
+            QMessageBox::information(nullptr, "Success", 
+                QString("Picking image saved to:\n%1").arg(filePath));
+        }
+    });
+    return button;
+}
+
 // 创建最短路径控制面板
 QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
@@ -100,6 +133,7 @@ QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* 
     layout->addWidget(createShortestPathModelLoadButton(glWidget, infoLabel, mainWindow));
     layout->addWidget(createClearSelectionButton(glWidget));
     layout->addWidget(createShortestPathCalculateButton(glWidget));
+    layout->addWidget(createSavePickingImageButton(glWidget));  // 新增按钮
     
     // 添加基本渲染模式组
     QGroupBox *renderingGroup = new QGroupBox("Rendering Mode");

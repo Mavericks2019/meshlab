@@ -104,6 +104,7 @@ void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && modelLoaded) {
         int vertexId = pickVertexAtPosition(event->x(), event->y());
+        std::cout << vertexId << std::endl;
         if (vertexId != -1) {
             selectedVertices.push_back(vertexId);
             update();
@@ -126,7 +127,6 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     glGetFloatv(GL_COLOR_CLEAR_VALUE, oldClearColor);
     GLboolean depthTestEnabled;
     glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-    
     // 绑定拾取FBO
     pickingFBO->bind();
     glViewport(0, 0, width(), height());
@@ -172,12 +172,43 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     // 绘制所有顶点，每个顶点使用其ID作为颜色
     glDrawArrays(GL_POINTS, 0, openMesh.n_vertices());
     
-    // 读取像素颜色
-    GLubyte pixel[4];
-    glReadPixels(x, height() - y - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    // 定义搜索半径
+    const int searchRadius = 10;
     
-    // 将颜色转换回顶点ID
-    int vertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+    // 计算搜索区域的边界
+    int startX = std::max(0, x - searchRadius);
+    int startY = std::max(0, y - searchRadius);
+    int endX = std::min(width() - 1, x + searchRadius);
+    int endY = std::min(height() - 1, y + searchRadius);
+    
+    int bestVertexId = -1;
+    float bestDepth = 1.0f; // 初始化为最大深度值
+    
+    // 遍历搜索区域内的所有像素
+    for (int py = startY; py <= endY; ++py) {
+        for (int px = startX; px <= endX; ++px) {
+            // 读取像素颜色
+            GLubyte pixel[4];
+            glReadPixels(px, height() - py - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            
+            // 将颜色转换回顶点ID
+            int vertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+            
+            // 如果读取的ID有效且不超过顶点数量
+            if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {
+                // 读取深度值
+                GLfloat depth;
+                glReadPixels(px, height() - py - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+                
+                // 选择最前面的顶点（深度值最小的）
+                if (depth < bestDepth) {
+                    bestDepth = depth;
+                    bestVertexId = vertexId;
+                }
+            }
+        }
+    }
+    
     vao.release();
     pickingProgram.release();
     pickingFBO->release();
@@ -195,14 +226,7 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     QColor bgColor = this->bgColor; // 从基类获取背景颜色
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     
-
-    
-    // 如果读取的ID有效且不超过顶点数量，则返回
-    if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {
-        return vertexId;
-    }
-    
-    return -1;
+    return bestVertexId;
 }
 
 void ShortestPathGLWidget::clearSelectedPoints()
