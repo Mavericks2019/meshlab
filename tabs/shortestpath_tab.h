@@ -1,3 +1,4 @@
+// shortestpath_tab.h
 #ifndef SHORTESTPATH_TAB_H
 #define SHORTESTPATH_TAB_H
 
@@ -16,6 +17,7 @@
 #include <QCheckBox>
 #include <QStackedWidget>
 #include <QDateTime>
+#include <QButtonGroup>
 
 // 创建最短路径标签页
 QWidget* createShortestPathTab(ShortestPathGLWidget* glWidget) {
@@ -132,8 +134,37 @@ QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* 
     // 添加控件组
     layout->addWidget(createShortestPathModelLoadButton(glWidget, infoLabel, mainWindow));
     layout->addWidget(createClearSelectionButton(glWidget));
+    
+    // 添加算法选择组
+    QGroupBox *algorithmGroup = new QGroupBox("Algorithm");
+    QVBoxLayout *algorithmLayout = new QVBoxLayout(algorithmGroup);
+    
+    QRadioButton *dijkstraRadio = new QRadioButton("Dijkstra");
+    dijkstraRadio->setChecked(true); // 默认选择Dijkstra
+    
+    QRadioButton *astarRadio = new QRadioButton("A star");
+    
+    QButtonGroup *algorithmGroupBtn = new QButtonGroup(algorithmGroup);
+    algorithmGroupBtn->addButton(dijkstraRadio, 0);
+    algorithmGroupBtn->addButton(astarRadio, 1);
+    
+    algorithmLayout->addWidget(dijkstraRadio);
+    algorithmLayout->addWidget(astarRadio);
+    
+    layout->addWidget(algorithmGroup);
+    
+    // 连接算法选择信号
+    QObject::connect(algorithmGroupBtn, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked), 
+        [glWidget](QAbstractButton *button) {
+            if (button->text() == "Dijkstra") {
+                glWidget->setAlgorithm(ShortestPathGLWidget::Dijkstra);
+            } else if (button->text() == "A star") {
+                glWidget->setAlgorithm(ShortestPathGLWidget::AStar);
+            }
+        });
+    
     layout->addWidget(createShortestPathCalculateButton(glWidget));
-    layout->addWidget(createSavePickingImageButton(glWidget));  // 新增按钮
+    layout->addWidget(createSavePickingImageButton(glWidget));
     
     // 添加基本渲染模式组
     QGroupBox *renderingGroup = new QGroupBox("Rendering Mode");

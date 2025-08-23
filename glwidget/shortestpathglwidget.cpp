@@ -4,6 +4,8 @@
 #include <QOpenGLPaintDevice>
 #include <QPainter>
 #include <limits>
+#include <cmath>
+#include <set>
 
 
 ShortestPathGLWidget::ShortestPathGLWidget(QWidget *parent) 
@@ -276,6 +278,84 @@ void ShortestPathGLWidget::savePickingImage(const QString& filename)
     }
 }
 
+// 计算启发式函数（欧几里得距离）
+double ShortestPathGLWidget::heuristic(unsigned int from, unsigned int to)
+{
+    OpenMesh::VertexHandle vh_from(from);
+    OpenMesh::VertexHandle vh_to(to);
+    OpenMesh::Vec3f from_pos = openMesh.point(vh_from);
+    OpenMesh::Vec3f to_pos = openMesh.point(vh_to);
+    return (from_pos - to_pos).norm();
+}
+
+// 新增：A*算法计算最短路径
+std::vector<unsigned int> ShortestPathGLWidget::aStarShortestPath(unsigned int start, unsigned int end)
+{
+    if (start >= openMesh.n_vertices() || end >= openMesh.n_vertices()) {
+        return {};
+    }
+    
+    // 初始化距离和前驱数组
+    std::vector<double> g_score(openMesh.n_vertices(), std::numeric_limits<double>::max());
+    std::vector<double> f_score(openMesh.n_vertices(), std::numeric_limits<double>::max());
+    std::vector<int> prev(openMesh.n_vertices(), -1);
+    
+    g_score[start] = 0.0;
+    f_score[start] = heuristic(start, end);
+    
+    // 使用优先队列实现A*算法
+    using VertexScore = std::pair<double, unsigned int>;
+    std::priority_queue<VertexScore, std::vector<VertexScore>, std::greater<VertexScore>> open_set;
+    open_set.push({f_score[start], start});
+    
+    while (!open_set.empty()) {
+        auto [current_f, u] = open_set.top();
+        open_set.pop();
+        
+        // 如果到达终点，提前退出
+        if (u == end) {
+            break;
+        }
+        
+        // 如果当前f_score不是最优的，跳过
+        if (current_f > f_score[u]) {
+            continue;
+        }
+        
+        // 遍历所有邻接顶点
+        OpenMesh::VertexHandle vh(u);
+        for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
+            unsigned int v = vv_it->idx();
+            
+            // 计算边的权重（欧几里得距离）
+            OpenMesh::Vec3f u_pos = openMesh.point(vh);
+            OpenMesh::Vec3f v_pos = openMesh.point(*vv_it);
+            double weight = (u_pos - v_pos).norm();
+            
+            // 计算临时g_score
+            double tentative_g_score = g_score[u] + weight;
+            
+            // 如果找到更短的路径
+            if (tentative_g_score < g_score[v]) {
+                prev[v] = u;
+                g_score[v] = tentative_g_score;
+                f_score[v] = g_score[v] + heuristic(v, end);
+                open_set.push({f_score[v], v});
+            }
+        }
+    }
+    
+    // 从终点回溯构建路径
+    std::vector<unsigned int> path;
+    int current = end;
+    while (current != -1) {
+        path.push_back(current);
+        current = prev[current];
+    }
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
 // 新增：Dijkstra算法计算最短路径
 std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned int start, unsigned int end)
 {
@@ -335,7 +415,7 @@ std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned in
     return path;
 }
 
-// 修改calculateAllShortestPaths方法，填充pathEdgeIndices
+// 修改calculateAllShortestPaths方法，根据选择的算法计算路径
 void ShortestPathGLWidget::calculateAllShortestPaths()
 {
     pathVertices.clear();
@@ -351,7 +431,14 @@ void ShortestPathGLWidget::calculateAllShortestPaths()
         unsigned int start = selectedVertices[i];
         unsigned int end = selectedVertices[i + 1];
         
-        std::vector<unsigned int> path = dijkstraShortestPath(start, end);
+        std::vector<unsigned int> path;
+        
+        // 根据选择的算法计算路径
+        if (currentAlgorithm == Dijkstra) {
+            path = dijkstraShortestPath(start, end);
+        } else if (currentAlgorithm == AStar) {
+            path = aStarShortestPath(start, end);
+        }
         
         if (path.empty()) {
             continue;

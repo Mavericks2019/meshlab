@@ -16,6 +16,11 @@ class ShortestPathGLWidget : public BaseGLWidget
     Q_OBJECT
 
 public:
+    enum Algorithm {
+        Dijkstra,
+        AStar
+    };
+
     explicit ShortestPathGLWidget(QWidget *parent = nullptr);
     ~ShortestPathGLWidget();
 
@@ -29,6 +34,9 @@ public:
     
     // 新增：计算所有选中点之间的最短路径
     void calculateAllShortestPaths();
+    
+    // 设置算法
+    void setAlgorithm(Algorithm algo) { currentAlgorithm = algo; }
 
 protected:
     void initializePickingShaders();
@@ -48,11 +56,19 @@ private:
     
     QVector3D highlightColor = QVector3D(1.0f, 0.0f, 0.0f); // 高亮颜色（红色）
     
+    Algorithm currentAlgorithm = Dijkstra; // 当前选择的算法
+    
     // 新增：手动实现的Dijkstra算法计算最短路径
     std::vector<unsigned int> dijkstraShortestPath(unsigned int start, unsigned int end);
     
+    // 新增：A*算法计算最短路径
+    std::vector<unsigned int> aStarShortestPath(unsigned int start, unsigned int end);
+    
     // 新增：绘制路径边
     void renderPathEdges();
+    
+    // 计算启发式函数（欧几里得距离）
+    double heuristic(unsigned int from, unsigned int to);
 };
 
 #endif // SHORTESTPATHGLWIDGET_H
