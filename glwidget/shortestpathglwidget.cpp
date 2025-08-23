@@ -6,6 +6,7 @@
 #include <limits>
 #include <cmath>
 #include <set>
+#include <chrono>
 
 
 ShortestPathGLWidget::ShortestPathGLWidget(QWidget *parent) 
@@ -291,6 +292,8 @@ double ShortestPathGLWidget::heuristic(unsigned int from, unsigned int to)
 // 新增：A*算法计算最短路径
 std::vector<unsigned int> ShortestPathGLWidget::aStarShortestPath(unsigned int start, unsigned int end)
 {
+    auto startTime = std::chrono::high_resolution_clock::now(); // 开始计时
+    
     if (start >= openMesh.n_vertices() || end >= openMesh.n_vertices()) {
         return {};
     }
@@ -353,12 +356,18 @@ std::vector<unsigned int> ShortestPathGLWidget::aStarShortestPath(unsigned int s
         current = prev[current];
     }
     std::reverse(path.begin(), path.end());
+    
+    auto endTime = std::chrono::high_resolution_clock::now(); // 结束计时
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+    std::cout << "A* algorithm took " << duration.count() << " microseconds" << std::endl;
+    
     return path;
 }
 
-// 新增：Dijkstra算法计算最短路径
 std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned int start, unsigned int end)
 {
+    auto startTime = std::chrono::high_resolution_clock::now(); // 开始计时
+    
     if (start >= openMesh.n_vertices() || end >= openMesh.n_vertices()) {
         return {};
     }
@@ -412,6 +421,11 @@ std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned in
         current = prev[current];
     }
     std::reverse(path.begin(), path.end());
+    
+    auto endTime = std::chrono::high_resolution_clock::now(); // 结束计时
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+    std::cout << "Dijkstra algorithm took " << duration.count() << " microseconds" << std::endl;
+    
     return path;
 }
 
