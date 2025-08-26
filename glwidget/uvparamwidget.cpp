@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QtMath>
+#include <queue>
 
 UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareVbo(QOpenGLBuffer::VertexBuffer),
@@ -10,11 +11,14 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     uvVbo(QOpenGLBuffer::VertexBuffer),
     lineVbo(QOpenGLBuffer::VertexBuffer),
     lineEbo(QOpenGLBuffer::IndexBuffer),
+    faceVbo(QOpenGLBuffer::VertexBuffer),
+    faceColorVbo(QOpenGLBuffer::VertexBuffer),
     hasUV(false),
     squareSize(1.0f),
     showLines(true),
     showFaces(true),
-    lineVertexCount(0)
+    lineVertexCount(0),
+    faceVertexCount(0)
 {
     setFocusPolicy(Qt::StrongFocus);
     
@@ -22,6 +26,16 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareColor = QColor(100, 100, 100, 100);  // Semi-transparent gray
     pointColor = QColor(255, 0, 0);            // Red points
     lineColor = QColor(0, 0, 255);             // Blue lines
+    
+    // 初始化颜色调色板
+    colorPalette = {
+        QVector3D(1.0f, 0.7f, 0.7f),  // 浅红色
+        QVector3D(0.7f, 0.7f, 1.0f),  // 浅蓝色
+        QVector3D(0.7f, 1.0f, 0.7f),  // 浅绿色
+        QVector3D(0.8f, 0.7f, 1.0f),  // 浅紫色
+        QVector3D(1.0f, 1.0f, 0.7f),  // 浅黄色
+        QVector3D(1.0f, 0.8f, 0.6f)   // 浅橙色
+    };
 }
 
 UVParamWidget::~UVParamWidget() {
@@ -34,6 +48,9 @@ UVParamWidget::~UVParamWidget() {
     lineVao.destroy();
     lineVbo.destroy();
     lineEbo.destroy();
+    faceVao.destroy();
+    faceVbo.destroy();
+    faceColorVbo.destroy();
     doneCurrent();
 }
 
@@ -93,6 +110,31 @@ void UVParamWidget::initializeGL() {
         "   FragColor = vec4(lineColor, 1.0);\n"
         "}\n");
     lineProgram.link();
+    
+    // Initialize faces
+    faceVao.create();
+    faceVbo.create();
+    faceColorVbo.create();
+    
+    faceProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
+        "#version 330 core\n"
+        "layout (location = 0) in vec2 aPos;\n"
+        "layout (location = 1) in vec3 aColor;\n"
+        "out vec3 fragColor;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "   gl_Position = projection * vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
+        "   fragColor = aColor;\n"
+        "}\n");
+    
+    faceProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
+        "#version 330 core\n"
+        "in vec3 fragColor;\n"
+        "out vec4 FragColor;\n"
+        "void main() {\n"
+        "   FragColor = vec4(fragColor, 0.7);\n"  // 半透明
+        "}\n");
+    faceProgram.link();
 }
 
 void UVParamWidget::setupSquare() {
@@ -138,6 +180,105 @@ void UVParamWidget::setupSquare() {
     squareProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
     
     squareVao.release();
+}
+
+void UVParamWidget::analyzeTopology() {
+    if (faceIndices.empty()) return;
+    
+    // 构建邻接表 - 顶点到面的映射
+    std::unordered_map<int, std::vector<int>> vertexToFaces;
+    for (int i = 0; i < faceIndices.size(); i++) {
+        for (int vertexIdx : faceIndices[i]) {
+            vertexToFaces[vertexIdx].push_back(i);
+        }
+    }
+    
+    // 使用BFS找到连通的面组
+    std::vector<bool> visited(faceIndices.size(), false);
+    faceColors.resize(faceIndices.size(), -1);
+    int currentColorIndex = 0;
+    
+    for (int i = 0; i < faceIndices.size(); i++) {
+        if (visited[i]) continue;
+        
+        std::queue<int> q;
+        q.push(i);
+        visited[i] = true;
+        faceColors[i] = currentColorIndex;
+        
+        while (!q.empty()) {
+            int faceIdx = q.front();
+            q.pop();
+            
+            // 找到所有相邻的面（共享顶点的面）
+            for (int vertexIdx : faceIndices[faceIdx]) {
+                for (int neighborFaceIdx : vertexToFaces[vertexIdx]) {
+                    if (!visited[neighborFaceIdx]) {
+                        visited[neighborFaceIdx] = true;
+                        faceColors[neighborFaceIdx] = currentColorIndex;
+                        q.push(neighborFaceIdx);
+                    }
+                }
+            }
+        }
+        
+        currentColorIndex = (currentColorIndex + 1) % colorPalette.size();
+    }
+}
+
+void UVParamWidget::setupFaces() {
+    if (faceIndices.empty()) return;
+    
+    // 分析拓扑结构
+    analyzeTopology();
+    
+    // 准备顶点数据和颜色数据
+    std::vector<QVector2D> faceVertices;
+    std::vector<QVector3D> faceVertexColors;
+    
+    for (int i = 0; i < faceIndices.size(); i++) {
+        if (faceIndices[i].size() < 3) continue;
+        
+        // 获取面的颜色
+        int colorIdx = faceColors[i] % colorPalette.size();
+        QVector3D faceColor = colorPalette[colorIdx];
+        
+        // 为面的每个顶点添加相同的颜色
+        for (int j = 0; j < faceIndices[i].size(); j++) {
+            int vertexIdx = faceIndices[i][j];
+            if (vertexIdx < uvCoords.size()) {
+                // 将UV从[0,1]映射到[-1,1]
+                float x = uvCoords[vertexIdx].x() * 2.0f - 1.0f;
+                float y = uvCoords[vertexIdx].y() * 2.0f - 1.0f;
+                faceVertices.emplace_back(x, y);
+                faceVertexColors.push_back(faceColor);
+            }
+        }
+    }
+    
+    faceVertexCount = faceVertices.size();
+    
+    // 设置面VAO和VBO
+    faceVao.bind();
+    
+    // 顶点位置
+    faceVbo.bind();
+    faceVbo.allocate(faceVertices.data(), faceVertices.size() * sizeof(QVector2D));
+    
+    faceProgram.bind();
+    int posLoc = faceProgram.attributeLocation("aPos");
+    faceProgram.enableAttributeArray(posLoc);
+    faceProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 2, 2 * sizeof(float));
+    
+    // 顶点颜色
+    faceColorVbo.bind();
+    faceColorVbo.allocate(faceVertexColors.data(), faceVertexColors.size() * sizeof(QVector3D));
+    
+    int colorLoc = faceProgram.attributeLocation("aColor");
+    faceProgram.enableAttributeArray(colorLoc);
+    faceProgram.setAttributeBuffer(colorLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    
+    faceVao.release();
 }
 
 void UVParamWidget::setupUVPoints() {
@@ -190,6 +331,9 @@ void UVParamWidget::setupUVPoints() {
     
     // Store the number of line vertices for drawing
     lineVertexCount = lineVertices.size();
+    
+    // Setup faces
+    setupFaces();
 }
 
 void UVParamWidget::resizeGL(int w, int h) {
@@ -225,6 +369,19 @@ void UVParamWidget::paintGL() {
     squareProgram.release();
     
     if (hasUV) {
+        // Draw faces if enabled
+        if (showFaces && faceVertexCount > 0) {
+            faceProgram.bind();
+            faceVao.bind();
+            
+            faceProgram.setUniformValue("projection", projection);
+            
+            glDrawArrays(GL_TRIANGLES, 0, faceVertexCount);
+            
+            faceVao.release();
+            faceProgram.release();
+        }
+        
         // Draw lines if enabled
         if (showLines) {
             lineProgram.bind();
@@ -240,20 +397,18 @@ void UVParamWidget::paintGL() {
             lineProgram.release();
         }
         
-        // Draw points if enabled
-        if (showFaces) {
-            uvProgram.bind();
-            uvVao.bind();
-            
-            uvProgram.setUniformValue("projection", projection);
-            uvProgram.setUniformValue("pointColor", 
-                                     QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-            
-            glDrawArrays(GL_POINTS, 0, uvCoords.size());
-            
-            uvVao.release();
-            uvProgram.release();
-        }
+        // Draw points
+        uvProgram.bind();
+        uvVao.bind();
+        
+        uvProgram.setUniformValue("projection", projection);
+        uvProgram.setUniformValue("pointColor", 
+                                 QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+        
+        glDrawArrays(GL_POINTS, 0, uvCoords.size());
+        
+        uvVao.release();
+        uvProgram.release();
     }
 }
 
@@ -298,8 +453,20 @@ void UVParamWidget::parseOBJ(const QString &path) {
                     if (indices.size() >= 2 && !indices[1].isEmpty()) {
                         int texIdx = indices[1].toInt() - 1;  // OBJ indices start at 1
                         if (texIdx >= 0 && texIdx < textureCoords.size()) {
-                            uvCoords.push_back(textureCoords[texIdx]);
-                            faceTexIndices.push_back(uvCoords.size() - 1);
+                            // 检查UV坐标是否已存在，避免重复
+                            bool found = false;
+                            for (int j = 0; j < uvCoords.size(); j++) {
+                                if (uvCoords[j] == textureCoords[texIdx]) {
+                                    faceTexIndices.push_back(j);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!found) {
+                                uvCoords.push_back(textureCoords[texIdx]);
+                                faceTexIndices.push_back(uvCoords.size() - 1);
+                            }
                         }
                     }
                 }
@@ -329,13 +496,19 @@ void UVParamWidget::clearData() {
     textureCoords.clear();
     uvCoords.clear();
     faceIndices.clear();
+    faceColors.clear();
     lineVertexCount = 0;
+    faceVertexCount = 0;
     
     makeCurrent();
     uvVbo.bind();
     uvVbo.allocate(0, 0);
     lineVbo.bind();
     lineVbo.allocate(0, 0);
+    faceVbo.bind();
+    faceVbo.allocate(0, 0);
+    faceColorVbo.bind();
+    faceColorVbo.allocate(0, 0);
     doneCurrent();
     
     update();

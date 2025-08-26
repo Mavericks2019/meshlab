@@ -14,6 +14,8 @@
 #include <vector>
 #include <QFile>
 #include <QTextStream>
+#include <unordered_map>
+#include <unordered_set>
 
 class UVParamWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -36,11 +38,18 @@ private:
     void parseOBJ(const QString &path);
     void setupSquare();
     void setupUVPoints();
+    void analyzeTopology();
+    void setupFaces();
 
     bool hasUV;
     std::vector<QVector2D> uvCoords;
     std::vector<QVector3D> vertices;
     std::vector<QVector2D> textureCoords;
+
+    // 拓扑分析相关
+    std::vector<std::vector<int>> faceIndices;
+    std::vector<int> faceColors; // 每个面对应的颜色索引
+    std::vector<QVector3D> colorPalette; // 颜色调色板
 
     // OpenGL objects for square
     QOpenGLShaderProgram squareProgram;
@@ -59,6 +68,12 @@ private:
     QOpenGLBuffer lineEbo;
     QOpenGLVertexArrayObject lineVao;
 
+    // OpenGL objects for UV faces
+    QOpenGLShaderProgram faceProgram;
+    QOpenGLBuffer faceVbo;
+    QOpenGLBuffer faceColorVbo;
+    QOpenGLVertexArrayObject faceVao;
+
     QMatrix4x4 projection;
     QColor squareColor;
     QColor pointColor;
@@ -67,11 +82,11 @@ private:
     bool showLines;
     bool showFaces;
     int lineVertexCount;
-    std::vector<std::vector<int>> faceIndices;
+    int faceVertexCount;
+
 public slots:
     void setShowLines(bool show);
     void setShowFaces(bool show);
-
 };
 
 #endif // UVPARAMWIDGET_H
