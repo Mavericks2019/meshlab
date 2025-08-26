@@ -14,16 +14,16 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     faceColorVbo(QOpenGLBuffer::VertexBuffer),
     hasUV(false),
     squareSize(1.0f),
-    showPoints(true),
-    showWireframe(true),
-    showFaces(true),
+    showPoints(false),  // 改为false，默认不显示点
+    showWireframe(false), // 改为false，默认不显示线
+    showFaces(true),    // 保持true，默认显示面
     lineVertexCount(0),
     faceVertexCount(0)
 {
     setFocusPolicy(Qt::StrongFocus);
     
-    // Set colors
-    squareColor = QColor(100, 100, 100, 100);  // Semi-transparent gray
+    // Set colors - 修改正方形颜色为纯白色
+    squareColor = QColor(255, 255, 255, 255);  // 纯白色
     pointColor = QColor(255, 0, 0);            // Red points
     lineColor = QColor(0, 0, 255);             // Blue lines
     

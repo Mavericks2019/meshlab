@@ -50,33 +50,34 @@ QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel
 }
 
 // 创建显示控制组
+// 创建显示控制组
 QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     group->setStyleSheet("QGroupBox { color: white; font-weight: bold; }");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
-    // 显示点的复选框
+    // 显示点的复选框 - 默认不选中
     QCheckBox *pointsCheckbox = new QCheckBox("Show Points");
     pointsCheckbox->setStyleSheet("color: white;");
-    pointsCheckbox->setChecked(true);
+    pointsCheckbox->setChecked(false);  // 改为false
     QObject::connect(pointsCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
         uvWidget->setShowPoints(state == Qt::Checked);
     });
     layout->addWidget(pointsCheckbox);
     
-    // 显示线框的复选框
+    // 显示线框的复选框 - 默认不选中
     QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe");
     wireframeCheckbox->setStyleSheet("color: white;");
-    wireframeCheckbox->setChecked(true);
+    wireframeCheckbox->setChecked(false);  // 改为false
     QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
         uvWidget->setShowWireframe(state == Qt::Checked);
     });
     layout->addWidget(wireframeCheckbox);
     
-    // 显示面的复选框
+    // 显示面的复选框 - 默认选中
     QCheckBox *facesCheckbox = new QCheckBox("Show Faces");
     facesCheckbox->setStyleSheet("color: white;");
-    facesCheckbox->setChecked(true);
+    facesCheckbox->setChecked(true);  // 保持true
     QObject::connect(facesCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
         uvWidget->setShowFaces(state == Qt::Checked);
     });
