@@ -237,7 +237,7 @@ void ModelGLWidget::calculateCurvatures() {
             
             auto vec1 = (v1 - v2).normalize();
             auto vec2 = (v3 - v2).normalize();
-            float angle = acos(std::max(-1.0f, std::min(1.0f, dot(vec1, vec2))));
+            float angle = acos(std::max(-1.0d, std::min(1.0d, dot(vec1, vec2))));
             angleDefect -= angle;
             
             auto cross = (v1 - v2) % (v3 - v2);

@@ -50,7 +50,6 @@ QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel
 }
 
 // 创建显示控制组
-// 创建显示控制组
 QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     group->setStyleSheet("QGroupBox { color: white; font-weight: bold; }");

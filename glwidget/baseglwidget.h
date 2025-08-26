@@ -15,10 +15,14 @@
 #include <QQuaternion>
 
 struct MyTraits : public OpenMesh::DefaultTraits {
-    VertexAttributes(OpenMesh::Attributes::Normal | 
-                     OpenMesh::Attributes::Status);
-    FaceAttributes(OpenMesh::Attributes::Normal | 
-                   OpenMesh::Attributes::Status);
+    typedef OpenMesh::Vec3d Point;  // 使用双精度浮点数 (double) 作为点的坐标类型
+	typedef OpenMesh::Vec3d Normal;
+	typedef OpenMesh::Vec2d TexCoord2D;
+
+	VertexAttributes(OpenMesh::Attributes::Status);
+	FaceAttributes(OpenMesh::Attributes::Status);
+	EdgeAttributes(OpenMesh::Attributes::Status);
+	HalfedgeAttributes(OpenMesh::Attributes::Status);
     VertexTraits {
         float curvature;
     };

@@ -284,8 +284,8 @@ double ShortestPathGLWidget::heuristic(unsigned int from, unsigned int to)
 {
     OpenMesh::VertexHandle vh_from(from);
     OpenMesh::VertexHandle vh_to(to);
-    OpenMesh::Vec3f from_pos = openMesh.point(vh_from);
-    OpenMesh::Vec3f to_pos = openMesh.point(vh_to);
+    OpenMesh::Vec3d from_pos = openMesh.point(vh_from);
+    OpenMesh::Vec3d to_pos = openMesh.point(vh_to);
     return (from_pos - to_pos).norm();
 }
 
@@ -331,8 +331,8 @@ std::vector<unsigned int> ShortestPathGLWidget::aStarShortestPath(unsigned int s
             unsigned int v = vv_it->idx();
             
             // 计算边的权重（欧几里得距离）
-            OpenMesh::Vec3f u_pos = openMesh.point(vh);
-            OpenMesh::Vec3f v_pos = openMesh.point(*vv_it);
+            OpenMesh::Vec3d u_pos = openMesh.point(vh);
+            OpenMesh::Vec3d v_pos = openMesh.point(*vv_it);
             double weight = (u_pos - v_pos).norm();
             
             // 计算临时g_score
@@ -401,8 +401,8 @@ std::vector<unsigned int> ShortestPathGLWidget::dijkstraShortestPath(unsigned in
             unsigned int v = vv_it->idx();
             
             // 计算边的权重（欧几里得距离）
-            OpenMesh::Vec3f u_pos = openMesh.point(vh);
-            OpenMesh::Vec3f v_pos = openMesh.point(*vv_it);
+            OpenMesh::Vec3d u_pos = openMesh.point(vh);
+            OpenMesh::Vec3d v_pos = openMesh.point(*vv_it);
             double weight = (u_pos - v_pos).norm();
             
             // 松弛操作
