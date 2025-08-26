@@ -11,10 +11,12 @@
 #include "glwidget/baseglwidget.h"
 #include "glwidget/cgalglwidget.h"
 #include "glwidget/shortestpathglwidget.h"  // 新增
+#include "glwidget/uvparamwidget.h"
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
 #include "tabs/shortestpath_tab.h"  // 新增
+#include "tabs/uvparam_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -210,14 +212,16 @@ int main(int argc, char *argv[])
     BaseGLWidget *basicGlWidget = new BaseGLWidget;
     CGALGLWidget *cgalGlWidget = new CGALGLWidget;
     ShortestPathGLWidget *shortestPathGlWidget = new ShortestPathGLWidget;  // 新增
+    UVParamWidget *uvParamWidget = new UVParamWidget;  // 新增
     
-    // 创建标签页 - 调整顺序
+    // 创建标签页 - 添加UV参数化标签页
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh");
     tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL");
     tabWidget->addTab(createModelTab(modelGlWidget), "Model");
-    tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");  // 新增
-    
+    tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");
+    tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
+
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
     
@@ -226,7 +230,8 @@ int main(int argc, char *argv[])
     QLabel *basicInfoLabel = nullptr;
     QLabel *cgalInfoLabel = nullptr;
     QLabel *shortestPathInfoLabel = nullptr;  // 新增
-    
+    QLabel *uvParamInfoLabel = nullptr;  // 新增
+
     // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
     QVBoxLayout *basicControlLayout = new QVBoxLayout(basicControlPanel);
@@ -259,11 +264,18 @@ int main(int argc, char *argv[])
     shortestPathControlLayout->addWidget(UIUtils::createModelInfoGroup(&shortestPathInfoLabel));
     shortestPathControlLayout->addWidget(createShortestPathControlPanel(shortestPathGlWidget, shortestPathInfoLabel, &mainWindow));
     
+    QWidget *uvParamControlPanel = new QWidget;
+    QVBoxLayout *uvParamControlLayout = new QVBoxLayout(uvParamControlPanel);
+    uvParamControlLayout->setAlignment(Qt::AlignTop);
+    uvParamControlLayout->addWidget(UIUtils::createModelInfoGroup(&uvParamInfoLabel));
+    uvParamControlLayout->addWidget(createUVParamControlPanel(uvParamWidget, uvParamInfoLabel, &mainWindow));
+    
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
     controlStack->addWidget(basicControlPanel);   // OpenMesh
     controlStack->addWidget(cgalControlPanel);    // CGAL
     controlStack->addWidget(modelControlPanel);   // Model
     controlStack->addWidget(shortestPathControlPanel);  // Shortest Path
+    controlStack->addWidget(uvParamControlPanel); // UV Parameterization  // 新增
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
