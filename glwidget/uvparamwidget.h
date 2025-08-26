@@ -64,6 +64,13 @@ private:
     QColor pointColor;
     QColor lineColor;
     float squareSize;
+private:
+    bool showLines;
+    int lineVertexCount;
+    std::vector<std::vector<int>> faceIndices;
+public slots:
+    void setShowLines(bool show);
+
 };
 
 #endif // UVPARAMWIDGET_H

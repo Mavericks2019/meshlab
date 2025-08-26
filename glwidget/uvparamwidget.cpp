@@ -11,7 +11,9 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     lineVbo(QOpenGLBuffer::VertexBuffer),
     lineEbo(QOpenGLBuffer::IndexBuffer),
     hasUV(false),
-    squareSize(1.0f)
+    squareSize(1.0f),
+    showLines(true),
+    lineVertexCount(0)
 {
     setFocusPolicy(Qt::StrongFocus);
     
@@ -140,10 +142,19 @@ void UVParamWidget::setupSquare() {
 void UVParamWidget::setupUVPoints() {
     if (uvCoords.empty()) return;
     
+    // 转换UV坐标到[-1,1]范围
+    std::vector<QVector2D> transformedUV;
+    for (const auto& uv : uvCoords) {
+        // 将UV从[0,1]映射到[-1,1]
+        float x = uv.x() * 2.0f - 1.0f;
+        float y = uv.y() * 2.0f - 1.0f;
+        transformedUV.emplace_back(x, y);
+    }
+    
     // Setup points
     uvVao.bind();
     uvVbo.bind();
-    uvVbo.allocate(uvCoords.data(), uvCoords.size() * sizeof(QVector2D));
+    uvVbo.allocate(transformedUV.data(), transformedUV.size() * sizeof(QVector2D));
     
     uvProgram.bind();
     int posLoc = uvProgram.attributeLocation("aPos");
@@ -152,10 +163,17 @@ void UVParamWidget::setupUVPoints() {
     
     uvVao.release();
     
-    // Setup lines (connect points in order)
+    // Setup lines (connect points based on face indices)
     std::vector<QVector2D> lineVertices;
-    for (const auto& uv : uvCoords) {
-        lineVertices.push_back(uv);
+    for (const auto& face : faceIndices) {
+        for (int i = 0; i < face.size(); i++) {
+            int idx1 = face[i];
+            int idx2 = face[(i + 1) % face.size()];
+            if (idx1 < transformedUV.size() && idx2 < transformedUV.size()) {
+                lineVertices.push_back(transformedUV[idx1]);
+                lineVertices.push_back(transformedUV[idx2]);
+            }
+        }
     }
     
     lineVao.bind();
@@ -168,19 +186,21 @@ void UVParamWidget::setupUVPoints() {
     lineProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 2, 2 * sizeof(float));
     
     lineVao.release();
+    
+    // Store the number of line vertices for drawing
+    lineVertexCount = lineVertices.size();
 }
 
 void UVParamWidget::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
     
-    // Create orthographic projection
+    // 创建保持宽高比的投影矩阵
+    projection.setToIdentity();
     float aspect = static_cast<float>(w) / h;
     if (aspect > 1.0f) {
-        projection.setToIdentity();
-        projection.ortho(-aspect, aspect, -1.0f, 1.0f, -1.0f, 1.0f);
+        projection.ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f, -1.0f, 1.0f);
     } else {
-        projection.setToIdentity();
-        projection.ortho(-1.0f, 1.0f, -1.0f/aspect, 1.0f/aspect, -1.0f, 1.0f);
+        projection.ortho(-1.0f, 1.0f, -1.0f / aspect, 1.0f / aspect, -1.0f, 1.0f);
     }
 }
 
@@ -204,18 +224,20 @@ void UVParamWidget::paintGL() {
     squareProgram.release();
     
     if (hasUV) {
-        // Draw lines
-        lineProgram.bind();
-        lineVao.bind();
-        
-        lineProgram.setUniformValue("projection", projection);
-        lineProgram.setUniformValue("lineColor", 
-                                   QVector3D(lineColor.redF(), lineColor.greenF(), lineColor.blueF()));
-        
-        glDrawArrays(GL_LINE_STRIP, 0, uvCoords.size());
-        
-        lineVao.release();
-        lineProgram.release();
+        // Draw lines if enabled
+        if (showLines) {
+            lineProgram.bind();
+            lineVao.bind();
+            
+            lineProgram.setUniformValue("projection", projection);
+            lineProgram.setUniformValue("lineColor", 
+                                       QVector3D(lineColor.redF(), lineColor.greenF(), lineColor.blueF()));
+            
+            glDrawArrays(GL_LINES, 0, lineVertexCount);
+            
+            lineVao.release();
+            lineProgram.release();
+        }
         
         // Draw points
         uvProgram.bind();
@@ -267,15 +289,18 @@ void UVParamWidget::parseOBJ(const QString &path) {
             }
         } else if (type == "f") {  // Face
             if (hasUV && parts.size() >= 4) {
+                std::vector<int> faceTexIndices;
                 for (int i = 1; i < parts.size(); i++) {
                     QStringList indices = parts[i].split("/");
                     if (indices.size() >= 2 && !indices[1].isEmpty()) {
                         int texIdx = indices[1].toInt() - 1;  // OBJ indices start at 1
                         if (texIdx >= 0 && texIdx < textureCoords.size()) {
                             uvCoords.push_back(textureCoords[texIdx]);
+                            faceTexIndices.push_back(uvCoords.size() - 1);
                         }
                     }
                 }
+                faceIndices.push_back(faceTexIndices);
             }
         }
     }
@@ -300,6 +325,8 @@ void UVParamWidget::clearData() {
     vertices.clear();
     textureCoords.clear();
     uvCoords.clear();
+    faceIndices.clear();
+    lineVertexCount = 0;
     
     makeCurrent();
     uvVbo.bind();
@@ -308,5 +335,10 @@ void UVParamWidget::clearData() {
     lineVbo.allocate(0, 0);
     doneCurrent();
     
+    update();
+}
+
+void UVParamWidget::setShowLines(bool show) {
+    showLines = show;
     update();
 }
