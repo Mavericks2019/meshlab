@@ -27,14 +27,14 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     pointColor = QColor(255, 0, 0);            // Red points
     lineColor = QColor(0, 0, 255);             // Blue lines
     
-    // 初始化颜色调色板
+    // 初始化颜色调色板 - 将颜色加深约20%
     colorPalette = {
-        QVector3D(1.0f, 0.7f, 0.7f),  // 浅红色
-        QVector3D(0.7f, 0.7f, 1.0f),  // 浅蓝色
-        QVector3D(0.7f, 1.0f, 0.7f),  // 浅绿色
-        QVector3D(0.8f, 0.7f, 1.0f),  // 浅紫色
-        QVector3D(1.0f, 1.0f, 0.7f),  // 浅黄色
-        QVector3D(1.0f, 0.8f, 0.6f)   // 浅橙色
+        QVector3D(0.8f, 0.56f, 0.56f),   // 加深的浅红色
+        QVector3D(0.56f, 0.56f, 0.8f),   // 加深的浅蓝色
+        QVector3D(0.56f, 0.8f, 0.56f),   // 加深的浅绿色
+        QVector3D(0.64f, 0.56f, 0.8f),   // 加深的浅紫色
+        QVector3D(0.8f, 0.8f, 0.56f),    // 加深的浅黄色
+        QVector3D(0.8f, 0.64f, 0.48f)    // 加深的浅橙色
     };
 }
 
