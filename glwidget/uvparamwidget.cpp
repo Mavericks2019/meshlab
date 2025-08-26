@@ -17,6 +17,7 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareSize(1.0f),
     showLines(true),
     showFaces(true),
+    showWireframe(true), // 新增：默认显示线框
     lineVertexCount(0),
     faceVertexCount(0)
 {
@@ -383,7 +384,7 @@ void UVParamWidget::paintGL() {
         }
         
         // Draw lines if enabled
-        if (showLines) {
+        if (showLines && showWireframe) { // 修改：添加showWireframe条件
             lineProgram.bind();
             lineVao.bind();
             
@@ -521,5 +522,11 @@ void UVParamWidget::setShowLines(bool show) {
 
 void UVParamWidget::setShowFaces(bool show) {
     showFaces = show;
+    update();
+}
+
+// 新增槽函数实现
+void UVParamWidget::setShowWireframe(bool show) {
+    showWireframe = show;
     update();
 }

@@ -74,6 +74,15 @@ QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     });
     layout->addWidget(facesCheckbox);
     
+    // 新增：显示线框的复选框
+    QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe");
+    wireframeCheckbox->setStyleSheet("color: white;");
+    wireframeCheckbox->setChecked(true);
+    QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setShowWireframe(state == Qt::Checked);
+    });
+    layout->addWidget(wireframeCheckbox);
+    
     return group;
 }
 
