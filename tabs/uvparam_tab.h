@@ -1,4 +1,3 @@
-// uvparam_tab.h
 #ifndef UVPARAM_TAB_H
 #define UVPARAM_TAB_H
 
@@ -56,14 +55,23 @@ QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     group->setStyleSheet("QGroupBox { color: white; font-weight: bold; }");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
-    // 显示线框的复选框
-    QCheckBox *linesCheckbox = new QCheckBox("Show Lines");
-    linesCheckbox->setStyleSheet("color: white;");
-    linesCheckbox->setChecked(true);
-    QObject::connect(linesCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
-        uvWidget->setShowLines(state == Qt::Checked);
+    // 显示点的复选框
+    QCheckBox *pointsCheckbox = new QCheckBox("Show Points");
+    pointsCheckbox->setStyleSheet("color: white;");
+    pointsCheckbox->setChecked(true);
+    QObject::connect(pointsCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setShowPoints(state == Qt::Checked);
     });
-    layout->addWidget(linesCheckbox);
+    layout->addWidget(pointsCheckbox);
+    
+    // 显示线框的复选框
+    QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe");
+    wireframeCheckbox->setStyleSheet("color: white;");
+    wireframeCheckbox->setChecked(true);
+    QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setShowWireframe(state == Qt::Checked);
+    });
+    layout->addWidget(wireframeCheckbox);
     
     // 显示面的复选框
     QCheckBox *facesCheckbox = new QCheckBox("Show Faces");
@@ -73,15 +81,6 @@ QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
         uvWidget->setShowFaces(state == Qt::Checked);
     });
     layout->addWidget(facesCheckbox);
-    
-    // 新增：显示线框的复选框
-    QCheckBox *wireframeCheckbox = new QCheckBox("Show Wireframe");
-    wireframeCheckbox->setStyleSheet("color: white;");
-    wireframeCheckbox->setChecked(true);
-    QObject::connect(wireframeCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
-        uvWidget->setShowWireframe(state == Qt::Checked);
-    });
-    layout->addWidget(wireframeCheckbox);
     
     return group;
 }

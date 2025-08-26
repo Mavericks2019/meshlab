@@ -1,4 +1,3 @@
-// uvparamwidget.cpp
 #include "uvparamwidget.h"
 #include <QDebug>
 #include <QFileInfo>
@@ -15,9 +14,9 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     faceColorVbo(QOpenGLBuffer::VertexBuffer),
     hasUV(false),
     squareSize(1.0f),
-    showLines(true),
+    showPoints(true),
+    showWireframe(true),
     showFaces(true),
-    showWireframe(true), // 新增：默认显示线框
     lineVertexCount(0),
     faceVertexCount(0)
 {
@@ -383,8 +382,8 @@ void UVParamWidget::paintGL() {
             faceProgram.release();
         }
         
-        // Draw lines if enabled
-        if (showLines && showWireframe) { // 修改：添加showWireframe条件
+        // Draw wireframe if enabled
+        if (showWireframe && lineVertexCount > 0) {
             lineProgram.bind();
             lineVao.bind();
             
@@ -398,18 +397,20 @@ void UVParamWidget::paintGL() {
             lineProgram.release();
         }
         
-        // Draw points
-        uvProgram.bind();
-        uvVao.bind();
-        
-        uvProgram.setUniformValue("projection", projection);
-        uvProgram.setUniformValue("pointColor", 
-                                 QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-        
-        glDrawArrays(GL_POINTS, 0, uvCoords.size());
-        
-        uvVao.release();
-        uvProgram.release();
+        // Draw points if enabled
+        if (showPoints && !uvCoords.empty()) {
+            uvProgram.bind();
+            uvVao.bind();
+            
+            uvProgram.setUniformValue("projection", projection);
+            uvProgram.setUniformValue("pointColor", 
+                                     QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+            
+            glDrawArrays(GL_POINTS, 0, uvCoords.size());
+            
+            uvVao.release();
+            uvProgram.release();
+        }
     }
 }
 
@@ -515,18 +516,17 @@ void UVParamWidget::clearData() {
     update();
 }
 
-void UVParamWidget::setShowLines(bool show) {
-    showLines = show;
+void UVParamWidget::setShowPoints(bool show) {
+    showPoints = show;
+    update();
+}
+
+void UVParamWidget::setShowWireframe(bool show) {
+    showWireframe = show;
     update();
 }
 
 void UVParamWidget::setShowFaces(bool show) {
     showFaces = show;
-    update();
-}
-
-// 新增槽函数实现
-void UVParamWidget::setShowWireframe(bool show) {
-    showWireframe = show;
     update();
 }

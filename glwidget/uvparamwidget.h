@@ -1,4 +1,3 @@
-// uvparamwidget.h
 #ifndef UVPARAMWIDGET_H
 #define UVPARAMWIDGET_H
 
@@ -79,16 +78,16 @@ private:
     QColor pointColor;
     QColor lineColor;
     float squareSize;
-    bool showLines;
+    bool showPoints;
+    bool showWireframe;
     bool showFaces;
-    bool showWireframe; // 新增：控制线框显示
     int lineVertexCount;
     int faceVertexCount;
 
 public slots:
-    void setShowLines(bool show);
+    void setShowPoints(bool show);
+    void setShowWireframe(bool show);
     void setShowFaces(bool show);
-    void setShowWireframe(bool show); // 新增槽函数
 };
 
 #endif // UVPARAMWIDGET_H
