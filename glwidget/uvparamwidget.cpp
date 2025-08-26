@@ -13,6 +13,7 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     hasUV(false),
     squareSize(1.0f),
     showLines(true),
+    showFaces(true),
     lineVertexCount(0)
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -239,18 +240,20 @@ void UVParamWidget::paintGL() {
             lineProgram.release();
         }
         
-        // Draw points
-        uvProgram.bind();
-        uvVao.bind();
-        
-        uvProgram.setUniformValue("projection", projection);
-        uvProgram.setUniformValue("pointColor", 
-                                 QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-        
-        glDrawArrays(GL_POINTS, 0, uvCoords.size());
-        
-        uvVao.release();
-        uvProgram.release();
+        // Draw points if enabled
+        if (showFaces) {
+            uvProgram.bind();
+            uvVao.bind();
+            
+            uvProgram.setUniformValue("projection", projection);
+            uvProgram.setUniformValue("pointColor", 
+                                     QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+            
+            glDrawArrays(GL_POINTS, 0, uvCoords.size());
+            
+            uvVao.release();
+            uvProgram.release();
+        }
     }
 }
 
@@ -340,5 +343,10 @@ void UVParamWidget::clearData() {
 
 void UVParamWidget::setShowLines(bool show) {
     showLines = show;
+    update();
+}
+
+void UVParamWidget::setShowFaces(bool show) {
+    showFaces = show;
     update();
 }

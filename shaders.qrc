@@ -15,5 +15,11 @@
     <file>glwidget/shaders/flat.frag</file>
     <file>glwidget/shaders/picking.vert</file>
     <file>glwidget/shaders/picking.frag</file>
+    <file>glwidget/shaders/uv_vertex.glsl</file>
+    <file>glwidget/shaders/uv_fragment.glsl</file>
+    <file>glwidget/shaders/line_vertex.glsl</file>
+    <file>glwidget/shaders/line_fragment.glsl</file>
+    <file>glwidget/shaders/square_vertex.glsl</file>
+    <file>glwidget/shaders/square_fragment.glsl</file>
 </qresource>
 </RCC>

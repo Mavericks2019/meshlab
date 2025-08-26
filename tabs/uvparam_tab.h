@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QGroupBox>
+#include <QCheckBox>
 
 // 创建UV参数化标签页
 QWidget* createUVParamTab(UVParamWidget* uvWidget) {
@@ -49,10 +50,40 @@ QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel
     return button;
 }
 
+// 创建显示控制组
+QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
+    QGroupBox *group = new QGroupBox("Display Options");
+    group->setStyleSheet("QGroupBox { color: white; font-weight: bold; }");
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    
+    // 显示线框的复选框
+    QCheckBox *linesCheckbox = new QCheckBox("Show Lines");
+    linesCheckbox->setStyleSheet("color: white;");
+    linesCheckbox->setChecked(true);
+    QObject::connect(linesCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setShowLines(state == Qt::Checked);
+    });
+    layout->addWidget(linesCheckbox);
+    
+    // 显示面的复选框
+    QCheckBox *facesCheckbox = new QCheckBox("Show Faces");
+    facesCheckbox->setStyleSheet("color: white;");
+    facesCheckbox->setChecked(true);
+    QObject::connect(facesCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setShowFaces(state == Qt::Checked);
+    });
+    layout->addWidget(facesCheckbox);
+    
+    return group;
+}
+
 // 创建UV参数化控制面板
 QWidget* createUVParamControlPanel(UVParamWidget* uvWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
+    
+    // 添加显示控制组
+    layout->addWidget(createUVDisplayControlGroup(uvWidget));
     
     // 添加控件组
     layout->addWidget(createUVParamModelLoadButton(uvWidget, infoLabel, mainWindow));

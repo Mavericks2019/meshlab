@@ -64,12 +64,13 @@ private:
     QColor pointColor;
     QColor lineColor;
     float squareSize;
-private:
     bool showLines;
+    bool showFaces;
     int lineVertexCount;
     std::vector<std::vector<int>> faceIndices;
 public slots:
     void setShowLines(bool show);
+    void setShowFaces(bool show);
 
 };
 
