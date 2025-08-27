@@ -1,3 +1,4 @@
+// uvparamwidget.cpp
 #include "uvparamwidget.h"
 #include <QDebug>
 #include <QFileInfo>
@@ -18,9 +19,15 @@ UVParamWidget::UVParamWidget(QWidget *parent) : QOpenGLWidget(parent),
     showWireframe(false), // 改为false，默认不显示线
     showFaces(true),    // 保持true，默认显示面
     lineVertexCount(0),
-    faceVertexCount(0)
+    faceVertexCount(0),
+    useAntialiasing(true)  // 默认启用抗锯齿
 {
     setFocusPolicy(Qt::StrongFocus);
+    
+    // 设置抗锯齿格式
+    QSurfaceFormat format;
+    format.setSamples(4);  // 4倍多重采样
+    setFormat(format);
     
     // Set colors - 修改正方形颜色为纯白色
     squareColor = QColor(255, 255, 255, 255);  // 纯白色
@@ -59,6 +66,52 @@ void UVParamWidget::initializeGL() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // 启用多重采样抗锯齿
+    if (useAntialiasing) {
+        glEnable(GL_MULTISAMPLE);
+    }
+
+    // 初始化抗锯齿线程序
+    antialiasedLineProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
+        "#version 330 core\n"
+        "layout (location = 0) in vec2 aPos;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "   gl_Position = projection * vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
+        "}\n");
+    
+    antialiasedLineProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "uniform vec3 lineColor;\n"
+        "void main() {\n"
+        "   FragColor = vec4(lineColor, 1.0);\n"
+        "}\n");
+    antialiasedLineProgram.link();
+    
+    // 初始化抗锯齿点程序
+    antialiasedPointProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
+        "#version 330 core\n"
+        "layout (location = 0) in vec2 aPos;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "   gl_Position = projection * vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
+        "   gl_PointSize = 6.0;\n"  // 稍微大一点的点以便抗锯齿效果更明显
+        "}\n");
+    
+    antialiasedPointProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "uniform vec3 pointColor;\n"
+        "void main() {\n"
+        "   // 创建圆形点而不是方点\n"
+        "   vec2 coord = gl_PointCoord - vec2(0.5);\n"
+        "   if (length(coord) > 0.5)\n"
+        "       discard;\n"
+        "   FragColor = vec4(pointColor, 1.0);\n"
+        "}\n");
+    antialiasedPointProgram.link();
 
     // Initialize square
     squareVao.create();
@@ -382,34 +435,68 @@ void UVParamWidget::paintGL() {
             faceProgram.release();
         }
         
-        // Draw wireframe if enabled
+        // Draw wireframe if enabled - 使用抗锯齿
         if (showWireframe && lineVertexCount > 0) {
-            lineProgram.bind();
-            lineVao.bind();
-            
-            lineProgram.setUniformValue("projection", projection);
-            lineProgram.setUniformValue("lineColor", 
-                                       QVector3D(lineColor.redF(), lineColor.greenF(), lineColor.blueF()));
-            
-            glDrawArrays(GL_LINES, 0, lineVertexCount);
-            
-            lineVao.release();
-            lineProgram.release();
+            if (useAntialiasing) {
+                // 启用线抗锯齿
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                
+                antialiasedLineProgram.bind();
+                lineVao.bind();
+                
+                antialiasedLineProgram.setUniformValue("projection", projection);
+                antialiasedLineProgram.setUniformValue("lineColor", 
+                                           QVector3D(lineColor.redF(), lineColor.greenF(), lineColor.blueF()));
+                
+                glDrawArrays(GL_LINES, 0, lineVertexCount);
+                
+                lineVao.release();
+                antialiasedLineProgram.release();
+                
+                glDisable(GL_LINE_SMOOTH);
+            } else {
+                lineProgram.bind();
+                lineVao.bind();
+                
+                lineProgram.setUniformValue("projection", projection);
+                lineProgram.setUniformValue("lineColor", 
+                                           QVector3D(lineColor.redF(), lineColor.greenF(), lineColor.blueF()));
+                
+                glDrawArrays(GL_LINES, 0, lineVertexCount);
+                
+                lineVao.release();
+                lineProgram.release();
+            }
         }
         
-        // Draw points if enabled
+        // Draw points if enabled - 使用抗锯齿
         if (showPoints && !uvCoords.empty()) {
-            uvProgram.bind();
-            uvVao.bind();
-            
-            uvProgram.setUniformValue("projection", projection);
-            uvProgram.setUniformValue("pointColor", 
-                                     QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-            
-            glDrawArrays(GL_POINTS, 0, uvCoords.size());
-            
-            uvVao.release();
-            uvProgram.release();
+            if (useAntialiasing) {
+                antialiasedPointProgram.bind();
+                uvVao.bind();
+                
+                antialiasedPointProgram.setUniformValue("projection", projection);
+                antialiasedPointProgram.setUniformValue("pointColor", 
+                                         QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+                
+                glDrawArrays(GL_POINTS, 0, uvCoords.size());
+                
+                uvVao.release();
+                antialiasedPointProgram.release();
+            } else {
+                uvProgram.bind();
+                uvVao.bind();
+                
+                uvProgram.setUniformValue("projection", projection);
+                uvProgram.setUniformValue("pointColor", 
+                                         QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+                
+                glDrawArrays(GL_POINTS, 0, uvCoords.size());
+                
+                uvVao.release();
+                uvProgram.release();
+            }
         }
     }
 }
@@ -529,4 +616,18 @@ void UVParamWidget::setShowWireframe(bool show) {
 void UVParamWidget::setShowFaces(bool show) {
     showFaces = show;
     update();
+}
+
+void UVParamWidget::setAntialiasing(bool enabled) {
+    if (useAntialiasing != enabled) {
+        useAntialiasing = enabled;
+        makeCurrent();
+        if (useAntialiasing) {
+            glEnable(GL_MULTISAMPLE);
+        } else {
+            glDisable(GL_MULTISAMPLE);
+        }
+        doneCurrent();
+        update();
+    }
 }

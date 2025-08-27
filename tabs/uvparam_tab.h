@@ -1,3 +1,4 @@
+// uvparam_tab.h
 #ifndef UVPARAM_TAB_H
 #define UVPARAM_TAB_H
 
@@ -81,6 +82,15 @@ QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
         uvWidget->setShowFaces(state == Qt::Checked);
     });
     layout->addWidget(facesCheckbox);
+    
+    // 抗锯齿复选框 - 默认选中
+    QCheckBox *antialiasingCheckbox = new QCheckBox("Antialiasing");
+    antialiasingCheckbox->setStyleSheet("color: white;");
+    antialiasingCheckbox->setChecked(true);  // 默认启用抗锯齿
+    QObject::connect(antialiasingCheckbox, &QCheckBox::stateChanged, [uvWidget](int state) {
+        uvWidget->setAntialiasing(state == Qt::Checked);
+    });
+    layout->addWidget(antialiasingCheckbox);
     
     return group;
 }

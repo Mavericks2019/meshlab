@@ -1,3 +1,4 @@
+// uvparamwidget.h
 #ifndef UVPARAMWIDGET_H
 #define UVPARAMWIDGET_H
 
@@ -27,6 +28,7 @@ public:
     void loadOBJ(const QString &path);
     void clearData();
     bool hasUVData() const { return hasUV; }
+    void setAntialiasing(bool enabled);  // 添加抗锯齿设置函数
 
 protected:
     void initializeGL() override;
@@ -72,6 +74,11 @@ private:
     QOpenGLBuffer faceVbo;
     QOpenGLBuffer faceColorVbo;
     QOpenGLVertexArrayObject faceVao;
+
+    // 抗锯齿相关
+    bool useAntialiasing;
+    QOpenGLShaderProgram antialiasedLineProgram;
+    QOpenGLShaderProgram antialiasedPointProgram;
 
     QMatrix4x4 projection;
     QColor squareColor;
