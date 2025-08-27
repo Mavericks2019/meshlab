@@ -61,6 +61,93 @@ UVParamWidget::~UVParamWidget() {
     doneCurrent();
 }
 
+int UVParamWidget::getConnectedComponentsCount() const {
+    if (mesh.n_vertices() == 0) return 0;
+    
+    std::vector<bool> visited(mesh.n_vertices(), false);
+    int count = 0;
+    
+    for (Mesh::VertexHandle vh : mesh.vertices()) {
+        if (!visited[vh.idx()]) {
+            count++;
+            std::queue<Mesh::VertexHandle> q;
+            q.push(vh);
+            visited[vh.idx()] = true;
+            
+            while (!q.empty()) {
+                Mesh::VertexHandle current = q.front();
+                q.pop();
+                
+                for (Mesh::ConstVertexVertexIter vv_it = mesh.cvv_iter(current); vv_it.is_valid(); ++vv_it) {
+                    if (!visited[vv_it->idx()]) {
+                        visited[vv_it->idx()] = true;
+                        q.push(*vv_it);
+                    }
+                }
+            }
+        }
+    }
+    
+    return count;
+}
+
+// 添加打印mesh信息的函数
+void UVParamWidget::printMeshInfo() const {
+    qDebug() << "Texture (UV) Information:";
+    qDebug() << "UV coordinate count:" << uvCoords.size();
+    qDebug() << "Texture face count:" << faceIndices.size();
+    
+    // 计算纹理的连通分量
+    if (!faceIndices.empty()) {
+        // 构建邻接表 - 顶点到面的映射
+        std::unordered_map<int, std::vector<int>> vertexToFaces;
+        for (int i = 0; i < faceIndices.size(); i++) {
+            for (int vertexIdx : faceIndices[i]) {
+                vertexToFaces[vertexIdx].push_back(i);
+            }
+        }
+        
+        // 使用BFS找到连通的纹理面组
+        std::vector<bool> visited(faceIndices.size(), false);
+        int textureComponents = 0;
+        
+        for (int i = 0; i < faceIndices.size(); i++) {
+            if (visited[i]) continue;
+            
+            textureComponents++;
+            std::queue<int> q;
+            q.push(i);
+            visited[i] = true;
+            
+            while (!q.empty()) {
+                int faceIdx = q.front();
+                q.pop();
+                
+                // 找到所有相邻的面（共享顶点的面）
+                for (int vertexIdx : faceIndices[faceIdx]) {
+                    for (int neighborFaceIdx : vertexToFaces[vertexIdx]) {
+                        if (!visited[neighborFaceIdx]) {
+                            visited[neighborFaceIdx] = true;
+                            q.push(neighborFaceIdx);
+                        }
+                    }
+                }
+            }
+        }
+        
+        qDebug() << "Texture connected components:" << textureComponents;
+    }
+    
+    // 打印前10个UV坐标
+    int count = 0;
+    qDebug() << "First 10 UV coordinates:";
+    for (const auto& uv : uvCoords) {
+        if (count >= 10) break;
+        qDebug() << "UV" << count << ": (" << uv.x() << "," << uv.y() << ")";
+        count++;
+    }
+}
+
 void UVParamWidget::initializeGL() {
     initializeOpenGLFunctions();
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -503,6 +590,15 @@ void UVParamWidget::paintGL() {
 
 void UVParamWidget::parseOBJ(const QString &path) {
     clearData();
+
+    // 使用Mesh_doubleIO加载mesh
+    std::string stdPath = path.toStdString();
+    bool success = Mesh_doubleIO::load_mesh(mesh, stdPath.c_str(), false);
+    
+    if (!success) {
+        qWarning() << "Failed to load mesh using Mesh_doubleIO:" << path;
+        return;
+    }
     
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -579,6 +675,7 @@ void UVParamWidget::loadOBJ(const QString &path) {
     parseOBJ(path);
 }
 
+
 void UVParamWidget::clearData() {
     hasUV = false;
     vertices.clear();
@@ -588,6 +685,7 @@ void UVParamWidget::clearData() {
     faceColors.clear();
     lineVertexCount = 0;
     faceVertexCount = 0;
+    mesh.clear();  // 清理mesh
     
     makeCurrent();
     uvVbo.bind();

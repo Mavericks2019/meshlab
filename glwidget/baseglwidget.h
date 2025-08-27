@@ -1,7 +1,6 @@
 // baseglwidget.h
 #ifndef BASEGLWIDGET_H
 #define BASEGLWIDGET_H
-
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
@@ -13,21 +12,7 @@
 #include <vector>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <QQuaternion>
-
-struct MyTraits : public OpenMesh::DefaultTraits {
-    typedef OpenMesh::Vec3d Point;  // 使用双精度浮点数 (double) 作为点的坐标类型
-	typedef OpenMesh::Vec3d Normal;
-	typedef OpenMesh::Vec2d TexCoord2D;
-
-	VertexAttributes(OpenMesh::Attributes::Status);
-	FaceAttributes(OpenMesh::Attributes::Status);
-	EdgeAttributes(OpenMesh::Attributes::Status);
-	HalfedgeAttributes(OpenMesh::Attributes::Status);
-    VertexTraits {
-        float curvature;
-    };
-};
-typedef OpenMesh::TriMesh_ArrayKernelT<MyTraits> Mesh;
+#include "../meshutils/my_traits.h"
 
 class BaseGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {

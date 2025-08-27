@@ -50,6 +50,26 @@ QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel
     return button;
 }
 
+// 创建打印Mesh信息按钮
+QPushButton* createPrintMeshInfoButton(UVParamWidget* uvWidget) {
+    QPushButton *button = new QPushButton("Print Mesh Info");
+    button->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(button, &QPushButton::clicked, [uvWidget]() {
+        uvWidget->printMeshInfo();
+    });
+    return button;
+}
+
 // 创建显示控制组
 QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
@@ -105,6 +125,9 @@ QWidget* createUVParamControlPanel(UVParamWidget* uvWidget, QLabel* infoLabel, Q
     
     // 添加控件组
     layout->addWidget(createUVParamModelLoadButton(uvWidget, infoLabel, mainWindow));
+    
+    // 添加打印Mesh信息按钮
+    layout->addWidget(createPrintMeshInfoButton(uvWidget));
     
     // 清除按钮
     QPushButton *clearButton = new QPushButton("Clear");

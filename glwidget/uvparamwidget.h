@@ -16,6 +16,7 @@
 #include <QTextStream>
 #include <unordered_map>
 #include <unordered_set>
+#include "../meshutils/my_traits.h"  // 添加头文件
 
 class UVParamWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -29,6 +30,11 @@ public:
     void clearData();
     bool hasUVData() const { return hasUV; }
     void setAntialiasing(bool enabled);  // 添加抗锯齿设置函数
+    
+    // 添加获取mesh信息的函数
+    int getVertexCount() const { return mesh.n_vertices(); }
+    int getConnectedComponentsCount() const;
+    void printMeshInfo() const;
 
 protected:
     void initializeGL() override;
@@ -46,6 +52,8 @@ private:
     std::vector<QVector2D> uvCoords;
     std::vector<QVector3D> vertices;
     std::vector<QVector2D> textureCoords;
+    
+    Mesh mesh;  // 添加Mesh变量
 
     // 拓扑分析相关
     std::vector<std::vector<int>> faceIndices;
