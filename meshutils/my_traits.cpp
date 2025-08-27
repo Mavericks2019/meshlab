@@ -210,6 +210,7 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 
 	if (load_texture)
 	{
+		std::cout << "aaaaaaaaaaaaaaaaaaaa" << std::endl;
 		_mesh.add_property(mvt_list, "mvt_list");
 		_mesh.add_property(hvt_index, "hvt_index");
 
@@ -223,6 +224,7 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 
 	int count_v = 0;
 	int count_f = 0;
+	std::cout << "load_texture:"<< load_texture << std::endl;
 	while (!obj_file.eof())
 	{
 		std::getline(obj_file, line);
@@ -239,7 +241,7 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 		{
 			Mesh::TexCoord2D tex;
 			iss >> tex[0] >> tex[1];
-
+			std::cout << "push" << std::endl;
 			_mesh.property(mvt_list).push_back(tex);
 		}
 		else if (load_texture && prefix == "f")

@@ -92,10 +92,43 @@ int UVParamWidget::getConnectedComponentsCount() const {
 }
 
 // 添加打印mesh信息的函数
+// 添加打印mesh信息的函数
 void UVParamWidget::printMeshInfo() const {
     qDebug() << "Texture (UV) Information:";
     qDebug() << "UV coordinate count:" << uvCoords.size();
     qDebug() << "Texture face count:" << faceIndices.size();
+    
+    // 检查Mesh中是否有纹理坐标属性
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
+    
+    bool hasTextureInMesh = mesh.get_property_handle(mvt_list, "mvt_list") && 
+                           mesh.get_property_handle(hvt_index, "hvt_index") &&
+                           !mesh.property(mvt_list).empty();
+    qDebug() << "Mesh has texture coordinates:" << hasTextureInMesh;
+    
+    if (true) {
+        qDebug() << "First 10 texture coordinates from Mesh:";
+        const auto& meshTexCoords = mesh.property(mvt_list);
+        int count = 0;
+        for (const auto& texCoord : meshTexCoords) {
+            if (count >= 10) break;
+            qDebug() << "Mesh TexCoord" << count << ": (" << texCoord[0] << "," << texCoord[1] << ")";
+            count++;
+        }
+    }
+    
+    // 打印前10个UV坐标
+    int count = 0;
+    qDebug() << "First 10 UV coordinates from uvCoords:";
+    for (const auto& uv : uvCoords) {
+        if (count >= 10) break;
+        qDebug() << "UVCoord" << count << ": (" << uv.x() << "," << uv.y() << ")";
+        count++;
+    }
+    
+    qDebug() << "Mesh vertex count:" << mesh.n_vertices();
+    qDebug() << "Mesh face count:" << mesh.n_faces();
     
     // 计算纹理的连通分量
     if (!faceIndices.empty()) {
@@ -136,15 +169,6 @@ void UVParamWidget::printMeshInfo() const {
         }
         
         qDebug() << "Texture connected components:" << textureComponents;
-    }
-    
-    // 打印前10个UV坐标
-    int count = 0;
-    qDebug() << "First 10 UV coordinates:";
-    for (const auto& uv : uvCoords) {
-        if (count >= 10) break;
-        qDebug() << "UV" << count << ": (" << uv.x() << "," << uv.y() << ")";
-        count++;
     }
 }
 
@@ -593,7 +617,7 @@ void UVParamWidget::parseOBJ(const QString &path) {
 
     // 使用Mesh_doubleIO加载mesh
     std::string stdPath = path.toStdString();
-    bool success = Mesh_doubleIO::load_mesh(mesh, stdPath.c_str(), false);
+    bool success = Mesh_doubleIO::load_mesh(mesh, stdPath.c_str(), true);
     
     if (!success) {
         qWarning() << "Failed to load mesh using Mesh_doubleIO:" << path;
