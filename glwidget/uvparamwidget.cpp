@@ -301,16 +301,27 @@ void UVParamWidget::setupSquare() {
 void UVParamWidget::analyzeTopology() {
     if (mesh.n_faces() == 0) return;
     
-    // 构建邻接表 - 顶点到面的映射
-    std::unordered_map<int, std::vector<int>> vertexToFaces;
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
+    
+    if (!mesh.get_property_handle(mvt_list, "mvt_list") || 
+        !mesh.get_property_handle(hvt_index, "hvt_index")) {
+        return;
+    }
+    
+    const auto& texCoords = mesh.property(mvt_list);
+    
+    // 构建邻接表 - 纹理坐标索引到面的映射
+    std::unordered_map<int, std::vector<int>> texIndexToFaces;
     for (int i = 0; i < mesh.n_faces(); i++) {
         Mesh::FaceHandle fh = mesh.face_handle(i);
-        for (Mesh::ConstFaceVertexIter fv_it = mesh.cfv_begin(fh); fv_it.is_valid(); ++fv_it) {
-            vertexToFaces[fv_it->idx()].push_back(i);
+        for (Mesh::ConstFaceHalfedgeIter fh_it = mesh.cfh_begin(fh); fh_it.is_valid(); ++fh_it) {
+            int texIndex = mesh.property(hvt_index, *fh_it);
+            texIndexToFaces[texIndex].push_back(i);
         }
     }
     
-    // 使用BFS找到连通的面组
+    // 使用BFS找到连通的纹理面组
     std::vector<bool> visited(mesh.n_faces(), false);
     faceColors.resize(mesh.n_faces(), -1);
     int currentColorIndex = 0;
@@ -328,9 +339,13 @@ void UVParamWidget::analyzeTopology() {
             q.pop();
             
             Mesh::FaceHandle fh = mesh.face_handle(faceIdx);
-            // 找到所有相邻的面（共享顶点的面）
-            for (Mesh::ConstFaceVertexIter fv_it = mesh.cfv_begin(fh); fv_it.is_valid(); ++fv_it) {
-                for (int neighborFaceIdx : vertexToFaces[fv_it->idx()]) {
+            
+            // 遍历面的所有纹理坐标索引
+            for (Mesh::ConstFaceHalfedgeIter fh_it = mesh.cfh_begin(fh); fh_it.is_valid(); ++fh_it) {
+                int texIndex = mesh.property(hvt_index, *fh_it);
+                
+                // 找到共享相同纹理坐标索引的所有面
+                for (int neighborFaceIdx : texIndexToFaces[texIndex]) {
                     if (!visited[neighborFaceIdx]) {
                         visited[neighborFaceIdx] = true;
                         faceColors[neighborFaceIdx] = currentColorIndex;
@@ -644,17 +659,41 @@ void UVParamWidget::clearData() {
     faceColors.clear();
     lineVertexCount = 0;
     faceVertexCount = 0;
-    mesh.clear();  // 清理mesh
+    
+    // 完全清理mesh
+    mesh.clear();
+    mesh.garbage_collection(); // 确保所有资源被释放
+    
+    // 清理OpenMesh的属性
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
+    
+    if (mesh.get_property_handle(mvt_list, "mvt_list")) {
+        mesh.remove_property(mvt_list);
+    }
+    if (mesh.get_property_handle(hvt_index, "hvt_index")) {
+        mesh.remove_property(hvt_index);
+    }
     
     makeCurrent();
+    
+    // 重置所有缓冲区
     uvVbo.bind();
     uvVbo.allocate(0, 0);
+    uvVbo.release();
+    
     lineVbo.bind();
     lineVbo.allocate(0, 0);
+    lineVbo.release();
+    
     faceVbo.bind();
     faceVbo.allocate(0, 0);
+    faceVbo.release();
+    
     faceColorVbo.bind();
     faceColorVbo.allocate(0, 0);
+    faceColorVbo.release();
+    
     doneCurrent();
     
     update();
