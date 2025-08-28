@@ -49,14 +49,9 @@ private:
     void setupFaces();
 
     bool hasUV;
-    std::vector<QVector2D> uvCoords;
-    std::vector<QVector3D> vertices;
-    std::vector<QVector2D> textureCoords;
-    
-    Mesh mesh;  // 添加Mesh变量
+    Mesh mesh;  // 使用OpenMesh的Mesh结构
 
     // 拓扑分析相关
-    std::vector<std::vector<int>> faceIndices;
     std::vector<int> faceColors; // 每个面对应的颜色索引
     std::vector<QVector3D> colorPalette; // 颜色调色板
 

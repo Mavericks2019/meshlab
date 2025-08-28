@@ -92,11 +92,11 @@ int UVParamWidget::getConnectedComponentsCount() const {
 }
 
 // 添加打印mesh信息的函数
-// 添加打印mesh信息的函数
 void UVParamWidget::printMeshInfo() const {
-    qDebug() << "Texture (UV) Information:";
-    qDebug() << "UV coordinate count:" << uvCoords.size();
-    qDebug() << "Texture face count:" << faceIndices.size();
+    qDebug() << "Mesh Information:";
+    qDebug() << "Vertex count:" << mesh.n_vertices();
+    qDebug() << "Face count:" << mesh.n_faces();
+    qDebug() << "Edge count:" << mesh.n_edges();
     
     // 检查Mesh中是否有纹理坐标属性
     OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
@@ -106,73 +106,21 @@ void UVParamWidget::printMeshInfo() const {
                            mesh.get_property_handle(hvt_index, "hvt_index");
 
     if (hasTextureInMesh) {
-        // 额外检查属性是否为空
-        bool isPropertyEmpty = mesh.property(mvt_list).empty();
-        qDebug() << "Texture property is empty:" << isPropertyEmpty;
+        qDebug() << "Texture data found in mesh";
+        const auto& meshTexCoords = mesh.property(mvt_list);
+        qDebug() << "Texture coordinate count:" << meshTexCoords.size();
         
-        if (!isPropertyEmpty) {
-            qDebug() << "First 10 texture coordinates from Mesh:";
-            const auto& meshTexCoords = mesh.property(mvt_list);
+        if (!meshTexCoords.empty()) {
+            qDebug() << "First 10 texture coordinates:";
             int count = 0;
             for (const auto& texCoord : meshTexCoords) {
                 if (count >= 10) break;
-                qDebug() << "Mesh TexCoord" << count << ": (" << texCoord[0] << "," << texCoord[1] << ")";
+                qDebug() << "TexCoord" << count << ": (" << texCoord[0] << "," << texCoord[1] << ")";
                 count++;
             }
         }
-    }
-    
-    // 打印前10个UV坐标
-    int count = 0;
-    qDebug() << "First 10 UV coordinates from uvCoords:";
-    for (const auto& uv : uvCoords) {
-        if (count >= 10) break;
-        qDebug() << "UVCoord" << count << ": (" << uv.x() << "," << uv.y() << ")";
-        count++;
-    }
-    
-    qDebug() << "Mesh vertex count:" << mesh.n_vertices();
-    qDebug() << "Mesh face count:" << mesh.n_faces();
-    
-    // 计算纹理的连通分量
-    if (!faceIndices.empty()) {
-        // 构建邻接表 - 顶点到面的映射
-        std::unordered_map<int, std::vector<int>> vertexToFaces;
-        for (int i = 0; i < faceIndices.size(); i++) {
-            for (int vertexIdx : faceIndices[i]) {
-                vertexToFaces[vertexIdx].push_back(i);
-            }
-        }
-        
-        // 使用BFS找到连通的纹理面组
-        std::vector<bool> visited(faceIndices.size(), false);
-        int textureComponents = 0;
-        
-        for (int i = 0; i < faceIndices.size(); i++) {
-            if (visited[i]) continue;
-            
-            textureComponents++;
-            std::queue<int> q;
-            q.push(i);
-            visited[i] = true;
-            
-            while (!q.empty()) {
-                int faceIdx = q.front();
-                q.pop();
-                
-                // 找到所有相邻的面（共享顶点的面）
-                for (int vertexIdx : faceIndices[faceIdx]) {
-                    for (int neighborFaceIdx : vertexToFaces[vertexIdx]) {
-                        if (!visited[neighborFaceIdx]) {
-                            visited[neighborFaceIdx] = true;
-                            q.push(neighborFaceIdx);
-                        }
-                    }
-                }
-            }
-        }
-        
-        qDebug() << "Texture connected components:" << textureComponents;
+    } else {
+        qDebug() << "No texture data found in mesh";
     }
 }
 
@@ -351,22 +299,23 @@ void UVParamWidget::setupSquare() {
 }
 
 void UVParamWidget::analyzeTopology() {
-    if (faceIndices.empty()) return;
+    if (mesh.n_faces() == 0) return;
     
     // 构建邻接表 - 顶点到面的映射
     std::unordered_map<int, std::vector<int>> vertexToFaces;
-    for (int i = 0; i < faceIndices.size(); i++) {
-        for (int vertexIdx : faceIndices[i]) {
-            vertexToFaces[vertexIdx].push_back(i);
+    for (int i = 0; i < mesh.n_faces(); i++) {
+        Mesh::FaceHandle fh = mesh.face_handle(i);
+        for (Mesh::ConstFaceVertexIter fv_it = mesh.cfv_begin(fh); fv_it.is_valid(); ++fv_it) {
+            vertexToFaces[fv_it->idx()].push_back(i);
         }
     }
     
     // 使用BFS找到连通的面组
-    std::vector<bool> visited(faceIndices.size(), false);
-    faceColors.resize(faceIndices.size(), -1);
+    std::vector<bool> visited(mesh.n_faces(), false);
+    faceColors.resize(mesh.n_faces(), -1);
     int currentColorIndex = 0;
     
-    for (int i = 0; i < faceIndices.size(); i++) {
+    for (int i = 0; i < mesh.n_faces(); i++) {
         if (visited[i]) continue;
         
         std::queue<int> q;
@@ -378,9 +327,10 @@ void UVParamWidget::analyzeTopology() {
             int faceIdx = q.front();
             q.pop();
             
+            Mesh::FaceHandle fh = mesh.face_handle(faceIdx);
             // 找到所有相邻的面（共享顶点的面）
-            for (int vertexIdx : faceIndices[faceIdx]) {
-                for (int neighborFaceIdx : vertexToFaces[vertexIdx]) {
+            for (Mesh::ConstFaceVertexIter fv_it = mesh.cfv_begin(fh); fv_it.is_valid(); ++fv_it) {
+                for (int neighborFaceIdx : vertexToFaces[fv_it->idx()]) {
                     if (!visited[neighborFaceIdx]) {
                         visited[neighborFaceIdx] = true;
                         faceColors[neighborFaceIdx] = currentColorIndex;
@@ -395,7 +345,7 @@ void UVParamWidget::analyzeTopology() {
 }
 
 void UVParamWidget::setupFaces() {
-    if (faceIndices.empty()) return;
+    if (mesh.n_faces() == 0) return;
     
     // 分析拓扑结构
     analyzeTopology();
@@ -404,20 +354,30 @@ void UVParamWidget::setupFaces() {
     std::vector<QVector2D> faceVertices;
     std::vector<QVector3D> faceVertexColors;
     
-    for (int i = 0; i < faceIndices.size(); i++) {
-        if (faceIndices[i].size() < 3) continue;
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
+    
+    if (!mesh.get_property_handle(mvt_list, "mvt_list") || 
+        !mesh.get_property_handle(hvt_index, "hvt_index")) {
+        return;
+    }
+    
+    const auto& texCoords = mesh.property(mvt_list);
+    
+    for (int i = 0; i < mesh.n_faces(); i++) {
+        Mesh::FaceHandle fh = mesh.face_handle(i);
         
         // 获取面的颜色
         int colorIdx = faceColors[i] % colorPalette.size();
         QVector3D faceColor = colorPalette[colorIdx];
         
         // 为面的每个顶点添加相同的颜色
-        for (int j = 0; j < faceIndices[i].size(); j++) {
-            int vertexIdx = faceIndices[i][j];
-            if (vertexIdx < uvCoords.size()) {
+        for (Mesh::ConstFaceHalfedgeIter fh_it = mesh.cfh_begin(fh); fh_it.is_valid(); ++fh_it) {
+            int texIndex = mesh.property(hvt_index, *fh_it);
+            if (texIndex < texCoords.size()) {
                 // 将UV从[0,1]映射到[-1,1]
-                float x = uvCoords[vertexIdx].x() * 2.0f - 1.0f;
-                float y = uvCoords[vertexIdx].y() * 2.0f - 1.0f;
+                float x = texCoords[texIndex][0] * 2.0f - 1.0f;
+                float y = texCoords[texIndex][1] * 2.0f - 1.0f;
                 faceVertices.emplace_back(x, y);
                 faceVertexColors.push_back(faceColor);
             }
@@ -450,14 +410,29 @@ void UVParamWidget::setupFaces() {
 }
 
 void UVParamWidget::setupUVPoints() {
-    if (uvCoords.empty()) return;
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
+    
+    if (!mesh.get_property_handle(mvt_list, "mvt_list") || 
+        !mesh.get_property_handle(hvt_index, "hvt_index")) {
+        hasUV = false;
+        return;
+    }
+    
+    const auto& texCoords = mesh.property(mvt_list);
+    if (texCoords.empty()) {
+        hasUV = false;
+        return;
+    }
+    
+    hasUV = true;
     
     // 转换UV坐标到[-1,1]范围
     std::vector<QVector2D> transformedUV;
-    for (const auto& uv : uvCoords) {
+    for (const auto& texCoord : texCoords) {
         // 将UV从[0,1]映射到[-1,1]
-        float x = uv.x() * 2.0f - 1.0f;
-        float y = uv.y() * 2.0f - 1.0f;
+        float x = texCoord[0] * 2.0f - 1.0f;
+        float y = texCoord[1] * 2.0f - 1.0f;
         transformedUV.emplace_back(x, y);
     }
     
@@ -475,10 +450,19 @@ void UVParamWidget::setupUVPoints() {
     
     // Setup lines (connect points based on face indices)
     std::vector<QVector2D> lineVertices;
-    for (const auto& face : faceIndices) {
-        for (int i = 0; i < face.size(); i++) {
-            int idx1 = face[i];
-            int idx2 = face[(i + 1) % face.size()];
+    for (int i = 0; i < mesh.n_faces(); i++) {
+        Mesh::FaceHandle fh = mesh.face_handle(i);
+        std::vector<int> texIndices;
+        
+        // 收集面的纹理索引
+        for (Mesh::ConstFaceHalfedgeIter fh_it = mesh.cfh_begin(fh); fh_it.is_valid(); ++fh_it) {
+            texIndices.push_back(mesh.property(hvt_index, *fh_it));
+        }
+        
+        // 创建线
+        for (int j = 0; j < texIndices.size(); j++) {
+            int idx1 = texIndices[j];
+            int idx2 = texIndices[(j + 1) % texIndices.size()];
             if (idx1 < transformedUV.size() && idx2 < transformedUV.size()) {
                 lineVertices.push_back(transformedUV[idx1]);
                 lineVertices.push_back(transformedUV[idx2]);
@@ -586,31 +570,37 @@ void UVParamWidget::paintGL() {
         }
         
         // Draw points if enabled - 使用抗锯齿
-        if (showPoints && !uvCoords.empty()) {
-            if (useAntialiasing) {
-                antialiasedPointProgram.bind();
-                uvVao.bind();
-                
-                antialiasedPointProgram.setUniformValue("projection", projection);
-                antialiasedPointProgram.setUniformValue("pointColor", 
-                                         QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-                
-                glDrawArrays(GL_POINTS, 0, uvCoords.size());
-                
-                uvVao.release();
-                antialiasedPointProgram.release();
-            } else {
-                uvProgram.bind();
-                uvVao.bind();
-                
-                uvProgram.setUniformValue("projection", projection);
-                uvProgram.setUniformValue("pointColor", 
-                                         QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
-                
-                glDrawArrays(GL_POINTS, 0, uvCoords.size());
-                
-                uvVao.release();
-                uvProgram.release();
+        if (showPoints && hasUV) {
+            OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+            if (mesh.get_property_handle(mvt_list, "mvt_list")) {
+                const auto& texCoords = mesh.property(mvt_list);
+                if (!texCoords.empty()) {
+                    if (useAntialiasing) {
+                        antialiasedPointProgram.bind();
+                        uvVao.bind();
+                        
+                        antialiasedPointProgram.setUniformValue("projection", projection);
+                        antialiasedPointProgram.setUniformValue("pointColor", 
+                                             QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+                        
+                        glDrawArrays(GL_POINTS, 0, texCoords.size());
+                        
+                        uvVao.release();
+                        antialiasedPointProgram.release();
+                    } else {
+                        uvProgram.bind();
+                        uvVao.bind();
+                        
+                        uvProgram.setUniformValue("projection", projection);
+                        uvProgram.setUniformValue("pointColor", 
+                                                 QVector3D(pointColor.redF(), pointColor.greenF(), pointColor.blueF()));
+                        
+                        glDrawArrays(GL_POINTS, 0, texCoords.size());
+                        
+                        uvVao.release();
+                        uvProgram.release();
+                    }
+                }
             }
         }
     }
@@ -628,67 +618,13 @@ void UVParamWidget::parseOBJ(const QString &path) {
         return;
     }
     
-    QFile file(path);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Failed to open file:" << path;
-        return;
-    }
+    // 检查是否有纹理数据
+    OpenMesh::MPropHandleT<std::vector<Mesh::TexCoord2D>> mvt_list;
+    OpenMesh::HPropHandleT<int> hvt_index;
     
-    QTextStream in(&file);
-    while (!in.atEnd()) {
-        QString line = in.readLine().trimmed();
-        if (line.isEmpty() || line.startsWith("#")) continue;
-        
-        QStringList parts = line.split(" ", Qt::SkipEmptyParts);
-        if (parts.isEmpty()) continue;
-        
-        QString type = parts[0];
-        
-        if (type == "v") {  // Vertex
-            if (parts.size() >= 4) {
-                float x = parts[1].toFloat();
-                float y = parts[2].toFloat();
-                float z = parts[3].toFloat();
-                vertices.emplace_back(x, y, z);
-            }
-        } else if (type == "vt") {  // Texture coordinate
-            if (parts.size() >= 3) {
-                float u = parts[1].toFloat();
-                float v = parts[2].toFloat();
-                textureCoords.emplace_back(u, v);
-                hasUV = true;
-            }
-        } else if (type == "f") {  // Face
-            if (hasUV && parts.size() >= 4) {
-                std::vector<int> faceTexIndices;
-                for (int i = 1; i < parts.size(); i++) {
-                    QStringList indices = parts[i].split("/");
-                    if (indices.size() >= 2 && !indices[1].isEmpty()) {
-                        int texIdx = indices[1].toInt() - 1;  // OBJ indices start at 1
-                        if (texIdx >= 0 && texIdx < textureCoords.size()) {
-                            // 检查UV坐标是否已存在，避免重复
-                            bool found = false;
-                            for (int j = 0; j < uvCoords.size(); j++) {
-                                if (uvCoords[j] == textureCoords[texIdx]) {
-                                    faceTexIndices.push_back(j);
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            
-                            if (!found) {
-                                uvCoords.push_back(textureCoords[texIdx]);
-                                faceTexIndices.push_back(uvCoords.size() - 1);
-                            }
-                        }
-                    }
-                }
-                faceIndices.push_back(faceTexIndices);
-            }
-        }
-    }
-    
-    file.close();
+    hasUV = mesh.get_property_handle(mvt_list, "mvt_list") && 
+            mesh.get_property_handle(hvt_index, "hvt_index") &&
+            !mesh.property(mvt_list).empty();
     
     if (hasUV) {
         makeCurrent();
@@ -703,13 +639,8 @@ void UVParamWidget::loadOBJ(const QString &path) {
     parseOBJ(path);
 }
 
-
 void UVParamWidget::clearData() {
     hasUV = false;
-    vertices.clear();
-    textureCoords.clear();
-    uvCoords.clear();
-    faceIndices.clear();
     faceColors.clear();
     lineVertexCount = 0;
     faceVertexCount = 0;
