@@ -210,7 +210,6 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 
 	if (load_texture)
 	{
-		std::cout << "aaaaaaaaaaaaaaaaaaaa" << std::endl;
 		_mesh.add_property(mvt_list, "mvt_list");
 		_mesh.add_property(hvt_index, "hvt_index");
 
@@ -241,7 +240,7 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 		{
 			Mesh::TexCoord2D tex;
 			iss >> tex[0] >> tex[1];
-			std::cout << "push" << std::endl;
+			//std::cout << "mvt_list push" << std::endl;
 			_mesh.property(mvt_list).push_back(tex);
 		}
 		else if (load_texture && prefix == "f")
@@ -249,27 +248,85 @@ bool Mesh_doubleIO::load_obj(Mesh& _mesh, const char* _filename, bool load_textu
 			if (_mesh.property(mvt_list).empty())
 			{
 				load_texture = false;
+				std::cout << "Texture list is empty, disabling texture loading." << std::endl;
+				continue;
+			}
+			//std::cout << "Processing face: " << line << std::endl;
+
+			std::map<int, int> vid2vtid;
+			std::string token;
+			while (iss >> token) {
+				if (token.empty()) {
+					continue;
+				}
+
+				std::vector<std::string> parts;
+				size_t pos = 0;
+				while (true) {
+					size_t next = token.find('/', pos);
+					if (next == std::string::npos) {
+						parts.push_back(token.substr(pos));
+						break;
+					}
+					parts.push_back(token.substr(pos, next - pos));
+					pos = next + 1;
+				}
+
+				if (parts.empty()) {
+					load_texture = false;
+					std::cout << "Empty token, disabling texture loading." << std::endl;
+					break;
+				}
+
+				// 解析顶点索引
+				int v_id;
+				try {
+					v_id = std::stoi(parts[0]);
+				} catch (const std::exception& e) {
+					load_texture = false;
+					std::cout << "Invalid vertex index, disabling texture loading." << std::endl;
+					break;
+				}
+
+				if (parts.size() < 2 || parts[1].empty()) {
+					load_texture = false;
+					std::cout << "No texture index found, disabling texture loading." << std::endl;
+					break;
+				}
+
+				int vt_id;
+				try {
+					vt_id = std::stoi(parts[1]);
+				} catch (const std::exception& e) {
+					load_texture = false;
+					std::cout << "Invalid texture index, disabling texture loading." << std::endl;
+					break;
+				}
+
+				vid2vtid[v_id] = vt_id;
+			}
+
+			if (!load_texture) {
+				std::cout << "Texture loading disabled for this face." << std::endl;
 				continue;
 			}
 
-			int v_id, vt_id, vn_id;
-			std::map<int, int> vid2vtid;
-
-			while (!iss.eof())
-			{
-				iss >> v_id;
-				if (iss.get() != '/') load_texture = false;
-				if (!load_texture) break;
-				iss >> vt_id;
-				if (iss.get() == '/') iss >> vn_id;
-				vid2vtid[v_id] = vt_id;
-			}
-			if (!load_texture) continue;
-
 			for (auto fh_h : _mesh.fh_range(_mesh.face_handle(count_f)))
 			{
-				_mesh.property(hvt_index, fh_h) = vid2vtid[_mesh.to_vertex_handle(fh_h).idx() + 1] - 1;
+				int obj_vertex_index = _mesh.to_vertex_handle(fh_h).idx() + 1;
+				if (vid2vtid.find(obj_vertex_index) != vid2vtid.end()) {
+					_mesh.property(hvt_index, fh_h) = vid2vtid[obj_vertex_index] - 1;
+				} else {
+					load_texture = false;
+					std::cout << "Vertex index not found in map, disabling texture loading." << std::endl;
+					break;
+				}
 			}
+
+			if (!load_texture) {
+				continue;
+			}
+
 			count_f++;
 		}
 	}

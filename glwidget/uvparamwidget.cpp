@@ -103,18 +103,22 @@ void UVParamWidget::printMeshInfo() const {
     OpenMesh::HPropHandleT<int> hvt_index;
     
     bool hasTextureInMesh = mesh.get_property_handle(mvt_list, "mvt_list") && 
-                           mesh.get_property_handle(hvt_index, "hvt_index") &&
-                           !mesh.property(mvt_list).empty();
-    qDebug() << "Mesh has texture coordinates:" << hasTextureInMesh;
-    
-    if (true) {
-        qDebug() << "First 10 texture coordinates from Mesh:";
-        const auto& meshTexCoords = mesh.property(mvt_list);
-        int count = 0;
-        for (const auto& texCoord : meshTexCoords) {
-            if (count >= 10) break;
-            qDebug() << "Mesh TexCoord" << count << ": (" << texCoord[0] << "," << texCoord[1] << ")";
-            count++;
+                           mesh.get_property_handle(hvt_index, "hvt_index");
+
+    if (hasTextureInMesh) {
+        // 额外检查属性是否为空
+        bool isPropertyEmpty = mesh.property(mvt_list).empty();
+        qDebug() << "Texture property is empty:" << isPropertyEmpty;
+        
+        if (!isPropertyEmpty) {
+            qDebug() << "First 10 texture coordinates from Mesh:";
+            const auto& meshTexCoords = mesh.property(mvt_list);
+            int count = 0;
+            for (const auto& texCoord : meshTexCoords) {
+                if (count >= 10) break;
+                qDebug() << "Mesh TexCoord" << count << ": (" << texCoord[0] << "," << texCoord[1] << ")";
+                count++;
+            }
         }
     }
     
