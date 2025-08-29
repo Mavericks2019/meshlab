@@ -7,16 +7,19 @@
 #include <QStyleFactory>
 #include <QColorDialog>
 #include <QPalette>
+#include <QStackedWidget>
+#include <QSplitter>
 #include "glwidget/modelglwidget.h"
 #include "glwidget/baseglwidget.h"
 #include "glwidget/cgalglwidget.h"
-#include "glwidget/shortestpathglwidget.h"  // 新增
+#include "glwidget/shortestpathglwidget.h"
 #include "glwidget/uvparamwidget.h"
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
-#include "tabs/shortestpath_tab.h"  // 新增
+#include "tabs/shortestpath_tab.h"
 #include "tabs/uvparam_tab.h"
+#include "tabs/dualview_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -64,6 +67,10 @@ namespace UIUtils {
                     baseGlWidget->setBackgroundColor(color);
                 } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
                     cgalGlWidget->setBackgroundColor(color);
+                } else if (auto shortestPathGlWidget = qobject_cast<ShortestPathGLWidget*>(glWidget)) {
+                    shortestPathGlWidget->setBackgroundColor(color);
+                } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
+                    // UVParamWidget 没有 setBackgroundColor 方法，需要添加或忽略
                 }
             }
         });
@@ -97,6 +104,10 @@ namespace UIUtils {
                     baseGlWidget->setWireframeColor(wireframeColor);
                 } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
                     cgalGlWidget->setWireframeColor(wireframeColor);
+                } else if (auto shortestPathGlWidget = qobject_cast<ShortestPathGLWidget*>(glWidget)) {
+                    shortestPathGlWidget->setWireframeColor(wireframeColor);
+                } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
+                    // UVParamWidget 没有 setWireframeColor 方法，需要添加或忽略
                 }
             }
         });
@@ -129,6 +140,10 @@ namespace UIUtils {
                     baseGlWidget->setSurfaceColor(surfaceColor);
                 } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
                     cgalGlWidget->setSurfaceColor(surfaceColor);
+                } else if (auto shortestPathGlWidget = qobject_cast<ShortestPathGLWidget*>(glWidget)) {
+                    shortestPathGlWidget->setSurfaceColor(surfaceColor);
+                } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
+                    // UVParamWidget 没有 setSurfaceColor 方法，需要添加或忽略
                 }
             }
         });
@@ -146,6 +161,10 @@ namespace UIUtils {
                 baseGlWidget->setSpecularEnabled(enabled);
             } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
                 cgalGlWidget->setSpecularEnabled(enabled);
+            } else if (auto shortestPathGlWidget = qobject_cast<ShortestPathGLWidget*>(glWidget)) {
+                shortestPathGlWidget->setSpecularEnabled(enabled);
+            } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
+                // UVParamWidget 没有 setSpecularEnabled 方法，需要添加或忽略
             }
         });
         layout->addWidget(specularCheckbox);
@@ -162,6 +181,10 @@ namespace UIUtils {
                 baseGlWidget->setShowAxis(show);
             } else if (auto cgalGlWidget = qobject_cast<CGALGLWidget*>(glWidget)) {
                 cgalGlWidget->setShowAxis(show);
+            } else if (auto shortestPathGlWidget = qobject_cast<ShortestPathGLWidget*>(glWidget)) {
+                shortestPathGlWidget->setShowAxis(show);
+            } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
+                // UVParamWidget 没有 setShowAxis 方法，需要添加或忽略
             }
         });
         layout->addWidget(axisCheckbox);
@@ -211,16 +234,21 @@ int main(int argc, char *argv[])
     ModelGLWidget *modelGlWidget = new ModelGLWidget;
     BaseGLWidget *basicGlWidget = new BaseGLWidget;
     CGALGLWidget *cgalGlWidget = new CGALGLWidget;
-    ShortestPathGLWidget *shortestPathGlWidget = new ShortestPathGLWidget;  // 新增
-    UVParamWidget *uvParamWidget = new UVParamWidget;  // 新增
+    ShortestPathGLWidget *shortestPathGlWidget = new ShortestPathGLWidget;
+    UVParamWidget *uvParamWidget = new UVParamWidget;
     
-    // 创建标签页 - 添加UV参数化标签页
+    // 创建双视图窗口 - 左侧为BaseGLWidget，右侧为UVParamWidget
+    BaseGLWidget *dualViewLeftWidget = new BaseGLWidget;
+    UVParamWidget *dualViewRightWidget = new UVParamWidget;
+    
+    // 创建标签页
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh");
     tabWidget->addTab(createCGALTab(cgalGlWidget), "CGAL");
     tabWidget->addTab(createModelTab(modelGlWidget), "Model");
     tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");
     tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
+    tabWidget->addTab(createDualViewTab(dualViewLeftWidget, dualViewRightWidget), "Dual View");
 
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -229,8 +257,10 @@ int main(int argc, char *argv[])
     QLabel *modelInfoLabel = nullptr;
     QLabel *basicInfoLabel = nullptr;
     QLabel *cgalInfoLabel = nullptr;
-    QLabel *shortestPathInfoLabel = nullptr;  // 新增
-    QLabel *uvParamInfoLabel = nullptr;  // 新增
+    QLabel *shortestPathInfoLabel = nullptr;
+    QLabel *uvParamInfoLabel = nullptr;
+    QLabel *dualViewLeftInfoLabel = nullptr;  // 双视图左侧信息标签
+    QLabel *dualViewRightInfoLabel = nullptr; // 双视图右侧信息标签
 
     // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
@@ -256,7 +286,7 @@ int main(int argc, char *argv[])
     modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
     modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, &mainWindow));
     
-    // 创建最短路径标签页的控制面板  // 新增
+    // 创建最短路径标签页的控制面板
     QWidget *shortestPathControlPanel = new QWidget;
     QVBoxLayout *shortestPathControlLayout = new QVBoxLayout(shortestPathControlPanel);
     shortestPathControlLayout->setAlignment(Qt::AlignTop);
@@ -264,18 +294,47 @@ int main(int argc, char *argv[])
     shortestPathControlLayout->addWidget(UIUtils::createModelInfoGroup(&shortestPathInfoLabel));
     shortestPathControlLayout->addWidget(createShortestPathControlPanel(shortestPathGlWidget, shortestPathInfoLabel, &mainWindow));
     
+    // 创建UV参数化标签页的控制面板
     QWidget *uvParamControlPanel = new QWidget;
     QVBoxLayout *uvParamControlLayout = new QVBoxLayout(uvParamControlPanel);
     uvParamControlLayout->setAlignment(Qt::AlignTop);
     uvParamControlLayout->addWidget(UIUtils::createModelInfoGroup(&uvParamInfoLabel));
     uvParamControlLayout->addWidget(createUVParamControlPanel(uvParamWidget, uvParamInfoLabel, &mainWindow));
     
+    // 创建双视图标签页的控制面板
+    QWidget *dualViewControlPanel = new QWidget;
+    QVBoxLayout *dualViewControlLayout = new QVBoxLayout(dualViewControlPanel);
+    dualViewControlLayout->setAlignment(Qt::AlignTop);
+    
+    // 为双视图创建两个信息标签
+    QLabel *leftInfoLabel = new QLabel("No model loaded (Left View)");
+    leftInfoLabel->setAlignment(Qt::AlignCenter);
+    leftInfoLabel->setFixedHeight(50);
+    leftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    leftInfoLabel->setWordWrap(true);
+    
+    QLabel *rightInfoLabel = new QLabel("No model loaded (Right View)");
+    rightInfoLabel->setAlignment(Qt::AlignCenter);
+    rightInfoLabel->setFixedHeight(50);
+    rightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    rightInfoLabel->setWordWrap(true);
+    
+    // 创建信息标签组
+    QGroupBox *infoGroup = new QGroupBox("Model Information");
+    QVBoxLayout *infoLayout = new QVBoxLayout(infoGroup);
+    infoLayout->addWidget(leftInfoLabel);
+    infoLayout->addWidget(rightInfoLabel);
+    
+    dualViewControlLayout->addWidget(infoGroup);
+    dualViewControlLayout->addWidget(createDualViewControlPanel(dualViewLeftWidget, dualViewRightWidget, leftInfoLabel, rightInfoLabel, &mainWindow));
+    
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
-    controlStack->addWidget(basicControlPanel);   // OpenMesh
-    controlStack->addWidget(cgalControlPanel);    // CGAL
-    controlStack->addWidget(modelControlPanel);   // Model
-    controlStack->addWidget(shortestPathControlPanel);  // Shortest Path
-    controlStack->addWidget(uvParamControlPanel); // UV Parameterization  // 新增
+    controlStack->addWidget(basicControlPanel);      // OpenMesh
+    controlStack->addWidget(cgalControlPanel);       // CGAL
+    controlStack->addWidget(modelControlPanel);      // Model
+    controlStack->addWidget(shortestPathControlPanel); // Shortest Path
+    controlStack->addWidget(uvParamControlPanel);    // UV Parameterization
+    controlStack->addWidget(dualViewControlPanel);   // Dual View
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {

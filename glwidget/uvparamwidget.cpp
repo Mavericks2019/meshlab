@@ -61,36 +61,6 @@ UVParamWidget::~UVParamWidget() {
     doneCurrent();
 }
 
-int UVParamWidget::getConnectedComponentsCount() const {
-    if (mesh.n_vertices() == 0) return 0;
-    
-    std::vector<bool> visited(mesh.n_vertices(), false);
-    int count = 0;
-    
-    for (Mesh::VertexHandle vh : mesh.vertices()) {
-        if (!visited[vh.idx()]) {
-            count++;
-            std::queue<Mesh::VertexHandle> q;
-            q.push(vh);
-            visited[vh.idx()] = true;
-            
-            while (!q.empty()) {
-                Mesh::VertexHandle current = q.front();
-                q.pop();
-                
-                for (Mesh::ConstVertexVertexIter vv_it = mesh.cvv_iter(current); vv_it.is_valid(); ++vv_it) {
-                    if (!visited[vv_it->idx()]) {
-                        visited[vv_it->idx()] = true;
-                        q.push(*vv_it);
-                    }
-                }
-            }
-        }
-    }
-    
-    return count;
-}
-
 // 添加打印mesh信息的函数
 void UVParamWidget::printMeshInfo() const {
     qDebug() << "Mesh Information:";
