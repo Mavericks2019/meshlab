@@ -96,7 +96,8 @@ void UVParamWidget::printMeshInfo() const {
 
 void UVParamWidget::initializeGL() {
     initializeOpenGLFunctions();
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    // 修改背景颜色为与BaseGLWidget一致的蓝色
+    glClearColor(0.0f, 85.0f/255.0f, 127.0f/255.0f, 1.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
