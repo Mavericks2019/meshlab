@@ -26,6 +26,7 @@ BaseGLWidget::BaseGLWidget(QWidget *parent) : QOpenGLWidget(parent),
 {
     QSurfaceFormat format;
     format.setSamples(4);
+    format.setSwapInterval(1); // 1 表示启用垂直同步，0 表示禁用
     setFormat(format);
     
     setFocusPolicy(Qt::StrongFocus);
@@ -109,6 +110,8 @@ void BaseGLWidget::setBackgroundColor(const QColor& color) {
 
 void BaseGLWidget::initializeGL() {
     initializeOpenGLFunctions();
+    qDebug() << "OpenGL initialized. Version:" << (const char*)glGetString(GL_VERSION);
+    qDebug() << "OpenGL renderer:" << (const char*)glGetString(GL_RENDERER); // 添加这行
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);

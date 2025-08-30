@@ -31,6 +31,7 @@ CGALGLWidget::CGALGLWidget(QWidget *parent) : QOpenGLWidget(parent),
 {
     QSurfaceFormat format;
     format.setSamples(4);
+    format.setSwapInterval(1); // 1 表示启用垂直同步，0 表示禁用
     setFormat(format);
     
     setFocusPolicy(Qt::StrongFocus);
