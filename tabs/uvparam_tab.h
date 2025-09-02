@@ -3,6 +3,7 @@
 #define UVPARAM_TAB_H
 
 #include "../glwidget/uvparamwidget.h"
+#include "../glwidget/uvparamwidget_extended.h"
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>

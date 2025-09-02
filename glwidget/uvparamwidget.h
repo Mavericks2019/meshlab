@@ -1,4 +1,4 @@
-// uvparamwidget.h
+#pragma once
 #ifndef UVPARAMWIDGET_H
 #define UVPARAMWIDGET_H
 
@@ -41,7 +41,7 @@ protected:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-private:
+public:
     void parseOBJ(const QString &path);
     void setupSquare();
     void setupUVPoints();
