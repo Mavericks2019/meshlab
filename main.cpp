@@ -20,6 +20,7 @@
 #include "tabs/shortestpath_tab.h"
 #include "tabs/uvparam_tab.h"
 #include "tabs/dualview_tab.h"
+#include "tabs/dualview_extended_tab.h"
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -71,6 +72,8 @@ namespace UIUtils {
                     shortestPathGlWidget->setBackgroundColor(color);
                 } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
                     // UVParamWidget 没有 setBackgroundColor 方法，需要添加或忽略
+                } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
+                    // UVParamWidgetExtended 没有 setBackgroundColor 方法，需要添加或忽略
                 }
             }
         });
@@ -108,6 +111,8 @@ namespace UIUtils {
                     shortestPathGlWidget->setWireframeColor(wireframeColor);
                 } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
                     // UVParamWidget 没有 setWireframeColor 方法，需要添加或忽略
+                } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
+                    // UVParamWidgetExtended 没有 setWireframeColor 方法，需要添加或忽略
                 }
             }
         });
@@ -144,6 +149,8 @@ namespace UIUtils {
                     shortestPathGlWidget->setSurfaceColor(surfaceColor);
                 } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
                     // UVParamWidget 没有 setSurfaceColor 方法，需要添加或忽略
+                } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
+                    // UVParamWidgetExtended 没有 setSurfaceColor 方法，需要添加或忽略
                 }
             }
         });
@@ -165,6 +172,8 @@ namespace UIUtils {
                 shortestPathGlWidget->setSpecularEnabled(enabled);
             } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
                 // UVParamWidget 没有 setSpecularEnabled 方法，需要添加或忽略
+            } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
+                // UVParamWidgetExtended 没有 setSpecularEnabled 方法，需要添加或忽略
             }
         });
         layout->addWidget(specularCheckbox);
@@ -185,6 +194,8 @@ namespace UIUtils {
                 shortestPathGlWidget->setShowAxis(show);
             } else if (auto uvParamWidget = qobject_cast<UVParamWidget*>(glWidget)) {
                 // UVParamWidget 没有 setShowAxis 方法，需要添加或忽略
+            } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
+                // UVParamWidgetExtended 没有 setShowAxis 方法，需要添加或忽略
             }
         });
         layout->addWidget(axisCheckbox);
@@ -240,7 +251,8 @@ int main(int argc, char *argv[])
     // 创建双视图窗口 - 左侧为BaseGLWidget，右侧为UVParamWidget
     BaseGLWidget *dualViewLeftWidget = new BaseGLWidget;
     UVParamWidget *dualViewRightWidget = new UVParamWidget;
-    
+    UVParamWidgetExtended *uvParamWidgetExtended = new UVParamWidgetExtended;
+
     // 创建标签页
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh");
@@ -249,7 +261,8 @@ int main(int argc, char *argv[])
     tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");
     tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
     tabWidget->addTab(createDualViewTab(dualViewLeftWidget, dualViewRightWidget), "Dual View");
-
+    tabWidget->addTab(createDualViewExtendedTab(dualViewLeftWidget, uvParamWidgetExtended), "Extended Dual View");
+    
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
     
@@ -261,6 +274,8 @@ int main(int argc, char *argv[])
     QLabel *uvParamInfoLabel = nullptr;
     QLabel *dualViewLeftInfoLabel = nullptr;  // 双视图左侧信息标签
     QLabel *dualViewRightInfoLabel = nullptr; // 双视图右侧信息标签
+    QLabel *dualViewExtendedLeftInfoLabel = nullptr;  // 扩展双视图左侧信息标签
+    QLabel *dualViewExtendedRightInfoLabel = nullptr; // 扩展双视图右侧信息标签
 
     // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
@@ -328,6 +343,33 @@ int main(int argc, char *argv[])
     dualViewControlLayout->addWidget(infoGroup);
     dualViewControlLayout->addWidget(createDualViewControlPanel(dualViewLeftWidget, dualViewRightWidget, leftInfoLabel, rightInfoLabel, &mainWindow));
     
+    // 创建扩展双视图标签页的控制面板
+    QWidget *dualViewExtendedControlPanel = new QWidget;
+    QVBoxLayout *dualViewExtendedControlLayout = new QVBoxLayout(dualViewExtendedControlPanel);
+    dualViewExtendedControlLayout->setAlignment(Qt::AlignTop);
+    
+    // 为扩展双视图创建两个信息标签
+    QLabel *extendedLeftInfoLabel = new QLabel("No model loaded (Left View)");
+    extendedLeftInfoLabel->setAlignment(Qt::AlignCenter);
+    extendedLeftInfoLabel->setFixedHeight(50);
+    extendedLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    extendedLeftInfoLabel->setWordWrap(true);
+    
+    QLabel *extendedRightInfoLabel = new QLabel("No model loaded (Right View)");
+    extendedRightInfoLabel->setAlignment(Qt::AlignCenter);
+    extendedRightInfoLabel->setFixedHeight(50);
+    extendedRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    extendedRightInfoLabel->setWordWrap(true);
+    
+    // 创建信息标签组
+    QGroupBox *extendedInfoGroup = new QGroupBox("Model Information");
+    QVBoxLayout *extendedInfoLayout = new QVBoxLayout(extendedInfoGroup);
+    extendedInfoLayout->addWidget(extendedLeftInfoLabel);
+    extendedInfoLayout->addWidget(extendedRightInfoLabel);
+    
+    dualViewExtendedControlLayout->addWidget(extendedInfoGroup);
+    dualViewExtendedControlLayout->addWidget(createDualViewExtendedControlPanel(dualViewLeftWidget, uvParamWidgetExtended, extendedLeftInfoLabel, extendedRightInfoLabel, &mainWindow));
+    
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
     controlStack->addWidget(basicControlPanel);      // OpenMesh
     controlStack->addWidget(cgalControlPanel);       // CGAL
@@ -335,6 +377,7 @@ int main(int argc, char *argv[])
     controlStack->addWidget(shortestPathControlPanel); // Shortest Path
     controlStack->addWidget(uvParamControlPanel);    // UV Parameterization
     controlStack->addWidget(dualViewControlPanel);   // Dual View
+    controlStack->addWidget(dualViewExtendedControlPanel); // Extended Dual View
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
