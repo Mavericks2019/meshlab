@@ -15,11 +15,16 @@ public:
 
     bool get_para_mesh();
     void calc_distortion(bool silence);
-	OpenMesh::HalfedgeHandle get_mesh2para(OpenMesh::HalfedgeHandle h_mesh)
-	{
-		const auto& h_pair = new_mesh.property(h_mesh2para, h_mesh);
-		return new_para.find_halfedge(new_para.vertex_handle(h_pair.first), new_para.vertex_handle(h_pair.second));
-	};
+    
+    // 添加获取new_mesh和new_para的公共方法
+    const Mesh& getNewMesh() const { return new_mesh; }
+    const Mesh& getNewPara() const { return new_para; }
+    
+    OpenMesh::HalfedgeHandle get_mesh2para(OpenMesh::HalfedgeHandle h_mesh)
+    {
+        const auto& h_pair = new_mesh.property(h_mesh2para, h_mesh);
+        return new_para.find_halfedge(new_para.vertex_handle(h_pair.first), new_para.vertex_handle(h_pair.second));
+    };
 
 protected:
     Mesh origin_para;

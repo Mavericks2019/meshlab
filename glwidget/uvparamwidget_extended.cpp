@@ -12,9 +12,7 @@ UVParamWidgetExtended::UVParamWidgetExtended(QWidget *parent)
 void UVParamWidgetExtended::init()
 {
 	Mesh_doubleIO::copy_mesh(mesh, new_mesh);
-
 	if (!get_para_mesh()) return;
-	
 	new_para.add_property(e_segment);
 	for (auto e_h : new_para.edges())
 	{
@@ -56,7 +54,6 @@ bool UVParamWidgetExtended::get_para_mesh()
         origin_para.add_face(para_f);
         new_para.add_face(para_f);
     }
-
     origin_h_mesh2para.resize(mesh.n_halfedges(), -1);
     new_mesh.add_property(h_mesh2para);
     new_para.add_property(h_para2mesh);
@@ -91,7 +88,14 @@ bool UVParamWidgetExtended::get_para_mesh()
 
     cut_length = 0.0;
     OpenMesh::EPropHandleT<bool> e_oncut;
-    mesh.get_property_handle(e_oncut, "e_oncut");
+    if (!mesh.get_property_handle(e_oncut, "e_oncut")) {
+        mesh.add_property(e_oncut, "e_oncut");
+        // 初始化所有边的属性值
+        for (auto e_h : mesh.edges()) {
+            mesh.property(e_oncut, e_h) = false;
+        }
+    }
+
     for (auto e_h : mesh.edges())
     {
         if (mesh.is_boundary(e_h))
