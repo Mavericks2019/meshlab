@@ -1,5 +1,11 @@
 #include "uvparamwidget_extended.h"
 
+#ifdef MY_DEBUG
+#define MY_DOUBT(cond, msg) if (cond) std::cout << msg << std::endl;
+#else
+#define MY_DOUBT(cond, msg)
+#endif
+
 OpenMesh::Vec3uc boundary_edge_color = { 229, 156,  59 };
 OpenMesh::Vec3uc interior_edge_color = { 100, 100, 100 };
 
@@ -13,11 +19,14 @@ void UVParamWidgetExtended::init()
 {
 	Mesh_doubleIO::copy_mesh(mesh, new_mesh);
 	if (!get_para_mesh()) return;
+    mesh.request_face_normals();
+    mesh.update_face_normals();
 	new_para.add_property(e_segment);
 	for (auto e_h : new_para.edges())
 	{
 		new_para.property(e_segment, e_h) = -1;
 	}
+    calc_distortion();
 }
 
 bool UVParamWidgetExtended::get_para_mesh()
@@ -141,7 +150,7 @@ bool UVParamWidgetExtended::get_para_mesh()
     return true;
 }
 
-void UVParamWidgetExtended::calc_distortion(bool silence)
+void UVParamWidgetExtended::calc_distortion()
 {
 	int nf = mesh.n_faces();
 
@@ -248,7 +257,148 @@ void UVParamWidgetExtended::calc_distortion(bool silence)
 	// if (!silence)
 	// {
 	// 	std::cout << "PE " << total_uv_area / viewer->get_bb_area() << std::endl;
-	// 	std::cout << "BL " << cut_length / (mesh_BB_max - mesh_BB_min).norm() << std::endl;
-	// 	std::cout << "ED " << x_avg_w << std::endl;
+    std::cout << "BL " << cut_length / (mesh_BB_max - mesh_BB_min).norm() << std::endl;
+    std::cout << "ED " << x_avg_w << std::endl;
 	// }
+}
+
+void UVParamWidgetExtended::segment_detective()
+{
+	std::set<int> add_c;
+//	std::set<int> add_c = sample_boundary_vertices();
+
+	int n_inner_segs = 0;
+	vert_corner.clear();
+	quad_vertices.clear();
+	accu_bh_chart.assign(1, 0);
+	accu_bseg_chart.assign(1, 0);
+	std::vector<bool> h_visited(mesh.n_halfedges(), false);
+	for (auto h : mesh.halfedges())
+	{
+		if (!mesh.is_boundary(h) || h_visited[h.idx()]) continue;
+		
+		int euler = 0;
+		double z_normal = 0.0;
+		auto bh_iter = h;
+		do
+		{
+			h_visited[bh_iter.idx()] = true;
+
+			double angle_v = 0;
+			int to_v = mesh.to_vertex_handle(bh_iter).idx();
+			bh_iter = mesh.opposite_halfedge_handle(bh_iter);
+
+			while (!mesh.is_boundary(bh_iter))
+			{
+				auto vec0 = mesh.calc_edge_vector(bh_iter);
+				bh_iter = mesh.opposite_halfedge_handle(mesh.prev_halfedge_handle(bh_iter));
+				auto vec1 = mesh.calc_edge_vector(bh_iter);
+
+				z_normal += vec0[0] * vec1[1] - vec0[1] * vec1[0];
+				angle_v += CommonFunctions::vec_angle_acos(vec0, vec1);
+			}
+
+			int vk = std::lround(angle_v / M_PI_2);
+			if (vk != 2 || add_c.count(to_v) == 1)
+			{
+				vert_corner.push_back(to_v);
+				n_inner_segs += vk - 1;
+
+				v_in_quad[to_v] = quad_vertices.size();
+				const auto& uv_bv = mesh.point(mesh.vertex_handle(to_v));
+				quad_vertices.emplace_back(std::lround(uv_bv[0]), std::lround(uv_bv[1]));
+
+//				std::cout << to_v << " " << angle_v / M_PI_2 << " " << vk << std::endl;
+			}
+			euler += 2 - vk;
+			vert_k[to_v] = vk;
+		} while (bh_iter != h);
+
+		accu_bh_chart.push_back(vert_k.size());
+		accu_bseg_chart.push_back(vert_corner.size());
+		MY_DOUBT(euler != 4, "Euler Error");
+		MY_DOUBT(z_normal <= 0, "Normal Error");
+	}
+
+	int n_charts = accu_bseg_chart.size() - 1;
+	seg_chart.resize(vert_corner.size());
+	boundary_v.reserve(vert_k.size());
+	boundary_h.reserve(vert_k.size());
+	for (int i = 0; i < n_charts; i++)
+	{
+		auto bv0 = mesh.vertex_handle(vert_corner[accu_bseg_chart[i]]);
+		OpenMesh::HalfedgeHandle bh_iter;
+		for (auto voh : mesh.voh_range(bv0))
+		{
+			bh_iter = voh;
+			if (mesh.is_boundary(voh)) break;
+		}
+
+		for (int j = accu_bh_chart[i]; j < accu_bh_chart[i + 1]; j++)
+		{
+			auto bv_iter = mesh.from_vertex_handle(bh_iter);
+			boundary_v_index[bv_iter.idx()] = boundary_v.size();
+			boundary_h_index[bh_iter.idx()] = boundary_h.size();
+
+			boundary_v.push_back(bv_iter.idx());
+			boundary_h.push_back(bh_iter.idx());
+
+			bh_iter = mesh.next_halfedge_handle(bh_iter);
+		}
+
+		for (int j = accu_bseg_chart[i]; j < accu_bseg_chart[i + 1]; j++)
+		{
+			seg_chart[j] = i;
+		}
+	}
+	n_bsegs = vert_corner.size();
+
+	MY_DOUBT(n_bsegs - n_inner_segs != 4 * n_charts, "Segs Num Error");
+
+	segments.clear();
+	segments.reserve(n_bsegs + n_inner_segs);
+	segments.resize(n_bsegs);
+
+	seg_nodes.clear();
+	seg_nodes.reserve(n_bsegs + n_inner_segs);
+	seg_nodes.resize(n_bsegs);
+
+	triangle_segs.clear();
+	triangle_segs.resize(mesh.n_faces());
+
+	bh_segment.resize(boundary_h.size());
+
+	for (int i = 0; i < vert_corner.size(); i++)
+	{
+		segments[i].vert0 = vert_corner[i];
+		segments[i].vert1 = vert_corner[chart_segment_cycle(i, 1)];
+
+		auto vec_seg = mesh.point(mesh.vertex_handle(segments[i].vert1)) - mesh.point(mesh.vertex_handle(segments[i].vert0));
+		segments[i].tag = CommonFunctions::get_tag(vec_seg);
+		segments[i].coord = std::lround(mesh.point(mesh.vertex_handle(segments[i].vert0))[(segments[i].tag & 1) ^ 1]);
+
+		seg_nodes[i] = { v_in_quad[segments[i].vert0], v_in_quad[segments[i].vert1] };
+
+		for (auto vf_h : mesh.vf_range(mesh.vertex_handle(vert_corner[i])))
+		{
+			triangle_corner[vf_h.idx()].push_back(v_in_quad[vert_corner[i]]);
+		}
+	}
+
+	int cur_seg = 0;
+	for (int i = 0; i < boundary_h.size(); i++)
+	{
+		if (boundary_v[i] == segments[cur_seg].vert1 || i == accu_bh_chart[seg_chart[cur_seg] + 1]) cur_seg++;
+	
+		triangle_segs[mesh.opposite_face_handle(mesh.halfedge_handle(boundary_h[i])).idx()].insert(cur_seg);
+		bh_segment[i] = cur_seg;
+	}
+}
+
+inline int UVParamWidgetExtended::chart_segment_cycle(int cur, int delta)
+{
+	int cur_chart = seg_chart[cur];
+	int n_bseg_chart = accu_bseg_chart[cur_chart + 1] - accu_bseg_chart[cur_chart];
+	int bseg0_chart = accu_bseg_chart[cur_chart];
+	return CommonFunctions::period_id(cur - bseg0_chart + delta, n_bseg_chart) + bseg0_chart;
 }
