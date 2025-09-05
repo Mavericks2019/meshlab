@@ -10,6 +10,20 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+set(COMMONLIB_INCLUDE_DIR ../lib/include)
+set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
+
+# 检查 CommonLib 是否存在
+if(NOT EXISTS ${COMMONLIB_INCLUDE_DIR} OR NOT EXISTS ${COMMONLIB_LIBRARY})
+    message(WARNING "CommonLib not found at expected location. Some features may be disabled.")
+else()
+    # 添加头文件路径
+    include_directories(${COMMONLIB_INCLUDE_DIR})
+    
+    # 添加库文件路径
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+endif()
+
 # 查找Qt5组件
 find_package(Qt5 COMPONENTS Widgets OpenGL REQUIRED)
 # 添加着色器资源文件
@@ -51,6 +65,11 @@ target_link_libraries(${PROJECT_NAME}
     Eigen3::Eigen
     CGAL::CGAL  # 新增
 )
+
+# 如果 CommonLib 存在，链接它
+if(EXISTS ${COMMONLIB_LIBRARY})
+    set(COMMONLIB_LIBRARY "../lib/libCommonLib.a")
+endif()
 
 # 设置安装路径
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

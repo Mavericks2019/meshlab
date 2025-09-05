@@ -27,6 +27,7 @@ void UVParamWidgetExtended::init()
 		new_para.property(e_segment, e_h) = -1;
 	}
     calc_distortion();
+	segment_detective();
 }
 
 bool UVParamWidgetExtended::get_para_mesh()
