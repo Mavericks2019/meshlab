@@ -298,7 +298,6 @@ void UVParamWidgetExtended::segment_detective()
 				z_normal += vec0[0] * vec1[1] - vec0[1] * vec1[0];
 				angle_v += CommonFunctions::vec_angle_acos(vec0, vec1);
 			}
-
 			int vk = std::lround(angle_v / M_PI_2);
 			if (vk != 2 || add_c.count(to_v) == 1)
 			{
@@ -309,7 +308,7 @@ void UVParamWidgetExtended::segment_detective()
 				const auto& uv_bv = mesh.point(mesh.vertex_handle(to_v));
 				quad_vertices.emplace_back(std::lround(uv_bv[0]), std::lround(uv_bv[1]));
 
-//				std::cout << to_v << " " << angle_v / M_PI_2 << " " << vk << std::endl;
+				//std::cout << to_v << " " << angle_v / M_PI_2 << " " << vk << std::endl;
 			}
 			euler += 2 - vk;
 			vert_k[to_v] = vk;

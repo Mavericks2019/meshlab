@@ -251,6 +251,9 @@ int main(int argc, char *argv[])
     // 创建双视图窗口 - 左侧为BaseGLWidget，右侧为UVParamWidget
     BaseGLWidget *dualViewLeftWidget = new BaseGLWidget;
     UVParamWidget *dualViewRightWidget = new UVParamWidget;
+    
+    // 创建扩展双视图窗口 - 左侧为另一个BaseGLWidget，右侧为UVParamWidgetExtended
+    BaseGLWidget *dualViewExtendedLeftWidget = new BaseGLWidget;
     UVParamWidgetExtended *uvParamWidgetExtended = new UVParamWidgetExtended;
 
     // 创建标签页
@@ -261,7 +264,7 @@ int main(int argc, char *argv[])
     tabWidget->addTab(createShortestPathTab(shortestPathGlWidget), "Shortest Path");
     tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
     tabWidget->addTab(createDualViewTab(dualViewLeftWidget, dualViewRightWidget), "Dual View");
-    tabWidget->addTab(createDualViewExtendedTab(dualViewLeftWidget, uvParamWidgetExtended), "Extended Dual View");
+    tabWidget->addTab(createDualViewExtendedTab(dualViewExtendedLeftWidget, uvParamWidgetExtended), "Extended Dual View");
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -368,7 +371,7 @@ int main(int argc, char *argv[])
     extendedInfoLayout->addWidget(extendedRightInfoLabel);
     
     dualViewExtendedControlLayout->addWidget(extendedInfoGroup);
-    dualViewExtendedControlLayout->addWidget(createDualViewExtendedControlPanel(dualViewLeftWidget, uvParamWidgetExtended, extendedLeftInfoLabel, extendedRightInfoLabel, &mainWindow));
+    dualViewExtendedControlLayout->addWidget(createDualViewExtendedControlPanel(dualViewExtendedLeftWidget, uvParamWidgetExtended, extendedLeftInfoLabel, extendedRightInfoLabel, &mainWindow));
     
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
     controlStack->addWidget(basicControlPanel);      // OpenMesh
