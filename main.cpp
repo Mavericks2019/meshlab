@@ -14,6 +14,7 @@
 #include "glwidget/cgalglwidget.h"
 #include "glwidget/shortestpathglwidget.h"
 #include "glwidget/uvparamwidget.h"
+#include "glwidget/simplesquarewidget.h"  // 新增头文件
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -75,6 +76,8 @@ namespace UIUtils {
                     // UVParamWidget 没有 setBackgroundColor 方法，需要添加或忽略
                 } else if (auto uvParamWidgetExtended = qobject_cast<UVParamWidgetExtended*>(glWidget)) {
                     // UVParamWidgetExtended 没有 setBackgroundColor 方法，需要添加或忽略
+                } else if (auto simpleSquareWidget = qobject_cast<SimpleSquareWidget*>(glWidget)) {
+                    simpleSquareWidget->setBackgroundColor(color);
                 }
             }
         });
@@ -257,9 +260,9 @@ int main(int argc, char *argv[])
     BaseGLWidget *dualViewExtendedLeftWidget = new BaseGLWidget;
     UVParamWidgetExtended *uvParamWidgetExtended = new UVParamWidgetExtended;
 
-    // 创建简单双视图窗口 - 左侧为BaseGLWidget，右侧为UVParamWidget（只显示白色正方形）
+    // 创建简单双视图窗口 - 左侧为BaseGLWidget，右侧为SimpleSquareWidget
     BaseGLWidget *dualViewSimpleLeftWidget = new BaseGLWidget;
-    UVParamWidget *dualViewSimpleRightWidget = new UVParamWidget;
+    SimpleSquareWidget *dualViewSimpleRightWidget = new SimpleSquareWidget;
 
     // 创建标签页
     QTabWidget *tabWidget = new QTabWidget;

@@ -165,6 +165,12 @@
 			null
 		],
 		[
+			"/opt/meshoperator/glwidget/simplesquarewidget.h",
+			"MU",
+			"KTNQVRIVIS/moc_simplesquarewidget.cpp",
+			null
+		],
+		[
 			"/opt/meshoperator/glwidget/uvparamwidget.h",
 			"MU",
 			"KTNQVRIVIS/moc_uvparamwidget.cpp",
@@ -249,6 +255,7 @@
 		[ "/opt/meshoperator/glwidget/cgalglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/modelglwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/shortestpathglwidget.cpp", "MU", null ],
+		[ "/opt/meshoperator/glwidget/simplesquarewidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/uvparamwidget.cpp", "MU", null ],
 		[ "/opt/meshoperator/glwidget/uvparamwidget_extended.cpp", "MU", null ],
 		[ "/opt/meshoperator/main.cpp", "MU", null ],

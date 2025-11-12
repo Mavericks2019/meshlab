@@ -296,6 +296,30 @@ glwidget/shortestpathglwidget.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.s
 .PHONY : glwidget/shortestpathglwidget.cpp.s
 
+glwidget/simplesquarewidget.o: glwidget/simplesquarewidget.cpp.o
+.PHONY : glwidget/simplesquarewidget.o
+
+# target to build an object file
+glwidget/simplesquarewidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o
+.PHONY : glwidget/simplesquarewidget.cpp.o
+
+glwidget/simplesquarewidget.i: glwidget/simplesquarewidget.cpp.i
+.PHONY : glwidget/simplesquarewidget.i
+
+# target to preprocess a source file
+glwidget/simplesquarewidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.i
+.PHONY : glwidget/simplesquarewidget.cpp.i
+
+glwidget/simplesquarewidget.s: glwidget/simplesquarewidget.cpp.s
+.PHONY : glwidget/simplesquarewidget.s
+
+# target to generate assembly for a file
+glwidget/simplesquarewidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.s
+.PHONY : glwidget/simplesquarewidget.cpp.s
+
 glwidget/uvparamwidget.o: glwidget/uvparamwidget.cpp.o
 .PHONY : glwidget/uvparamwidget.o
 
@@ -467,6 +491,9 @@ help:
 	@echo "... glwidget/shortestpathglwidget.o"
 	@echo "... glwidget/shortestpathglwidget.i"
 	@echo "... glwidget/shortestpathglwidget.s"
+	@echo "... glwidget/simplesquarewidget.o"
+	@echo "... glwidget/simplesquarewidget.i"
+	@echo "... glwidget/simplesquarewidget.s"
 	@echo "... glwidget/uvparamwidget.o"
 	@echo "... glwidget/uvparamwidget.i"
 	@echo "... glwidget/uvparamwidget.s"

@@ -12,6 +12,8 @@ objViewer_autogen/timestamp: \
 	/opt/meshoperator/glwidget/modelglwidget.h \
 	/opt/meshoperator/glwidget/shortestpathglwidget.cpp \
 	/opt/meshoperator/glwidget/shortestpathglwidget.h \
+	/opt/meshoperator/glwidget/simplesquarewidget.cpp \
+	/opt/meshoperator/glwidget/simplesquarewidget.h \
 	/opt/meshoperator/glwidget/uvparamwidget.cpp \
 	/opt/meshoperator/glwidget/uvparamwidget.h \
 	/opt/meshoperator/glwidget/uvparamwidget_extended.cpp \

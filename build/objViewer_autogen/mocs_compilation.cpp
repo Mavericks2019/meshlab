@@ -3,5 +3,6 @@
 #include "KTNQVRIVIS/moc_cgalglwidget.cpp"
 #include "KTNQVRIVIS/moc_modelglwidget.cpp"
 #include "KTNQVRIVIS/moc_shortestpathglwidget.cpp"
+#include "KTNQVRIVIS/moc_simplesquarewidget.cpp"
 #include "KTNQVRIVIS/moc_uvparamwidget.cpp"
 #include "KTNQVRIVIS/moc_uvparamwidget_extended.cpp"

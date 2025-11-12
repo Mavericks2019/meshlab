@@ -2732,6 +2732,7 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qfiledevice.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QTextStream \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qtextstream.h \
+ /opt/meshoperator/glwidget/simplesquarewidget.h \
  /opt/meshoperator/tabs/model_tab.h \
  /opt/meshoperator/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
@@ -2784,4 +2785,5 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextcursor.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextformat.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
- /opt/meshoperator/tabs/dualview_simple_tab.h
+ /opt/meshoperator/tabs/dualview_simple_tab.h \
+ /opt/meshoperator/tabs/../glwidget/simplesquarewidget.h

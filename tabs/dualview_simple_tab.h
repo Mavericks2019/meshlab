@@ -3,7 +3,7 @@
 #define DUALVIEW_SIMPLE_TAB_H
 
 #include "../glwidget/baseglwidget.h"
-#include "../glwidget/uvparamwidget.h"
+#include "../glwidget/simplesquarewidget.h"  // 修改为新的SimpleSquareWidget
 #include "basic_tab.h"
 #include <QApplication>
 #include <QVBoxLayout>
@@ -17,7 +17,7 @@
 #include <QFileInfo>
 
 // 创建简单双视图标签页
-QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, UVParamWidget* rightWidget) {
+QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     
@@ -37,7 +37,7 @@ QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, UVParamWidget* rightW
 }
 
 // 创建简单双视图控制面板
-QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, UVParamWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
+QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     
@@ -48,7 +48,7 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, UVParamWidge
     QWidget *leftControlPanel = createBasicControlPanel(leftWidget, leftInfoLabel, mainWindow);
     controlTabs->addTab(leftControlPanel, "Left View Controls");
     
-    // 右侧视图控制面板 - 简化版本，只显示基本信息
+    // 右侧视图控制面板 - 简化版本
     QWidget *rightControlPanel = new QWidget;
     QVBoxLayout *rightLayout = new QVBoxLayout(rightControlPanel);
     rightLayout->setAlignment(Qt::AlignTop);
@@ -58,6 +58,54 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, UVParamWidge
     QVBoxLayout *rightInfoLayout = new QVBoxLayout(rightInfoGroup);
     rightInfoLayout->addWidget(rightInfoLabel);
     rightLayout->addWidget(rightInfoGroup);
+    
+    // 添加右侧视图颜色设置
+    QGroupBox *rightColorGroup = new QGroupBox("Square Settings");
+    QVBoxLayout *rightColorLayout = new QVBoxLayout(rightColorGroup);
+    
+    // 背景颜色按钮
+    QPushButton *bgColorButton = new QPushButton("Change Background Color");
+    bgColorButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(bgColorButton, &QPushButton::clicked, [rightWidget]() {
+        QColor color = QColorDialog::getColor(QColor(0, 85, 127), nullptr, "Select Background Color");
+        if (color.isValid()) {
+            rightWidget->setBackgroundColor(color);
+        }
+    });
+    rightColorLayout->addWidget(bgColorButton);
+    
+    // 正方形颜色按钮
+    QPushButton *squareColorButton = new QPushButton("Change Square Color");
+    squareColorButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #505050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #606060; }"
+    );
+    QObject::connect(squareColorButton, &QPushButton::clicked, [rightWidget]() {
+        QColor color = QColorDialog::getColor(Qt::white, nullptr, "Select Square Color");
+        if (color.isValid()) {
+            rightWidget->setSquareColor(color);
+        }
+    });
+    rightColorLayout->addWidget(squareColorButton);
+    
+    rightLayout->addWidget(rightColorGroup);
     
     // 添加右侧视图重置按钮
     QPushButton *resetRightButton = new QPushButton("Reset Right View");
@@ -73,8 +121,9 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, UVParamWidge
         "QPushButton:hover { background-color: #606060; }"
     );
     QObject::connect(resetRightButton, &QPushButton::clicked, [rightWidget]() {
-        // UVParamWidget 没有 resetView 方法，这里可以添加或忽略
-        rightWidget->update();
+        // 重置为默认颜色
+        rightWidget->setBackgroundColor(QColor(0, 85, 127));
+        rightWidget->setSquareColor(Qt::white);
     });
     rightLayout->addWidget(resetRightButton);
     

@@ -46,6 +46,7 @@ add_executable(${PROJECT_NAME}
     glwidget/shortestpathglwidget.h  # 新增
     glwidget/shortestpathglwidget.cpp  # 新增
     glwidget/uvparamwidget.cpp  # 新增
+    glwidget/simplesquarewidget.cpp
     meshutils/my_traits.cpp
     glwidget/uvparamwidget_extended.cpp
     # glwidget/glwidget_core.cpp
