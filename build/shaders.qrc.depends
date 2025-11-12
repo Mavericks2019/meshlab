@@ -1,0 +1,25 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource>
+    <file>glwidget/shaders/wireframe.vert</file>
+    <file>glwidget/shaders/wireframe.frag</file>
+    <file>glwidget/shaders/blinnphong.vert</file>
+    <file>glwidget/shaders/blinnphong.frag</file>
+    <file>glwidget/shaders/curvature.vert</file>
+    <file>glwidget/shaders/curvature.frag</file>
+    <file>glwidget/shaders/texture.vert</file>
+    <file>glwidget/shaders/texture.frag</file>
+    <file>glwidget/shaders/axis.vert</file>
+    <file>glwidget/shaders/axis.frag</file>
+    <file>glwidget/shaders/flat.vert</file>
+    <file>glwidget/shaders/flat.frag</file>
+    <file>glwidget/shaders/picking.vert</file>
+    <file>glwidget/shaders/picking.frag</file>
+    <file>glwidget/shaders/uv_vertex.glsl</file>
+    <file>glwidget/shaders/uv_fragment.glsl</file>
+    <file>glwidget/shaders/line_vertex.glsl</file>
+    <file>glwidget/shaders/line_fragment.glsl</file>
+    <file>glwidget/shaders/square_vertex.glsl</file>
+    <file>glwidget/shaders/square_fragment.glsl</file>
+</qresource>
+</RCC>

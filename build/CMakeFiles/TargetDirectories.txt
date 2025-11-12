@@ -1,0 +1,9 @@
+/opt/meshoperator/build/CMakeFiles/objViewer.dir
+/opt/meshoperator/build/CMakeFiles/edit_cache.dir
+/opt/meshoperator/build/CMakeFiles/rebuild_cache.dir
+/opt/meshoperator/build/CMakeFiles/list_install_components.dir
+/opt/meshoperator/build/CMakeFiles/install.dir
+/opt/meshoperator/build/CMakeFiles/install/local.dir
+/opt/meshoperator/build/CMakeFiles/install/strip.dir
+/opt/meshoperator/build/CMakeFiles/objViewer_autogen_timestamp_deps.dir
+/opt/meshoperator/build/CMakeFiles/objViewer_autogen.dir
