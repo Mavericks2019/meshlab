@@ -21,6 +21,7 @@
 #include "tabs/uvparam_tab.h"
 #include "tabs/dualview_tab.h"
 #include "tabs/dualview_extended_tab.h"
+#include "tabs/dualview_simple_tab.h"  // 新增头文件
 
 namespace UIUtils {
     // 创建模型信息显示组
@@ -256,6 +257,10 @@ int main(int argc, char *argv[])
     BaseGLWidget *dualViewExtendedLeftWidget = new BaseGLWidget;
     UVParamWidgetExtended *uvParamWidgetExtended = new UVParamWidgetExtended;
 
+    // 创建简单双视图窗口 - 左侧为BaseGLWidget，右侧为UVParamWidget（只显示白色正方形）
+    BaseGLWidget *dualViewSimpleLeftWidget = new BaseGLWidget;
+    UVParamWidget *dualViewSimpleRightWidget = new UVParamWidget;
+
     // 创建标签页
     QTabWidget *tabWidget = new QTabWidget;
     tabWidget->addTab(createBasicTab(basicGlWidget), "OpenMesh");
@@ -265,6 +270,7 @@ int main(int argc, char *argv[])
     tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
     tabWidget->addTab(createDualViewTab(dualViewLeftWidget, dualViewRightWidget), "Dual View");
     tabWidget->addTab(createDualViewExtendedTab(dualViewExtendedLeftWidget, uvParamWidgetExtended), "Extended Dual View");
+    tabWidget->addTab(createDualViewSimpleTab(dualViewSimpleLeftWidget, dualViewSimpleRightWidget), "Simple Dual View");  // 新增标签页
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -279,6 +285,8 @@ int main(int argc, char *argv[])
     QLabel *dualViewRightInfoLabel = nullptr; // 双视图右侧信息标签
     QLabel *dualViewExtendedLeftInfoLabel = nullptr;  // 扩展双视图左侧信息标签
     QLabel *dualViewExtendedRightInfoLabel = nullptr; // 扩展双视图右侧信息标签
+    QLabel *dualViewSimpleLeftInfoLabel = nullptr;    // 简单双视图左侧信息标签
+    QLabel *dualViewSimpleRightInfoLabel = nullptr;   // 简单双视图右侧信息标签
 
     // 创建OpenMesh标签页的控制面板
     QWidget *basicControlPanel = new QWidget;
@@ -373,6 +381,33 @@ int main(int argc, char *argv[])
     dualViewExtendedControlLayout->addWidget(extendedInfoGroup);
     dualViewExtendedControlLayout->addWidget(createDualViewExtendedControlPanel(dualViewExtendedLeftWidget, uvParamWidgetExtended, extendedLeftInfoLabel, extendedRightInfoLabel, &mainWindow));
     
+    // 创建简单双视图标签页的控制面板
+    QWidget *dualViewSimpleControlPanel = new QWidget;
+    QVBoxLayout *dualViewSimpleControlLayout = new QVBoxLayout(dualViewSimpleControlPanel);
+    dualViewSimpleControlLayout->setAlignment(Qt::AlignTop);
+    
+    // 为简单双视图创建两个信息标签
+    QLabel *simpleLeftInfoLabel = new QLabel("No model loaded (Left View)");
+    simpleLeftInfoLabel->setAlignment(Qt::AlignCenter);
+    simpleLeftInfoLabel->setFixedHeight(50);
+    simpleLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    simpleLeftInfoLabel->setWordWrap(true);
+    
+    QLabel *simpleRightInfoLabel = new QLabel("White Square View - Ready for extension");
+    simpleRightInfoLabel->setAlignment(Qt::AlignCenter);
+    simpleRightInfoLabel->setFixedHeight(50);
+    simpleRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+    simpleRightInfoLabel->setWordWrap(true);
+    
+    // 创建信息标签组
+    QGroupBox *simpleInfoGroup = new QGroupBox("Model Information");
+    QVBoxLayout *simpleInfoLayout = new QVBoxLayout(simpleInfoGroup);
+    simpleInfoLayout->addWidget(simpleLeftInfoLabel);
+    simpleInfoLayout->addWidget(simpleRightInfoLabel);
+    
+    dualViewSimpleControlLayout->addWidget(simpleInfoGroup);
+    dualViewSimpleControlLayout->addWidget(createDualViewSimpleControlPanel(dualViewSimpleLeftWidget, dualViewSimpleRightWidget, simpleLeftInfoLabel, simpleRightInfoLabel, &mainWindow));
+    
     // 添加到堆栈 - 调整顺序以匹配标签页顺序
     controlStack->addWidget(basicControlPanel);      // OpenMesh
     controlStack->addWidget(cgalControlPanel);       // CGAL
@@ -381,6 +416,7 @@ int main(int argc, char *argv[])
     controlStack->addWidget(uvParamControlPanel);    // UV Parameterization
     controlStack->addWidget(dualViewControlPanel);   // Dual View
     controlStack->addWidget(dualViewExtendedControlPanel); // Extended Dual View
+    controlStack->addWidget(dualViewSimpleControlPanel);   // Simple Dual View - 新增
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
