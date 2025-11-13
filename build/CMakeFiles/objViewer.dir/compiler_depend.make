@@ -25,6 +25,7 @@ objViewer_autogen/timestamp: /opt/meshoperator/CMakeLists.txt \
   /opt/meshoperator/meshutils/my_traits.cpp \
   /opt/meshoperator/meshutils/my_traits.h \
   /opt/meshoperator/shaders.qrc \
+  /opt/meshoperator/tabs/dualview_simple_tab.h \
   /usr/bin/cmake \
   /usr/include/CGAL/AABB_face_graph_triangle_primitive.h \
   /usr/include/CGAL/AABB_primitive.h \
@@ -2067,8 +2068,11 @@ objViewer_autogen/timestamp: /opt/meshoperator/CMakeLists.txt \
   /usr/include/eigen3/Eigen/Householder \
   /usr/include/eigen3/Eigen/Jacobi \
   /usr/include/eigen3/Eigen/LU \
+  /usr/include/eigen3/Eigen/OrderingMethods \
   /usr/include/eigen3/Eigen/QR \
   /usr/include/eigen3/Eigen/SVD \
+  /usr/include/eigen3/Eigen/SparseCore \
+  /usr/include/eigen3/Eigen/SparseLU \
   /usr/include/eigen3/Eigen/src/Cholesky/LDLT.h \
   /usr/include/eigen3/Eigen/src/Cholesky/LLT.h \
   /usr/include/eigen3/Eigen/src/Core/ArithmeticSequence.h \
@@ -2222,6 +2226,9 @@ objViewer_autogen/timestamp: /opt/meshoperator/CMakeLists.txt \
   /usr/include/eigen3/Eigen/src/LU/InverseImpl.h \
   /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h \
   /usr/include/eigen3/Eigen/src/LU/arch/InverseSize4.h \
+  /usr/include/eigen3/Eigen/src/OrderingMethods/Amd.h \
+  /usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h \
+  /usr/include/eigen3/Eigen/src/OrderingMethods/Ordering.h \
   /usr/include/eigen3/Eigen/src/QR/ColPivHouseholderQR.h \
   /usr/include/eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h \
   /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h \
@@ -2230,6 +2237,53 @@ objViewer_autogen/timestamp: /opt/meshoperator/CMakeLists.txt \
   /usr/include/eigen3/Eigen/src/SVD/JacobiSVD.h \
   /usr/include/eigen3/Eigen/src/SVD/SVDBase.h \
   /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/AmbiVector.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/CompressedStorage.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/ConservativeSparseSparseProduct.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/MappedSparseMatrix.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseAssign.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseBlock.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseColEtree.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseCompressedBase.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseBinaryOp.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseUnaryOp.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseDenseProduct.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseDiagonalProduct.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseDot.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseFuzzy.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseMap.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrix.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparsePermutation.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseProduct.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseRedux.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseRef.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseSelfAdjointView.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseSolverBase.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseSparseProductWithPruning.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseTranspose.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseTriangularView.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseVector.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/SparseView.h \
+  /usr/include/eigen3/Eigen/src/SparseCore/TriangularSolver.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLUImpl.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Memory.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Structs.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_bmod.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_dfs.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_copy_to_ucol.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_kernel_bmod.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_bmod.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_dfs.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pivotL.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h \
+  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_relax_snode.h \
   /usr/include/eigen3/Eigen/src/misc/Image.h \
   /usr/include/eigen3/Eigen/src/misc/Kernel.h \
   /usr/include/eigen3/Eigen/src/misc/RealSvd2x2.h \
@@ -15883,8 +15937,6 @@ objViewer_autogen/KTNQVRIVIS/moc_baseglwidget.cpp:
 
 /opt/meshoperator/tabs/dualview_tab.h:
 
-/opt/meshoperator/tabs/dualview_simple_tab.h:
-
 /opt/meshoperator/tabs/dualview_extended_tab.h:
 
 /opt/meshoperator/tabs/basic_tab.h:
@@ -15937,8 +15989,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/immintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/ia32intrin.h:
-
 /usr/lib/gcc/x86_64-linux-gnu/13/include/hresetintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/fxsrintrin.h:
@@ -15966,8 +16016,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vp2intersectintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vnniintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512pfintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512ifmavlintrin.h:
 
@@ -16491,8 +16539,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/local/include/OpenMesh/Core/IO/exporter/BaseExporter.hh:
 
-/usr/local/include/OpenMesh/Core/IO/StoreRestore.hh:
-
 /usr/local/include/OpenMesh/Core/IO/SR_store.hh:
 
 /usr/local/include/OpenMesh/Core/IO/SR_rbo.hh:
@@ -16544,10 +16590,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/local/include/OpenMesh/Core/IO/SR_types.hh:
 
 /usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevTouchScreenPlugin.cmake:
-
-/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevKeyboardPlugin.cmake:
-
-/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake:
 
 /usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSIntegrationPlugin.cmake:
 
@@ -16785,8 +16827,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/include/x86_64-linux-gnu/qt5/QtCore/qcontainertools_impl.h:
 
-/usr/include/x86_64-linux-gnu/qt5/QtCore/qcompilerdetection.h:
-
 /usr/include/x86_64-linux-gnu/qt5/QtCore/qbytearraylist.h:
 
 /usr/include/x86_64-linux-gnu/qt5/QtCore/qbasicatomic.h:
@@ -16824,6 +16864,62 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h:
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h:
+
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
+
+/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
+
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/boost/mpl/vector/aux_/at.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
+
+/usr/include/x86_64-linux-gnu/bits/types.h:
+
+/usr/local/include/OpenMesh/Core/System/OpenMeshDLLMacros.hh:
+
+/usr/include/x86_64-linux-gnu/bits/timex.h:
+
+/usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
+
+/usr/include/x86_64-linux-gnu/bits/syscall.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/sched.h:
 
 /usr/include/boost/mpl/aux_/push_front_impl.hpp:
 
@@ -16909,10 +17005,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/include/eigen3/Eigen/src/Geometry/Translation.h:
 
-/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_SetupBoost.cmake:
-
-/usr/include/boost/mpl/aux_/config/bind.hpp:
-
 /usr/include/boost/mpl/aux_/config/bcc.hpp:
 
 /usr/include/boost/mpl/aux_/config/arrays.hpp:
@@ -16920,6 +17012,8 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/include/x86_64-linux-gnu/qt5/QtCore/qlocale.h:
 
 /usr/include/CGAL/Homogeneous/VectorH2.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h:
 
 /usr/include/CGAL/Distance_2/Line_2_Line_2.h:
 
@@ -16997,6 +17091,8 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/include/CGAL/Intersections_3/internal/Iso_cuboid_3_Point_3_do_intersect.h:
 
+/usr/include/eigen3/Eigen/src/SparseCore/SparseTranspose.h:
+
 /usr/include/boost/move/unique_ptr.hpp:
 
 /usr/include/boost/type_traits/is_trivially_copyable.hpp:
@@ -17006,6 +17102,8 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/include/boost/move/move.hpp:
 
 /usr/include/CGAL/Cartesian/Line_2.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/CompressedStorage.h:
 
 /usr/include/boost/move/detail/type_traits.hpp:
 
@@ -17081,9 +17179,15 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/include/boost/type_traits/is_complete.hpp:
 
+/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512pfintrin.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseBlock.h:
+
 /usr/include/boost/limits.hpp:
 
 /usr/include/boost/lambda/detail/return_type_traits.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseView.h:
 
 /usr/include/x86_64-linux-gnu/qt5/QtCore/qatomic_cxx11.h:
 
@@ -17249,8 +17353,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 
 /usr/include/boost/intrusive/detail/algorithm.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
-
 /usr/include/boost/container_hash/is_range.hpp:
 
 /usr/include/CGAL/Intersections_3/internal/Plane_3_Plane_3_do_intersect.h:
@@ -17388,8 +17490,6 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp:
 /usr/include/boost/blank.hpp:
 
 /usr/include/boost/preprocessor/repetition/enum_shifted_params.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/wchar.h:
 
 /usr/include/asm-generic/errno.h:
 
@@ -17549,6 +17649,8 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 
 /usr/include/c++/13/bits/enable_special_members.h:
 
+/usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseUnaryOp.h:
+
 /usr/include/eigen3/Eigen/src/Core/arch/Default/TypeCasting.h:
 
 /usr/include/CGAL/is_convertible.h:
@@ -17699,6 +17801,10 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 
 /usr/include/boost/range/detail/implementation_help.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
+
+/usr/include/CGAL/auto_link/CGAL.h:
+
 /usr/include/boost/math/policies/policy.hpp:
 
 /usr/include/CGAL/assertions_impl.h:
@@ -17721,8 +17827,6 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 
 /usr/include/CGAL/Filtered_kernel/internal/Static_filters/Side_of_oriented_circle_2.h:
 
-/usr/include/boost/container/options.hpp:
-
 /usr/include/CGAL/Vector_2.h:
 
 /usr/include/boost/variant/detail/std_hash.hpp:
@@ -17730,6 +17834,10 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglfunctions.h:
 
 /usr/include/CGAL/Triangulation_structural_filtering_traits.h:
+
+/usr/include/x86_64-linux-gnu/bits/timesize.h:
+
+/usr/include/CGAL/Triangle_3.h:
 
 /usr/include/boost/heap/detail/stable_heap.hpp:
 
@@ -17807,6 +17915,12 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 
 /usr/include/CGAL/Sphere_3.h:
 
+/usr/include/x86_64-linux-gnu/qt5/QtCore/qobject_impl.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
+
+/usr/include/CGAL/Spatial_sort_traits_adapter_3.h:
+
 /usr/include/CGAL/Distance_2/Point_2_Ray_2.h:
 
 /usr/include/CGAL/Distance_3/internal/squared_distance_utils_3.h:
@@ -17825,8 +17939,6 @@ CMakeFiles/3.28.3/CMakeCXXCompiler.cmake:
 
 /usr/include/boost/lambda/detail/operator_return_type_traits.hpp:
 
-/usr/include/boost/multiprecision/cpp_int/literals.hpp:
-
 objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/CGAL/Spatial_searching/internal/K_neighbor_search.h:
@@ -17834,6 +17946,8 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/boost/smart_ptr/detail/local_sp_deleter.hpp:
 
 /usr/include/CGAL/license/AABB_tree.h:
+
+/usr/include/eigen3/Eigen/src/Core/EigenBase.h:
 
 /usr/include/CGAL/IO/VRML.h:
 
@@ -18011,9 +18125,19 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/eigen3/Eigen/src/Geometry/AlignedBox.h:
 
+/usr/local/include/OpenMesh/Core/IO/StoreRestore.hh:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseRef.h:
+
 /usr/include/boost/container/detail/alloc_helpers.hpp:
 
 /usr/include/boost/preprocessor/arithmetic/dec.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+/usr/include/CGAL/Simple_homogeneous.h:
+
+/usr/include/CGAL/Homogeneous/Aff_transformationH3.h:
 
 /usr/include/x86_64-linux-gnu/bits/fenv.h:
 
@@ -18038,6 +18162,8 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/boost/optional/detail/optional_trivially_copyable_base.hpp:
 
 /usr/include/boost/preprocessor/debug/error.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h:
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
 
@@ -18137,6 +18263,12 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/boost/mp11/detail/mp_list.hpp:
 
+/usr/include/CGAL/auto_link/auto_link.h:
+
+/usr/include/c++/13/bits/cxxabi_init_exception.h:
+
+/usr/include/CGAL/Exact_predicates_inexact_constructions_kernel.h:
+
 /usr/include/boost/math/tools/rational.hpp:
 
 /usr/include/x86_64-linux-gnu/qt5/QtGui/qguiapplication.h:
@@ -18160,6 +18292,10 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/CGAL/Algebraic_extension_traits.h:
 
 /usr/include/c++/13/bits/stl_pair.h:
+
+/usr/include/x86_64-linux-gnu/qt5/QtCore/qcompilerdetection.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/TriangularSolver.h:
 
 /usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake:
 
@@ -18209,9 +18345,11 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/c++/13/complex:
 
-/usr/include/x86_64-linux-gnu/bits/sched.h:
-
 /usr/include/CGAL/Intersections_3/Point_3_Tetrahedron_3.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
+
+/usr/include/boost/core/pointer_traits.hpp:
 
 /usr/include/CGAL/basic_classes.h:
 
@@ -18245,7 +18383,23 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/CGAL/Distance_3/Point_3_Plane_3.h:
 
-/usr/include/CGAL/Cartesian/Is_trivial_construction.h:
+/usr/include/x86_64-linux-gnu/qt5/QtWidgets/qmessagebox.h:
+
+/usr/include/boost/container_hash/hash.hpp:
+
+/usr/include/boost/mpl/list.hpp:
+
+/usr/include/CGAL/Intersections_2/Circle_2_Triangle_2.h:
+
+/usr/include/boost/parameter/aux_/pack/item.hpp:
+
+/usr/include/boost/predef/architecture/sparc.h:
+
+/usr/include/boost/predef/architecture/blackfin.h:
+
+/usr/include/CGAL/Distance_3/Segment_3_Plane_3.h:
+
+/usr/include/boost/version.hpp:
 
 /usr/include/CGAL/IO/PLY/PLY_reader.h:
 
@@ -18285,8 +18439,6 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/boost/type_traits/remove_volatile.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
-
 /usr/include/CGAL/Cartesian/Point_2.h:
 
 /usr/include/boost/mp11/detail/mp_remove_if.hpp:
@@ -18300,6 +18452,12 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/boost/intrusive/detail/config_end.hpp:
 
 /usr/include/CGAL/Cartesian/Triangle_2.h:
+
+/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:
+
+/usr/include/boost/math/tools/precision.hpp:
+
+/usr/include/c++/13/bits/stl_queue.h:
 
 /usr/include/x86_64-linux-gnu/bits/fp-fast.h:
 
@@ -18325,11 +18483,13 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/CGAL/Hilbert_policy_tags.h:
 
-/usr/include/CGAL/Cartesian/ft_constructions_3.h:
-
 /usr/include/boost/preprocessor/facilities/empty.hpp:
 
 /usr/include/boost/heap/detail/heap_comparison.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
+
+/usr/include/CGAL/Intersections_3/internal/Iso_cuboid_3_Tetrahedron_3_do_intersect.h:
 
 /usr/include/boost/predef/compiler/digitalmars.h:
 
@@ -18344,6 +18504,10 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/CGAL/Distance_2/Segment_2_Line_2.h:
 
 /usr/include/CGAL/Homogeneous/function_objects.h:
+
+/usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+
+/usr/include/CGAL/aff_transformation_tags_impl.h:
 
 /usr/include/boost/numeric/conversion/detail/sign_mixture.hpp:
 
@@ -18381,8 +18545,6 @@ objViewer_autogen/mocs_compilation.cpp:
 
 /usr/include/boost/heap/policies.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
-
 /usr/include/CGAL/IO/OFF/File_writer_OFF.h:
 
 /usr/include/eigen3/Eigen/src/Core/Ref.h:
@@ -18408,6 +18570,10 @@ objViewer_autogen/mocs_compilation.cpp:
 /opt/meshoperator/glwidget/uvparamwidget.cpp:
 
 /usr/include/CGAL/Intersections_3/internal/Bbox_3_Line_3_do_intersect.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/boost/multiprecision/cpp_int/intel_intrinsics.hpp:
 
 /usr/include/boost/math/special_functions/math_fwd.hpp:
 
@@ -18436,10 +18602,6 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/boost/predef/architecture/mips.h:
 
 /usr/include/CGAL/Intersections_3/Segment_3_Triangle_3.h:
-
-/usr/include/boost/lexical_cast.hpp:
-
-/usr/include/CGAL/Filtered_kernel/internal/Static_filters/Do_intersect_3.h:
 
 /usr/include/boost/math/ccmath/isinf.hpp:
 
@@ -18542,6 +18704,14 @@ objViewer_autogen/mocs_compilation.cpp:
 /usr/include/CGAL/Intersections_3/internal/Line_3_Tetrahedron_3_intersection.h:
 
 /usr/include/boost/utility/enable_if.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
+
+/usr/include/boost/lambda/detail/operators.hpp:
+
+/usr/include/CGAL/Simple_cartesian.h:
+
+/usr/include/boost/concept/detail/general.hpp:
 
 /usr/include/boost/predef/os/irix.h:
 
@@ -18655,23 +18825,9 @@ objViewer_autogen/moc_predefs.h:
 
 /usr/include/c++/13/cwchar:
 
-/usr/include/CGAL/AABB_tree/internal/Has_nested_type_Shared_data.h:
-
 /usr/include/boost/mpl/find.hpp:
 
 /usr/include/CGAL/Cartesian/Vector_2.h:
-
-/usr/include/boost/concept_check.hpp:
-
-/usr/include/boost/integer/integer_mask.hpp:
-
-/usr/include/CGAL/IO/OI/File_writer_inventor.h:
-
-/usr/include/CGAL/Line_2.h:
-
-/usr/include/c++/13/tr1/special_function_util.h:
-
-/usr/include/CGAL/Cartesian/Vector_3.h:
 
 /usr/include/boost/math/tools/convert_from_string.hpp:
 
@@ -18692,6 +18848,22 @@ objViewer_autogen/moc_predefs.h:
 /usr/include/CGAL/Container_helper.h:
 
 /usr/include/c++/13/optional:
+
+/usr/include/boost/integer/integer_mask.hpp:
+
+/usr/include/CGAL/IO/OI/File_writer_inventor.h:
+
+/usr/include/CGAL/Line_2.h:
+
+/usr/include/c++/13/tr1/special_function_util.h:
+
+/usr/include/CGAL/Cartesian/Vector_3.h:
+
+/usr/include/CGAL/Cartesian/Is_trivial_construction.h:
+
+/usr/include/eigen3/Eigen/src/Core/Diagonal.h:
+
+/usr/include/CGAL/wmult.h:
 
 /usr/include/CGAL/IO/OFF/Scanner_OFF.h:
 
@@ -18726,14 +18898,6 @@ objViewer_autogen/moc_predefs.h:
 /usr/include/boost/move/detail/workaround.hpp:
 
 /usr/include/CGAL/Cartesian/Iso_rectangle_2.h:
-
-/usr/include/boost/predef/os/qnxnto.h:
-
-/usr/include/boost/type_traits/has_virtual_destructor.hpp:
-
-/usr/include/boost/mpl/vector/aux_/push_front.hpp:
-
-/usr/include/CGAL/Intersections_3/Point_3_Point_3.h:
 
 /usr/include/CGAL/Point_container.h:
 
@@ -18771,8 +18935,6 @@ objViewer_autogen/moc_predefs.h:
 
 /usr/include/CGAL/Intersections_3/internal/Plane_3_Sphere_3_intersection.h:
 
-/usr/include/boost/move/algo/predicate.hpp:
-
 /usr/include/CGAL/Distance_3/Segment_3_Segment_3.h:
 
 /usr/include/boost/utility/swap.hpp:
@@ -18787,6 +18949,12 @@ objViewer_autogen/moc_predefs.h:
 
 /usr/include/boost/type_traits/aligned_storage.hpp:
 
+/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ConfigVersion.cmake:
+
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+
+/usr/include/CGAL/Hilbert_sort_3.h:
+
 /usr/include/CGAL/basic.h:
 
 /usr/include/boost/mpl/insert_range.hpp:
@@ -18794,10 +18962,6 @@ objViewer_autogen/moc_predefs.h:
 /usr/include/CGAL/Intersections_3/internal/Segment_3_Triangle_3_do_intersect.h:
 
 /usr/include/CGAL/squared_distance_3.h:
-
-/usr/include/boost/mpl/aux_/size_impl.hpp:
-
-/usr/include/boost/mpl/aux_/common_name_wknd.hpp:
 
 /usr/include/boost/container/deque.hpp:
 
@@ -18839,6 +19003,12 @@ objViewer_autogen/moc_predefs.h:
 
 /opt/meshoperator/glwidget/baseglwidget.cpp:
 
+/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_enable_end_of_configuration_hook.cmake:
+
+/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+
+/usr/include/eigen3/Eigen/src/Core/util/Constants.h:
+
 CMakeFiles/3.28.3/CMakeSystem.cmake:
 
 /usr/include/c++/13/bits/exception.h:
@@ -18849,17 +19019,27 @@ CMakeFiles/3.28.3/CMakeSystem.cmake:
 
 /usr/include/CGAL/Polygon_mesh_processing/distance.h:
 
+/opt/meshoperator/tabs/dualview_simple_tab.h:
+
 /usr/include/boost/mpl/aux_/config/has_apply.hpp:
 
 /usr/include/boost/type_traits/remove_cv.hpp:
 
 /usr/include/c++/13/backward/binders.h:
 
+/usr/include/boost/move/algo/predicate.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseAssign.h:
+
 /usr/include/CGAL/Cartesian/basic_constructions_2.h:
 
 /usr/include/boost/move/core.hpp:
 
 /usr/include/boost/predef/os/amigaos.h:
+
+/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+
+/usr/include/CGAL/Intersections_3/Segment_3_Tetrahedron_3.h:
 
 /usr/include/CGAL/Has_member.h:
 
@@ -18905,6 +19085,26 @@ CMakeFiles/3.28.3/CMakeSystem.cmake:
 
 /usr/include/CGAL/AABB_primitive.h:
 
+/usr/include/CGAL/convert_to_bfi.h:
+
+/usr/include/CGAL/Intersections_3/internal/Iso_cuboid_3_Sphere_3_do_intersect.h:
+
+/usr/include/boost/preprocessor/control/iif.hpp:
+
+/usr/include/CGAL/Fraction_traits.h:
+
+/usr/include/CGAL/Filtered_kernel/internal/Static_filters/Do_intersect_2.h:
+
+/usr/include/x86_64-linux-gnu/bits/endianness.h:
+
+/usr/include/boost/math/tools/real_cast.hpp:
+
+/usr/include/boost/container_hash/detail/mulx.hpp:
+
+/usr/include/CGAL/AABB_tree/internal/AABB_ray_intersection.h:
+
+/usr/include/CGAL/Intersections_3/internal/Triangle_3_Triangle_3_intersection.h:
+
 /usr/include/CGAL/Distance_2/Point_2_Triangle_2.h:
 
 /usr/include/CGAL/Intersection_traits_2.h:
@@ -18926,10 +19126,6 @@ CMakeFiles/3.28.3/CMakeSystem.cmake:
 /usr/include/boost/parameter/aux_/is_tagged_argument.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
-
-/usr/include/CGAL/Intersections_3/Segment_3_Tetrahedron_3.h:
-
-/usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/CGAL/Intersections_2/Bbox_2_Line_2.h:
 
@@ -18964,6 +19160,12 @@ CMakeFiles/3.28.3/CMakeSystem.cmake:
 /usr/include/boost/type_traits/decay.hpp:
 
 /usr/include/boost/container_hash/detail/hash_mix.hpp:
+
+/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_SetupBoost.cmake:
+
+/usr/include/boost/mpl/aux_/config/bind.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseColEtree.h:
 
 /usr/include/CGAL/Uncertain.h:
 
@@ -19003,57 +19205,15 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/CGAL/Real_timer.h:
 
-/usr/include/CGAL/convert_to_bfi.h:
+/usr/include/CGAL/Intersections_3/internal/Plane_3_Triangle_3_intersection.h:
 
-/usr/include/CGAL/Intersections_3/internal/Iso_cuboid_3_Sphere_3_do_intersect.h:
+/usr/include/boost/predef/os/qnxnto.h:
 
-/usr/include/CGAL/IO/VRML/File_writer_VRML_2.h:
+/usr/include/boost/type_traits/has_virtual_destructor.hpp:
 
 /usr/include/linux/limits.h:
 
-/usr/include/boost/preprocessor/control/iif.hpp:
-
-/usr/include/CGAL/Fraction_traits.h:
-
-/usr/include/CGAL/Filtered_kernel/internal/Static_filters/Do_intersect_2.h:
-
-/usr/include/x86_64-linux-gnu/bits/endianness.h:
-
-/usr/local/include/OpenMesh/Core/System/OpenMeshDLLMacros.hh:
-
-/usr/include/x86_64-linux-gnu/bits/timex.h:
-
-/usr/include/boost/math/tools/real_cast.hpp:
-
-/usr/include/boost/container_hash/detail/mulx.hpp:
-
-/usr/include/CGAL/AABB_tree/internal/AABB_ray_intersection.h:
-
-/usr/include/CGAL/Intersections_3/internal/Triangle_3_Triangle_3_intersection.h:
-
-/usr/include/CGAL/Intersections_3/internal/Plane_3_Triangle_3_intersection.h:
-
-/usr/include/x86_64-linux-gnu/qt5/QtWidgets/qmessagebox.h:
-
-/usr/include/boost/container_hash/hash.hpp:
-
-/usr/include/boost/mpl/list.hpp:
-
-/usr/include/CGAL/Intersections_2/Circle_2_Triangle_2.h:
-
-/usr/include/boost/parameter/aux_/pack/item.hpp:
-
-/usr/include/boost/predef/architecture/sparc.h:
-
-/usr/include/boost/predef/architecture/blackfin.h:
-
-/usr/include/CGAL/Distance_3/Segment_3_Plane_3.h:
-
-/usr/include/boost/version.hpp:
-
-/usr/include/CGAL/aff_transformation_tags_impl.h:
-
-/usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+/usr/include/CGAL/IO/VRML/File_writer_VRML_2.h:
 
 /usr/include/CGAL/Intersections_3/Point_3_Ray_3.h:
 
@@ -19141,19 +19301,17 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/mpl/not.hpp:
 
+/usr/include/eigen3/Eigen/SparseLU:
+
 /usr/include/CGAL/Intersections_3/internal/Plane_3_Tetrahedron_3_do_intersect.h:
 
-/usr/include/eigen3/Eigen/src/Core/CoreIterators.h:
-
-/usr/include/CGAL/Intersections_2/Iso_rectangle_2_Triangle_2.h:
+/usr/include/eigen3/Eigen/src/OrderingMethods/Ordering.h:
 
 /usr/include/boost/type_traits/detail/is_member_function_pointer_cxx_11.hpp:
 
 /usr/include/boost/numeric/conversion/int_float_mixture_enum.hpp:
 
 /usr/include/CGAL/Profile_counter.h:
-
-/usr/include/x86_64-linux-gnu/bits/syscall.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -19162,6 +19320,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/random/generate_canonical.hpp:
 
 /usr/include/CGAL/Iterator_range.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
+
+/usr/include/boost/mpl/aux_/config/preprocessor.hpp:
 
 /usr/local/include/OpenMesh/Core/Mesh/ArrayKernel.hh:
 
@@ -19218,6 +19380,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/random/gamma_distribution.hpp:
 
 /usr/include/CGAL/Time_stamper.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
+
+/usr/include/CGAL/Polygon_mesh_processing/measure.h:
 
 /usr/include/boost/predef/version.h:
 
@@ -19295,12 +19461,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/CGAL/Hilbert_sort_base.h:
 
-/usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_enable_end_of_configuration_hook.cmake:
-
-/usr/include/eigen3/Eigen/src/Core/util/Constants.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
-
 /usr/include/CGAL/Intersections_3/Bbox_3_Ray_3.h:
 
 /usr/include/CGAL/IO/Color.h:
@@ -19328,8 +19488,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/CGAL/Hilbert_sort_median_d.h:
 
 /usr/include/eigen3/Eigen/src/Core/functors/TernaryFunctors.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
 
 /usr/include/CGAL/Intersections_3/Line_3_Tetrahedron_3.h:
 
@@ -19381,22 +19539,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/CGAL/Filtered_kernel/internal/Static_filters/Compare_distance_3.h:
 
-/usr/include/boost/concept/detail/general.hpp:
-
-/usr/include/CGAL/Simple_cartesian.h:
-
-/usr/include/CGAL/auto_link/auto_link.h:
-
-/usr/include/CGAL/Exact_predicates_inexact_constructions_kernel.h:
-
-/usr/include/c++/13/bits/cxxabi_init_exception.h:
-
-/usr/include/CGAL/wmult.h:
-
-/usr/include/eigen3/Eigen/src/Core/Diagonal.h:
-
-/usr/include/eigen3/Eigen/src/Core/EigenBase.h:
-
 /usr/include/eigen3/Eigen/src/Core/arch/SSE/Complex.h:
 
 /usr/include/CGAL/Intersections_3/Plane_3_Tetrahedron_3.h:
@@ -19410,6 +19552,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/utility/detail/result_of_variadic.hpp:
 
 /usr/include/CGAL/Intersections_3/Ray_3_Ray_3.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
+
+/usr/include/CGAL/boost/graph/IO/OFF.h:
 
 /usr/include/boost/multiprecision/cpp_int/bitwise.hpp:
 
@@ -19438,6 +19584,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/detail/container_fwd.hpp:
 
 /usr/include/boost/predef/hardware.h:
+
+/usr/include/CGAL/Cartesian/ft_constructions_3.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseMap.h:
 
 /usr/include/CGAL/array.h:
 
@@ -19491,6 +19641,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/CGAL/Intersections_3/internal/Bbox_3_Plane_3_do_intersect.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
+
+/usr/include/CGAL/boost/graph/IO/Generic_facegraph_builder.h:
+
 /usr/include/CGAL/Intersections_3/internal/Bbox_3_Ray_3_do_intersect.h:
 
 /opt/meshoperator/shaders.qrc:
@@ -19524,6 +19678,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/eigen3/Eigen/src/QR/FullPivHouseholderQR.h:
 
 /usr/include/CGAL/assertions_behaviour.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/FILE.h:
+
+/usr/include/boost/mp11/detail/mp_map_find.hpp:
 
 /usr/include/boost/is_placeholder.hpp:
 
@@ -19589,17 +19747,17 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
 
-/usr/include/CGAL/Simple_homogeneous.h:
-
-/usr/include/CGAL/Homogeneous/Aff_transformationH3.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
-
 /usr/include/CGAL/Kernel/mpl.h:
 
 /usr/include/CGAL/Intersections_3/internal/Bbox_3_Segment_3_do_intersect.h:
 
 /usr/include/CGAL/Intersections_2/Point_2_Triangle_2.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/13/include/cetintrin.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
+
+/usr/include/CGAL/Intersections_3/internal/Line_3_Segment_3_do_intersect.h:
 
 /usr/include/boost/mpl/vector/aux_/preprocessed/typeof_based/vector20.hpp:
 
@@ -19660,8 +19818,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/CGAL/Intersections_3/internal/Point_3_Triangle_3_intersection.h:
 
 /usr/include/CGAL/Intersections_3/internal/Ray_3_Ray_3_do_intersect.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
 /usr/include/CGAL/Intersections_3/internal/Ray_3_Segment_3_do_intersect.h:
 
@@ -19791,8 +19947,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /opt/meshoperator/main.cpp:
 
-/usr/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h:
-
 /usr/include/CGAL/Kernel/interface_macros.h:
 
 /usr/include/CGAL/Kernel_23/internal/Has_boolean_tags.h:
@@ -19825,13 +19979,13 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/mpl/apply.hpp:
 
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h:
+
 /usr/include/CGAL/Dimension.h:
 
 /usr/include/boost/lambda/detail/select_functions.hpp:
 
 /usr/include/CGAL/Homogeneous/distance_predicatesH2.h:
-
-/usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/CGAL/type_traits/is_iterator.h:
 
@@ -19845,10 +19999,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/Core/MatrixBase.h:
 
-/usr/include/x86_64-linux-gnu/qt5/QtGui/QPalette:
-
-/usr/include/CGAL/Polygon_mesh_processing/border.h:
-
 /usr/include/CGAL/Polygon_mesh_processing/compute_normal.h:
 
 /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglvertexarrayobject.h:
@@ -19858,6 +20008,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vlbwintrin.h:
 
 /usr/include/CGAL/Polygon_mesh_processing/internal/mesh_to_point_set_hausdorff_distance.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseProduct.h:
 
 /usr/include/boost/container/detail/is_sorted.hpp:
 
@@ -19909,15 +20061,11 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/container/detail/workaround.hpp:
 
+/usr/include/eigen3/Eigen/src/SparseCore/SparseMatrix.h:
+
 /usr/include/boost/type_traits/has_modulus_assign.hpp:
 
 /usr/include/CGAL/license/lgpl.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/13/include/cetintrin.h:
-
-/usr/include/CGAL/Intersections_3/internal/Line_3_Segment_3_do_intersect.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
 /usr/include/CGAL/Tetrahedron_3.h:
 
@@ -19926,6 +20074,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/CGAL/Search_traits_3.h:
 
 /usr/include/boost/type_traits/is_signed.hpp:
+
+/usr/include/boost/mpl/aux_/common_name_wknd.hpp:
+
+/usr/include/boost/mpl/aux_/size_impl.hpp:
 
 /usr/include/boost/mpl/aux_/static_cast.hpp:
 
@@ -20017,6 +20169,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/mpl/is_sequence.hpp:
 
+/usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h:
+
 /usr/include/boost/mpl/numeric_cast.hpp:
 
 /usr/local/include/OpenMesh/Core/Utils/PropertyContainer.hh:
@@ -20028,8 +20182,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/mpl/iter_fold.hpp:
 
 /usr/include/boost/mpl/iterator_category.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types.h:
 
 /usr/include/boost/mpl/iterator_range.hpp:
 
@@ -20138,6 +20290,12 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/type_traits/remove_cv_ref.hpp:
 
 /usr/include/boost/mpl/push_front.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/time64.h:
+
+/usr/include/boost/predef/language/stdcpp.h:
+
+/usr/include/boost/mpl/push_front_fwd.hpp:
 
 /usr/include/boost/preprocessor/variadic/size.hpp:
 
@@ -20277,10 +20435,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/multiprecision/detail/no_et_ops.hpp:
 
-/usr/include/CGAL/Intersections_3/internal/Iso_cuboid_3_Tetrahedron_3_do_intersect.h:
-
-/usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
-
 /usr/include/boost/multiprecision/detail/number_compare.hpp:
 
 /usr/include/boost/multiprecision/detail/rebind.hpp:
@@ -20409,12 +20563,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/parameter/aux_/pack/parameter_requirements.hpp:
 
-/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ConfigVersion.cmake:
-
-/usr/include/CGAL/Hilbert_sort_3.h:
-
-/usr/include/x86_64-linux-gnu/bits/wordsize.h:
-
 /usr/include/boost/container_hash/is_tuple_like.hpp:
 
 /usr/include/boost/parameter/aux_/pack/predicate.hpp:
@@ -20444,10 +20592,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/x86_64-linux-gnu/qt5/QtGui/qtguiglobal.h:
 
 /usr/include/boost/parameter/aux_/pack/unmatched_argument.hpp:
-
-/usr/include/CGAL/Polygon_mesh_processing/measure.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
 /usr/include/boost/parameter/aux_/parameter_requirements.hpp:
 
@@ -20539,8 +20683,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/type_traits/has_dereference.hpp:
 
-/usr/include/boost/predef/architecture/riscv.h:
-
 /usr/include/boost/random/discrete_distribution.hpp:
 
 /usr/include/boost/predef/architecture/rs6k.h:
@@ -20578,8 +20720,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/c++/13/tr1/poly_hermite.tcc:
 
 /usr/include/boost/predef/os/cygwin.h:
-
-/usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
 
 /usr/include/boost/predef/compiler/gcc.h:
 
@@ -20636,6 +20776,12 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/CGAL/MP_Float.h:
 
 /usr/include/boost/predef/detail/_cassert.h:
+
+/usr/include/boost/mpl/vector/aux_/push_front.hpp:
+
+/usr/include/CGAL/Intersections_3/Point_3_Point_3.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseFuzzy.h:
 
 /usr/include/boost/predef/detail/_exception.h:
 
@@ -20723,8 +20869,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/predef/library/std/vacpp.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
-
 /usr/include/eigen3/Eigen/src/Core/MapBase.h:
 
 /usr/include/boost/predef/make.h:
@@ -20784,6 +20928,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/functional/hash.hpp:
 
 /usr/include/boost/predef/platform/cloudabi.h:
+
+/usr/include/boost/concept_check.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseBinaryOp.h:
 
 /usr/include/boost/predef/platform/mingw.h:
 
@@ -20865,11 +21013,13 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/Cholesky:
 
-/usr/include/boost/preprocessor/control/limits/while_256.hpp:
-
 /usr/include/c++/13/bits/stl_uninitialized.h:
 
 /usr/include/boost/preprocessor/detail/check.hpp:
+
+/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevKeyboardPlugin.cmake:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseSelfAdjointView.h:
 
 /usr/include/boost/ref.hpp:
 
@@ -20929,6 +21079,12 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/c++/13/bits/ranges_algobase.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+/usr/include/boost/mp11/detail/mp_plus.hpp:
+
+/usr/include/boost/preprocessor/logical/limits/bool_256.hpp:
+
 /usr/include/boost/preprocessor/punctuation/detail/is_begin_parens.hpp:
 
 /usr/include/boost/preprocessor/punctuation/is_begin_parens.hpp:
@@ -20949,15 +21105,11 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/preprocessor/repetition/for.hpp:
 
-/usr/include/boost/core/enable_if.hpp:
-
 /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
 
+/usr/include/boost/core/enable_if.hpp:
+
 /usr/include/boost/preprocessor/repetition/limits/repeat_256.hpp:
-
-/usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractscrollarea.h:
-
-/usr/include/boost/preprocessor/repetition/repeat_from_to.hpp:
 
 /usr/include/CGAL/STL_Extension/internal/mesh_option_classes.h:
 
@@ -21023,8 +21175,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/c++/13/ext/alloc_traits.h:
 
-/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
-
 /usr/include/CGAL/Multiscale_sort.h:
 
 /usr/include/boost/random/detail/enable_warnings.hpp:
@@ -21048,6 +21198,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/mpl/distance_fwd.hpp:
 
 /usr/include/boost/type_traits/is_fundamental.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
+
+/usr/include/boost/random/uniform_01.hpp:
 
 /usr/include/boost/random/uniform_int_distribution.hpp:
 
@@ -21131,8 +21285,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/throw_exception.hpp:
 
-/usr/include/x86_64-linux-gnu/bits/select.h:
-
 /usr/include/boost/mpl/aux_/nested_type_wknd.hpp:
 
 /usr/include/c++/13/bits/uses_allocator.h:
@@ -21185,6 +21337,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/Core/functors/StlFunctors.h:
 
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h:
+
 /opt/meshoperator/glwidget/modelglwidget.h:
 
 /usr/include/eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h:
@@ -21192,6 +21346,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/type_traits/enable_if.hpp:
 
 /usr/include/CGAL/predicates_on_points_2.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparsePermutation.h:
 
 /usr/include/boost/type_traits/function_traits.hpp:
 
@@ -21262,6 +21418,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/boost/mpl/aux_/type_wrapper.hpp:
 
 /usr/include/c++/13/bits/ostream.tcc:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_kernel_bmod.h:
 
 /usr/include/CGAL/Distance_3/Segment_3_Ray_3.h:
 
@@ -21407,10 +21565,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/boost/type_traits/negation.hpp:
 
-/usr/include/CGAL/boost/graph/IO/OFF.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
-
 /usr/include/boost/iterator/distance.hpp:
 
 /usr/include/boost/type_traits/promote.hpp:
@@ -21418,10 +21572,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/c++/13/bits/exception_defines.h:
 
 /usr/include/boost/type_traits/rank.hpp:
-
-/usr/include/CGAL/boost/graph/IO/Generic_facegraph_builder.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
 
 /usr/include/boost/type_traits/remove_all_extents.hpp:
 
@@ -21498,6 +21648,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/lib/gcc/x86_64-linux-gnu/13/include/tsxldtrkintrin.h:
 
 /usr/include/c++/13/debug/assertions.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Memory.h:
 
 /usr/include/boost/optional/detail/optional_factory_support.hpp:
 
@@ -21627,6 +21779,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/c++/13/bits/streambuf_iterator.h:
 
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_relax_snode.h:
+
 /usr/include/boost/predef/os/bsd/net.h:
 
 /usr/include/c++/13/bits/stringfwd.h:
@@ -21645,7 +21799,13 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/c++/13/cctype:
 
+/usr/lib/gcc/x86_64-linux-gnu/13/include/ia32intrin.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h:
+
 /usr/include/c++/13/cfloat:
+
+/usr/include/eigen3/Eigen/src/SparseCore/MappedSparseMatrix.h:
 
 /usr/include/c++/13/chrono:
 
@@ -21695,8 +21855,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/c++/13/memory:
 
-/usr/include/x86_64-linux-gnu/bits/waitflags.h:
-
 /usr/include/endian.h:
 
 /usr/include/c++/13/numbers:
@@ -21706,6 +21864,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/eigen3/Eigen/src/Core/DenseCoeffsBase.h:
 
 /usr/include/c++/13/ostream:
+
+/usr/include/eigen3/Eigen/src/plugins/IndexedViewMethods.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h:
 
 /usr/include/x86_64-linux-gnu/qt5/QtCore/QFile:
 
@@ -21749,6 +21911,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/Geometry:
 
+/usr/include/eigen3/Eigen/SparseCore:
+
 /usr/include/eigen3/Eigen/Jacobi:
 
 /usr/include/eigen3/Eigen/QR:
@@ -21780,6 +21944,10 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/c++/13/ext/concurrence.h:
 
 /usr/include/eigen3/Eigen/src/Core/CwiseUnaryOp.h:
+
+/usr/include/boost/predef/architecture/riscv.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h:
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
@@ -21829,6 +21997,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/Core/functors/AssignmentFunctors.h:
 
+/usr/include/eigen3/Eigen/src/SparseCore/SparseTriangularView.h:
+
 /usr/local/include/OpenMesh/Core/Mesh/Tags.hh:
 
 /usr/include/eigen3/Eigen/src/Core/functors/BinaryFunctors.h:
@@ -21855,6 +22025,12 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/Core/products/GeneralMatrixVector.h:
 
+/usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
+
+/usr/include/boost/type_traits/is_copy_constructible.hpp:
+
+/usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
+
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h:
@@ -21864,10 +22040,6 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h:
 
 /usr/include/eigen3/Eigen/src/Core/util/IndexedViewHelper.h:
-
-/usr/include/boost/multiprecision/cpp_int/intel_intrinsics.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/time.h:
 
 /usr/include/CGAL/Homogeneous_converter.h:
 
@@ -21894,6 +22066,8 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 /usr/lib/x86_64-linux-gnu/cmake/CGAL/CGAL_Macros.cmake:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+
+/usr/include/eigen3/Eigen/OrderingMethods:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/ComplexSchur.h:
 
@@ -21941,9 +22115,75 @@ CMakeFiles/3.28.3/CMakeCCompiler.cmake:
 
 /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h:
 
+/usr/include/eigen3/Eigen/src/OrderingMethods/Amd.h:
+
 /usr/include/eigen3/Eigen/src/SVD/SVDBase.h:
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
+
+/usr/include/boost/lexical_cast.hpp:
+
+/usr/include/CGAL/Filtered_kernel/internal/Static_filters/Do_intersect_3.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/AmbiVector.h:
+
+/usr/include/CGAL/Intersections_2/Iso_rectangle_2_Triangle_2.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/ConservativeSparseSparseProduct.h:
+
+/usr/include/boost/container/options.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseCompressedBase.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseDenseProduct.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseDiagonalProduct.h:
+
+/usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractscrollarea.h:
+
+/usr/include/boost/preprocessor/repetition/repeat_from_to.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_dfs.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseDot.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseRedux.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseSolverBase.h:
+
+/usr/include/x86_64-linux-gnu/qt5/QtGui/QPalette:
+
+/usr/include/CGAL/Polygon_mesh_processing/border.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseSparseProductWithPruning.h:
+
+/usr/include/eigen3/Eigen/src/SparseCore/SparseVector.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h:
+
+/usr/include/boost/preprocessor/control/limits/while_256.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLUImpl.h:
+
+/usr/include/eigen3/Eigen/src/Core/CoreIterators.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Structs.h:
+
+/usr/include/boost/multiprecision/cpp_int/literals.hpp:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_bmod.h:
+
+/usr/include/CGAL/AABB_tree/internal/Has_nested_type_Shared_data.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_copy_to_ucol.h:
+
+/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_bmod.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_dfs.h:
+
+/usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pivotL.h:
 
 /usr/include/eigen3/Eigen/src/misc/Kernel.h:
 
@@ -22026,83 +22266,3 @@ objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget_extended.cpp:
 /usr/include/x86_64-linux-gnu/bits/posix_opt.h:
 
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
-
-/usr/include/boost/core/pointer_traits.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-intn.h:
-
-/usr/include/x86_64-linux-gnu/bits/stdint-least.h:
-
-/usr/include/boost/mpl/aux_/config/preprocessor.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
-
-/usr/include/CGAL/auto_link/CGAL.h:
-
-/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
-
-/usr/include/boost/predef/language/stdcpp.h:
-
-/usr/include/boost/mpl/push_front_fwd.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/time64.h:
-
-/usr/include/CGAL/Triangle_3.h:
-
-/usr/include/x86_64-linux-gnu/bits/timesize.h:
-
-/usr/include/boost/mp11/detail/mp_map_find.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/FILE.h:
-
-/usr/include/x86_64-linux-gnu/qt5/QtCore/qobject_impl.h:
-
-/usr/include/CGAL/Spatial_sort_traits_adapter_3.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h:
-
-/usr/include/boost/mpl/vector/aux_/at.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/error_t.h:
-
-/usr/include/boost/random/uniform_01.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
-
-/usr/include/boost/mp11/detail/mp_plus.hpp:
-
-/usr/include/boost/preprocessor/logical/limits/bool_256.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
-
-/usr/include/boost/lambda/detail/operators.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
-
-/usr/include/x86_64-linux-gnu/bits/typesizes.h:
-
-/usr/include/boost/type_traits/is_copy_constructible.hpp:
-
-/usr/include/eigen3/Eigen/src/Core/products/SelfadjointProduct.h:
-
-/usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
-
-/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
-
-/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h:
-
-/usr/include/boost/math/tools/precision.hpp:
-
-/usr/include/c++/13/bits/stl_queue.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h:

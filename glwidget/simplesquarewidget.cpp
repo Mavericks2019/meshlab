@@ -5,6 +5,8 @@
 SimpleSquareWidget::SimpleSquareWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareVbo(QOpenGLBuffer::VertexBuffer),
     squareEbo(QOpenGLBuffer::IndexBuffer),
+    meshVbo(QOpenGLBuffer::VertexBuffer),
+    meshEbo(QOpenGLBuffer::IndexBuffer),
     squareSize(1.0f)
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -25,6 +27,9 @@ SimpleSquareWidget::~SimpleSquareWidget() {
     squareVao.destroy();
     squareVbo.destroy();
     squareEbo.destroy();
+    meshVao.destroy();
+    meshVbo.destroy();
+    meshEbo.destroy();
     doneCurrent();
 }
 
@@ -38,6 +43,27 @@ void SimpleSquareWidget::setBackgroundColor(const QColor& color) {
 
 void SimpleSquareWidget::setSquareColor(const QColor& color) {
     squareColor = color;
+    update();
+}
+
+void SimpleSquareWidget::setMeshData(const std::vector<float>& vertices, const std::vector<unsigned int>& faces) {
+    meshVertices = vertices;
+    meshFaces = faces;
+    meshLoaded = !vertices.empty() && !faces.empty();
+    
+    if (meshLoaded) {
+        makeCurrent();
+        setupMesh();
+        doneCurrent();
+    }
+    
+    update();
+}
+
+void SimpleSquareWidget::clearMeshData() {
+    meshVertices.clear();
+    meshFaces.clear();
+    meshLoaded = false;
     update();
 }
 
@@ -57,7 +83,16 @@ void SimpleSquareWidget::initializeGL() {
     squareVbo.create();
     squareEbo.create();
     
+    // Initialize mesh
+    meshVao.create();
+    meshVbo.create();
+    meshEbo.create();
+    
     setupSquare();
+    
+    if (meshLoaded) {
+        setupMesh();
+    }
 }
 
 void SimpleSquareWidget::setupSquare() {
@@ -105,6 +140,41 @@ void SimpleSquareWidget::setupSquare() {
     squareVao.release();
 }
 
+void SimpleSquareWidget::setupMesh() {
+    if (meshVertices.empty() || meshFaces.empty()) return;
+    
+    meshVao.bind();
+    meshVbo.bind();
+    meshVbo.allocate(meshVertices.data(), meshVertices.size() * sizeof(float));
+    
+    meshEbo.bind();
+    meshEbo.allocate(meshFaces.data(), meshFaces.size() * sizeof(unsigned int));
+    
+    meshProgram.addShaderFromSourceCode(QOpenGLShader::Vertex,
+        "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "   gl_Position = projection * vec4(aPos, 1.0);\n"
+        "}\n");
+    
+    meshProgram.addShaderFromSourceCode(QOpenGLShader::Fragment,
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "uniform vec4 meshColor;\n"
+        "void main() {\n"
+        "   FragColor = meshColor;\n"
+        "}\n");
+    meshProgram.link();
+    
+    meshProgram.bind();
+    int posLoc = meshProgram.attributeLocation("aPos");
+    meshProgram.enableAttributeArray(posLoc);
+    meshProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    
+    meshVao.release();
+}
+
 void SimpleSquareWidget::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
     
@@ -121,19 +191,44 @@ void SimpleSquareWidget::resizeGL(int w, int h) {
 void SimpleSquareWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    // Draw square
-    squareProgram.bind();
-    squareVao.bind();
-    squareEbo.bind();
-    
-    squareProgram.setUniformValue("projection", projection);
-    squareProgram.setUniformValue("squareColor", 
-                                 QVector4D(squareColor.redF(), squareColor.greenF(), 
-                                           squareColor.blueF(), squareColor.alphaF()));
-    
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
-    squareEbo.release();
-    squareVao.release();
-    squareProgram.release();
+    if (meshLoaded) {
+        // Draw parameterized mesh
+        meshProgram.bind();
+        meshVao.bind();
+        meshEbo.bind();
+        
+        meshProgram.setUniformValue("projection", projection);
+        meshProgram.setUniformValue("meshColor", 
+                                   QVector4D(0.8f, 0.8f, 0.8f, 1.0f)); // 灰色网格
+        
+        glDrawElements(GL_TRIANGLES, meshFaces.size(), GL_UNSIGNED_INT, 0);
+        
+        // Draw wireframe
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(1.0f);
+        meshProgram.setUniformValue("meshColor", 
+                                   QVector4D(0.0f, 0.0f, 0.0f, 1.0f)); // 黑色线框
+        glDrawElements(GL_TRIANGLES, meshFaces.size(), GL_UNSIGNED_INT, 0);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        
+        meshEbo.release();
+        meshVao.release();
+        meshProgram.release();
+    } else {
+        // Draw square (fallback)
+        squareProgram.bind();
+        squareVao.bind();
+        squareEbo.bind();
+        
+        squareProgram.setUniformValue("projection", projection);
+        squareProgram.setUniformValue("squareColor", 
+                                     QVector4D(squareColor.redF(), squareColor.greenF(), 
+                                               squareColor.blueF(), squareColor.alphaF()));
+        
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        
+        squareEbo.release();
+        squareVao.release();
+        squareProgram.release();
+    }
 }

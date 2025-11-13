@@ -12,6 +12,7 @@
 #include <vector>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <QQuaternion>
+#include <Eigen/SparseLU>
 #include "../meshutils/my_traits.h"
 
 class BaseGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -30,6 +31,11 @@ public:
         MaxCurvature
     };
 
+    enum BoundaryType {
+        Circle,
+        Rectangle
+    };
+
     void setBackgroundColor(const QColor& color);
     void setWireframeColor(const QVector4D& color);
     void setSurfaceColor(const QVector3D& color);
@@ -42,6 +48,12 @@ public:
     void loadOBJ(const QString &path);
     void clearMeshData();
     void setViewScale(float scale);
+    
+    // 参数化相关方法
+    void performParameterization(BoundaryType boundaryType = Rectangle);
+    std::vector<float> getParameterizedVertices() const { return paramVertices; }
+    std::vector<unsigned int> getParameterizedFaces() const { return paramFaces; }
+    bool isParameterized() const { return parameterized; }
 
     QVector3D surfaceColor = QVector3D(1.0f, 1.0f, 0.0f);
     bool specularEnabled = true;
@@ -91,6 +103,12 @@ protected:
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
 
+    // 参数化相关方法
+    void mapBoundaryToCircle();
+    void mapBoundaryToRectangle();
+    void normalizeMesh();
+    void solveParameterization();
+
     // 初始视图状态
     QQuaternion initialRotation;
     float rotationSensitivity = 2.0f;
@@ -117,6 +135,11 @@ protected:
     QOpenGLBuffer vbo;
     QOpenGLBuffer ebo;
     QOpenGLBuffer faceEbo;
+
+    // 参数化相关成员
+    bool parameterized = false;
+    std::vector<float> paramVertices;
+    std::vector<unsigned int> paramFaces;
 };
 
 #endif // BASEGLWIDGET_H

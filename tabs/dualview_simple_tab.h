@@ -18,6 +18,7 @@
 #include <QTabWidget>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QMessageBox>
 
 // 创建简单双视图标签页
 QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget) {
@@ -127,6 +128,7 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
         // 重置为默认颜色
         rightWidget->setBackgroundColor(QColor(0, 85, 127));
         rightWidget->setSquareColor(Qt::white);
+        rightWidget->clearMeshData();
     });
     rightLayout->addWidget(resetRightButton);
     
@@ -144,17 +146,17 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
     QButtonGroup *paramMethodGroup = new QButtonGroup(parameterizationGroup);
     
     // 极小曲面单选按钮
-    QRadioButton *minimalSurfaceRadio = new QRadioButton("Minimal Surface");
+    QRadioButton *minimalSurfaceRadio = new QRadioButton("Minimal Surface (Rectangle Boundary)");
     minimalSurfaceRadio->setChecked(true); // 默认选中
     minimalSurfaceRadio->setStyleSheet("color: white;");
     paramMethodGroup->addButton(minimalSurfaceRadio);
     paramLayout->addWidget(minimalSurfaceRadio);
     
-    // 可以在这里添加更多单选按钮
-    // QRadioButton *anotherMethodRadio = new QRadioButton("Another Method");
-    // anotherMethodRadio->setStyleSheet("color: white;");
-    // paramMethodGroup->addButton(anotherMethodRadio);
-    // paramLayout->addWidget(anotherMethodRadio);
+    // 圆形边界单选按钮
+    QRadioButton *circleBoundaryRadio = new QRadioButton("Circular Boundary");
+    circleBoundaryRadio->setStyleSheet("color: white;");
+    paramMethodGroup->addButton(circleBoundaryRadio);
+    paramLayout->addWidget(circleBoundaryRadio);
     
     layout->addWidget(parameterizationGroup);
     
@@ -179,20 +181,45 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
     // 初始时禁用参数化按钮（因为没有加载模型）
     performParamButton->setEnabled(false);
     
-    // 连接按钮点击事件（暂时为空实现）
-    QObject::connect(performParamButton, &QPushButton::clicked, [minimalSurfaceRadio, leftWidget, rightWidget, rightInfoLabel]() {
-        // 获取当前选中的参数化方法
-        if (minimalSurfaceRadio->isChecked()) {
-            // 执行极小曲面参数化
-            QMessageBox::information(nullptr, "Parameterization", 
-                                   "Minimal Surface parameterization selected.\n"
-                                   "Functionality to be implemented.");
-            
-            // 这里将来会实现实际的参数化逻辑
-            // 暂时只是显示消息
-            rightInfoLabel->setText("Minimal Surface Parameterization - Ready");
+    // 连接按钮点击事件
+    QObject::connect(performParamButton, &QPushButton::clicked, [minimalSurfaceRadio, circleBoundaryRadio, leftWidget, rightWidget, rightInfoLabel]() {
+        if (!leftWidget->modelLoaded) {
+            QMessageBox::warning(nullptr, "Parameterization Error", "No model loaded in left view.");
+            return;
         }
-        // 可以添加其他方法的处理
+        
+        // 获取当前选中的参数化方法
+        BaseGLWidget::BoundaryType boundaryType = BaseGLWidget::Rectangle;
+        if (circleBoundaryRadio->isChecked()) {
+            boundaryType = BaseGLWidget::Circle;
+        }
+        
+        // 执行参数化
+        leftWidget->performParameterization(boundaryType);
+        
+        if (leftWidget->isParameterized()) {
+            // 获取参数化结果并传递给右视图
+            auto vertices = leftWidget->getParameterizedVertices();
+            auto faces = leftWidget->getParameterizedFaces();
+            rightWidget->setMeshData(vertices, faces);
+            
+            QString method = circleBoundaryRadio->isChecked() ? "Circular Boundary" : "Rectangle Boundary";
+            rightInfoLabel->setText(QString("Parameterized Mesh (%1)\nVertices: %2, Faces: %3")
+                                   .arg(method)
+                                   .arg(vertices.size() / 3)
+                                   .arg(faces.size() / 3));
+            
+            QMessageBox::information(nullptr, "Parameterization", 
+                                   QString("Parameterization completed successfully!\n"
+                                           "Method: %1\n"
+                                           "Vertices: %2, Faces: %3")
+                                   .arg(method)
+                                   .arg(vertices.size() / 3)
+                                   .arg(faces.size() / 3));
+        } else {
+            QMessageBox::critical(nullptr, "Parameterization Error", 
+                                "Parameterization failed. Please check the model and try again.");
+        }
     });
     
     layout->addWidget(performParamButton);
@@ -219,7 +246,8 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
             leftWidget->loadOBJ(filePath);
             leftInfoLabel->setText("Model loaded (Left View): " + QFileInfo(filePath).fileName());
             
-            // 右侧视图保持白色正方形
+            // 清空右侧视图的网格数据，显示默认正方形
+            rightWidget->clearMeshData();
             rightInfoLabel->setText("White Square View - Ready for parameterization");
             
             // 启用参数化按钮，因为现在有模型了

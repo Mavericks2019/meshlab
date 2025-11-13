@@ -187,6 +187,12 @@
 			"MU",
 			"FSMLRMIT5H/moc_my_traits.cpp",
 			null
+		],
+		[
+			"/opt/meshoperator/tabs/dualview_simple_tab.h",
+			"MU",
+			"GEPDHEUI4U/moc_dualview_simple_tab.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
