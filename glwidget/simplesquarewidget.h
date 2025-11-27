@@ -50,6 +50,7 @@ private:
 
     QMatrix4x4 projection;
     QColor squareColor;
+    QColor meshColor;  // 添加网格颜色成员变量
     float squareSize;
 
     // 网格数据

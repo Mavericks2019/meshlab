@@ -16,6 +16,8 @@ SimpleSquareWidget::SimpleSquareWidget(QWidget *parent) : BaseGLWidget(parent),
     
     // 设置正方形颜色为白色
     squareColor = QColor(255, 255, 255, 255);
+    // 设置网格颜色为白色（与正方形颜色一致）
+    meshColor = QColor(255, 255, 255, 255);
     
     // 设置抗锯齿格式
     QSurfaceFormat format;
@@ -36,6 +38,7 @@ SimpleSquareWidget::~SimpleSquareWidget() {
 
 void SimpleSquareWidget::setSquareColor(const QColor& color) {
     squareColor = color;
+    meshColor = color; // 同时设置网格颜色
     update();
 }
 
@@ -221,14 +224,15 @@ void SimpleSquareWidget::paintGL() {
     if (meshLoaded && !meshVertices.empty() && !meshFaces.empty()) {
         qDebug() << "Drawing parameterized mesh - Vertices:" << meshVertices.size() << "Faces:" << meshFaces.size();
         
-        // Draw parameterized mesh with fill
+        // Draw parameterized mesh with fill - 使用白色填充
         meshProgram.bind();
         meshVao.bind();
         meshEbo.bind();
         
         meshProgram.setUniformValue("projection", projection);
         meshProgram.setUniformValue("meshColor", 
-                                   QVector4D(0.8f, 0.8f, 0.8f, 1.0f)); // 灰色填充
+                                   QVector4D(meshColor.redF(), meshColor.greenF(), 
+                                             meshColor.blueF(), meshColor.alphaF())); // 使用meshColor
         
         glDrawElements(GL_TRIANGLES, meshFaces.size(), GL_UNSIGNED_INT, 0);
         
@@ -239,6 +243,7 @@ void SimpleSquareWidget::paintGL() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(2.0f); // 增加线宽以便更清晰可见
         
+        // 使用黑色线框
         meshProgram.setUniformValue("meshColor", 
                                    QVector4D(0.0f, 0.0f, 0.0f, 1.0f)); // 黑色线框
         
