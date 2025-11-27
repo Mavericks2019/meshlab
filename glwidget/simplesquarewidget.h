@@ -2,16 +2,10 @@
 #ifndef SIMPLESQUAREWIDGET_H
 #define SIMPLESQUAREWIDGET_H
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
-#include <QMatrix4x4>
-#include <QColor>
+#include "baseglwidget.h"
 #include <vector>
 
-class SimpleSquareWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class SimpleSquareWidget : public BaseGLWidget
 {
     Q_OBJECT
 
@@ -19,11 +13,16 @@ public:
     explicit SimpleSquareWidget(QWidget *parent = nullptr);
     virtual ~SimpleSquareWidget();
 
-    void setBackgroundColor(const QColor& color);
     void setSquareColor(const QColor& color);
     void setMeshData(const std::vector<float>& vertices, const std::vector<unsigned int>& faces);
     void clearMeshData();
     bool hasMeshData() const { return meshLoaded; }
+
+    // 重写参数化相关方法
+    void performParameterization(BoundaryType boundaryType = Rectangle) override;
+    std::vector<float> getParameterizedVertices() const override { return paramVertices; }
+    std::vector<unsigned int> getParameterizedFaces() const override { return paramFaces; }
+    bool isParameterized() const override { return parameterized; }
 
 protected:
     void initializeGL() override;
@@ -33,6 +32,12 @@ protected:
 private:
     void setupSquare();
     void setupMesh();
+    
+    // 参数化相关方法
+    void mapBoundaryToCircle();
+    void mapBoundaryToRectangle();
+    void normalizeMesh();
+    void solveParameterization();
 
     QOpenGLShaderProgram squareProgram;
     QOpenGLShaderProgram meshProgram;
@@ -45,7 +50,6 @@ private:
 
     QMatrix4x4 projection;
     QColor squareColor;
-    QColor bgColor;
     float squareSize;
 
     // 网格数据

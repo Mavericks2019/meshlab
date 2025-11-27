@@ -49,11 +49,11 @@ public:
     void clearMeshData();
     void setViewScale(float scale);
     
-    // 参数化相关方法
-    void performParameterization(BoundaryType boundaryType = Rectangle);
-    std::vector<float> getParameterizedVertices() const { return paramVertices; }
-    std::vector<unsigned int> getParameterizedFaces() const { return paramFaces; }
-    bool isParameterized() const { return parameterized; }
+    // 参数化相关方法 - 现在只是接口，在SimpleSquareWidget中实现
+    virtual void performParameterization(BoundaryType boundaryType = Rectangle) {}
+    virtual std::vector<float> getParameterizedVertices() const { return std::vector<float>(); }
+    virtual std::vector<unsigned int> getParameterizedFaces() const { return std::vector<unsigned int>(); }
+    virtual bool isParameterized() const { return false; }
 
     QVector3D surfaceColor = QVector3D(1.0f, 1.0f, 0.0f);
     bool specularEnabled = true;
@@ -103,12 +103,6 @@ protected:
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
 
-    // 参数化相关方法
-    void mapBoundaryToCircle();
-    void mapBoundaryToRectangle();
-    void normalizeMesh();
-    void solveParameterization();
-
     // 初始视图状态
     QQuaternion initialRotation;
     float rotationSensitivity = 2.0f;
@@ -136,7 +130,7 @@ protected:
     QOpenGLBuffer ebo;
     QOpenGLBuffer faceEbo;
 
-    // 参数化相关成员
+    // 参数化相关成员 - 在BaseGLWidget中为空实现
     bool parameterized = false;
     std::vector<float> paramVertices;
     std::vector<unsigned int> paramFaces;

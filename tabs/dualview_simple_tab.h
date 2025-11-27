@@ -194,13 +194,21 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
             boundaryType = BaseGLWidget::Circle;
         }
         
-        // 执行参数化
-        leftWidget->performParameterization(boundaryType);
+        // 将左侧网格数据传递给右侧进行参数化
+        rightWidget->openMesh = leftWidget->openMesh;
+        rightWidget->modelLoaded = true;
+        rightWidget->faces = leftWidget->faces;
+        rightWidget->edges = leftWidget->edges;
+        rightWidget->hasOriginalMesh = true;
+        rightWidget->originalMesh = leftWidget->openMesh;
         
-        if (leftWidget->isParameterized()) {
+        // 执行参数化
+        rightWidget->performParameterization(boundaryType);
+        
+        if (rightWidget->isParameterized()) {
             // 获取参数化结果并传递给右视图
-            auto vertices = leftWidget->getParameterizedVertices();
-            auto faces = leftWidget->getParameterizedFaces();
+            auto vertices = rightWidget->getParameterizedVertices();
+            auto faces = rightWidget->getParameterizedFaces();
             rightWidget->setMeshData(vertices, faces);
             
             QString method = circleBoundaryRadio->isChecked() ? "Circular Boundary" : "Rectangle Boundary";
