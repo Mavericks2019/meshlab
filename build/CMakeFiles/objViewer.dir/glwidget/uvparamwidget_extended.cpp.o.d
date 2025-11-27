@@ -1,8 +1,8 @@
 CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.o: \
- /opt/meshoperator/glwidget/uvparamwidget_extended.cpp \
+ /opt/project/meshlab/glwidget/uvparamwidget_extended.cpp \
  /usr/include/stdc-predef.h \
- /opt/meshoperator/glwidget/uvparamwidget_extended.h \
- /opt/meshoperator/glwidget/uvparamwidget.h \
+ /opt/project/meshlab/glwidget/uvparamwidget_extended.h \
+ /opt/project/meshlab/glwidget/uvparamwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtwidgetsglobal.h \
@@ -334,7 +334,7 @@ CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qtextstream.h \
  /usr/include/c++/13/unordered_set \
  /usr/include/c++/13/bits/unordered_set.h \
- /opt/meshoperator/glwidget/../meshutils/my_traits.h \
+ /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
  /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
  /usr/local/include/OpenMesh/Core/System/config.h \
  /usr/local/include/OpenMesh/Core/System/compiler.hh \
@@ -641,4 +641,4 @@ CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.o: \
  /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
  /usr/include/c++/13/bits/fstream.tcc \
- /opt/meshoperator/glwidget/../lib/include/CommonFunctions.h
+ /opt/project/meshlab/glwidget/../lib/include/CommonFunctions.h

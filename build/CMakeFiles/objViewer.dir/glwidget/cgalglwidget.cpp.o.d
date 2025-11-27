@@ -1,6 +1,6 @@
 CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o: \
- /opt/meshoperator/glwidget/cgalglwidget.cpp /usr/include/stdc-predef.h \
- /opt/meshoperator/glwidget/cgalglwidget.h \
+ /opt/project/meshlab/glwidget/cgalglwidget.cpp \
+ /usr/include/stdc-predef.h /opt/project/meshlab/glwidget/cgalglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtwidgetsglobal.h \

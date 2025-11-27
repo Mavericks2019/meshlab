@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /opt/meshoperator
+CMAKE_SOURCE_DIR = /opt/project/meshlab
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /opt/meshoperator/build
+CMAKE_BINARY_DIR = /opt/project/meshlab/build
 
 # Utility rule file for objViewer_autogen.
 
@@ -71,9 +71,9 @@ CMakeFiles/objViewer_autogen: objViewer_autogen/timestamp
 objViewer_autogen/timestamp: /usr/lib/qt5/bin/moc
 objViewer_autogen/timestamp: /usr/lib/qt5/bin/uic
 objViewer_autogen/timestamp: CMakeFiles/objViewer_autogen.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/meshoperator/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target objViewer"
-	/usr/bin/cmake -E cmake_autogen /opt/meshoperator/build/CMakeFiles/objViewer_autogen.dir/AutogenInfo.json ""
-	/usr/bin/cmake -E touch /opt/meshoperator/build/objViewer_autogen/timestamp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target objViewer"
+	/usr/bin/cmake -E cmake_autogen /opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/AutogenInfo.json ""
+	/usr/bin/cmake -E touch /opt/project/meshlab/build/objViewer_autogen/timestamp
 
 objViewer_autogen: CMakeFiles/objViewer_autogen
 objViewer_autogen: objViewer_autogen/timestamp
@@ -89,6 +89,6 @@ CMakeFiles/objViewer_autogen.dir/clean:
 .PHONY : CMakeFiles/objViewer_autogen.dir/clean
 
 CMakeFiles/objViewer_autogen.dir/depend:
-	cd /opt/meshoperator/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/meshoperator /opt/meshoperator /opt/meshoperator/build /opt/meshoperator/build /opt/meshoperator/build/CMakeFiles/objViewer_autogen.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /opt/project/meshlab/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /opt/project/meshlab /opt/project/meshlab /opt/project/meshlab/build /opt/project/meshlab/build /opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/objViewer_autogen.dir/depend
 

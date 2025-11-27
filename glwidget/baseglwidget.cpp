@@ -1026,9 +1026,9 @@ void BaseGLWidget::performParameterization(BoundaryType boundaryType) {
     // 归一化网格
     normalizeMesh();
     
-    // 保存参数化结果
+    // 保存参数化结果 - 确保正确提取顶点数据
     paramVertices.clear();
-    paramFaces = faces;
+    paramFaces = faces;  // 面索引保持不变
     
     for (auto vh : openMesh.vertices()) {
         auto p = openMesh.point(vh);

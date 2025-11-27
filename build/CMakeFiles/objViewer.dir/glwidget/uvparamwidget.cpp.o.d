@@ -1,6 +1,6 @@
 CMakeFiles/objViewer.dir/glwidget/uvparamwidget.cpp.o: \
- /opt/meshoperator/glwidget/uvparamwidget.cpp /usr/include/stdc-predef.h \
- /opt/meshoperator/glwidget/uvparamwidget.h \
+ /opt/project/meshlab/glwidget/uvparamwidget.cpp \
+ /usr/include/stdc-predef.h /opt/project/meshlab/glwidget/uvparamwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtwidgetsglobal.h \
@@ -332,7 +332,7 @@ CMakeFiles/objViewer.dir/glwidget/uvparamwidget.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qtextstream.h \
  /usr/include/c++/13/unordered_set \
  /usr/include/c++/13/bits/unordered_set.h \
- /opt/meshoperator/glwidget/../meshutils/my_traits.h \
+ /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
  /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
  /usr/local/include/OpenMesh/Core/System/config.h \
  /usr/local/include/OpenMesh/Core/System/compiler.hh \

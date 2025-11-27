@@ -1,5 +1,5 @@
-/opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_cgalglwidget.cpp: /opt/meshoperator/glwidget/cgalglwidget.h \
-  /opt/meshoperator/build/objViewer_autogen/moc_predefs.h \
+/opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_cgalglwidget.cpp: /opt/project/meshlab/glwidget/cgalglwidget.h \
+  /opt/project/meshlab/build/objViewer_autogen/moc_predefs.h \
   /usr/include/CGAL/AABB_face_graph_triangle_primitive.h \
   /usr/include/CGAL/AABB_primitive.h \
   /usr/include/CGAL/AABB_traits.h \

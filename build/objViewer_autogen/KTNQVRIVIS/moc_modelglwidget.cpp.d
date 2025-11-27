@@ -1,7 +1,7 @@
-/opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_modelglwidget.cpp: /opt/meshoperator/glwidget/modelglwidget.h \
-  /opt/meshoperator/build/objViewer_autogen/moc_predefs.h \
-  /opt/meshoperator/glwidget/baseglwidget.h \
-  /opt/meshoperator/meshutils/my_traits.h \
+/opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_modelglwidget.cpp: /opt/project/meshlab/glwidget/modelglwidget.h \
+  /opt/project/meshlab/build/objViewer_autogen/moc_predefs.h \
+  /opt/project/meshlab/glwidget/baseglwidget.h \
+  /opt/project/meshlab/meshutils/my_traits.h \
   /usr/include/GL/gl.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/errno-base.h \

@@ -1,7 +1,7 @@
-/opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_shortestpathglwidget.cpp: /opt/meshoperator/glwidget/shortestpathglwidget.h \
-  /opt/meshoperator/build/objViewer_autogen/moc_predefs.h \
-  /opt/meshoperator/glwidget/baseglwidget.h \
-  /opt/meshoperator/meshutils/my_traits.h \
+/opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_shortestpathglwidget.cpp: /opt/project/meshlab/glwidget/shortestpathglwidget.h \
+  /opt/project/meshlab/build/objViewer_autogen/moc_predefs.h \
+  /opt/project/meshlab/glwidget/baseglwidget.h \
+  /opt/project/meshlab/meshutils/my_traits.h \
   /usr/include/GL/gl.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/errno-base.h \

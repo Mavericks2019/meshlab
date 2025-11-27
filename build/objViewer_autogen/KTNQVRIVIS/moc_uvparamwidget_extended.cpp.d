@@ -1,8 +1,8 @@
-/opt/meshoperator/build/objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget_extended.cpp: /opt/meshoperator/glwidget/uvparamwidget_extended.h \
-  /opt/meshoperator/build/objViewer_autogen/moc_predefs.h \
-  /opt/meshoperator/glwidget/uvparamwidget.h \
-  /opt/meshoperator/lib/include/CommonFunctions.h \
-  /opt/meshoperator/meshutils/my_traits.h \
+/opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget_extended.cpp: /opt/project/meshlab/glwidget/uvparamwidget_extended.h \
+  /opt/project/meshlab/build/objViewer_autogen/moc_predefs.h \
+  /opt/project/meshlab/glwidget/uvparamwidget.h \
+  /opt/project/meshlab/lib/include/CommonFunctions.h \
+  /opt/project/meshlab/meshutils/my_traits.h \
   /usr/include/GL/gl.h \
   /usr/include/alloca.h \
   /usr/include/asm-generic/errno-base.h \

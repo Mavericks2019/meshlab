@@ -1,7 +1,7 @@
 CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o: \
- /opt/meshoperator/glwidget/modelglwidget.cpp /usr/include/stdc-predef.h \
- /opt/meshoperator/glwidget/modelglwidget.h \
- /opt/meshoperator/glwidget/baseglwidget.h \
+ /opt/project/meshlab/glwidget/modelglwidget.cpp \
+ /usr/include/stdc-predef.h /opt/project/meshlab/glwidget/modelglwidget.h \
+ /opt/project/meshlab/glwidget/baseglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtwidgetsglobal.h \
@@ -606,7 +606,7 @@ CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o: \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h \
- /opt/meshoperator/glwidget/../meshutils/my_traits.h \
+ /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
  /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
  /usr/local/include/OpenMesh/Core/IO/IOManager.hh \
  /usr/local/include/OpenMesh/Core/IO/Options.hh \

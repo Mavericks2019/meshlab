@@ -7,7 +7,7 @@ SimpleSquareWidget::SimpleSquareWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareEbo(QOpenGLBuffer::IndexBuffer),
     meshVbo(QOpenGLBuffer::VertexBuffer),
     meshEbo(QOpenGLBuffer::IndexBuffer),
-    squareSize(1.0f)
+    squareSize(0.5f)  // 减小正方形尺寸
 {
     setFocusPolicy(Qt::StrongFocus);
     
@@ -47,9 +47,13 @@ void SimpleSquareWidget::setSquareColor(const QColor& color) {
 }
 
 void SimpleSquareWidget::setMeshData(const std::vector<float>& vertices, const std::vector<unsigned int>& faces) {
+    qDebug() << "Setting mesh data - Vertices:" << vertices.size() << "Faces:" << faces.size();
+    
     meshVertices = vertices;
     meshFaces = faces;
     meshLoaded = !vertices.empty() && !faces.empty();
+    
+    qDebug() << "Mesh loaded:" << meshLoaded;
     
     if (meshLoaded) {
         makeCurrent();
@@ -61,6 +65,7 @@ void SimpleSquareWidget::setMeshData(const std::vector<float>& vertices, const s
 }
 
 void SimpleSquareWidget::clearMeshData() {
+    qDebug() << "Clearing mesh data";
     meshVertices.clear();
     meshFaces.clear();
     meshLoaded = false;
@@ -96,6 +101,9 @@ void SimpleSquareWidget::initializeGL() {
 }
 
 void SimpleSquareWidget::setupSquare() {
+    // 先移除旧的着色器
+    squareProgram.removeAllShaders();
+    
     float vertices[] = {
         -squareSize, -squareSize, 0.0f,
          squareSize, -squareSize, 0.0f,
@@ -134,14 +142,25 @@ void SimpleSquareWidget::setupSquare() {
     
     squareProgram.bind();
     int posLoc = squareProgram.attributeLocation("aPos");
-    squareProgram.enableAttributeArray(posLoc);
-    squareProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    if (posLoc != -1) {
+        squareProgram.enableAttributeArray(posLoc);
+        squareProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    }
     
     squareVao.release();
+    squareProgram.release();
 }
 
 void SimpleSquareWidget::setupMesh() {
-    if (meshVertices.empty() || meshFaces.empty()) return;
+    if (meshVertices.empty() || meshFaces.empty()) {
+        qDebug() << "Mesh data is empty, skipping setup";
+        return;
+    }
+    
+    qDebug() << "Setting up mesh with" << meshVertices.size() << "vertices and" << meshFaces.size() << "faces";
+    
+    // 先移除旧的着色器
+    meshProgram.removeAllShaders();
     
     meshVao.bind();
     meshVbo.bind();
@@ -165,14 +184,23 @@ void SimpleSquareWidget::setupMesh() {
         "void main() {\n"
         "   FragColor = meshColor;\n"
         "}\n");
-    meshProgram.link();
+    
+    if (!meshProgram.link()) {
+        qDebug() << "Mesh program link failed:" << meshProgram.log();
+        return;
+    }
     
     meshProgram.bind();
     int posLoc = meshProgram.attributeLocation("aPos");
-    meshProgram.enableAttributeArray(posLoc);
-    meshProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    if (posLoc != -1) {
+        meshProgram.enableAttributeArray(posLoc);
+        meshProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    }
     
     meshVao.release();
+    meshProgram.release();
+    
+    qDebug() << "Mesh setup completed successfully";
 }
 
 void SimpleSquareWidget::resizeGL(int w, int h) {
@@ -191,21 +219,21 @@ void SimpleSquareWidget::resizeGL(int w, int h) {
 void SimpleSquareWidget::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    if (meshLoaded) {
-        // Draw parameterized mesh
+    if (meshLoaded && !meshVertices.empty() && !meshFaces.empty()) {
+        // Draw parameterized mesh with fill
         meshProgram.bind();
         meshVao.bind();
         meshEbo.bind();
         
         meshProgram.setUniformValue("projection", projection);
         meshProgram.setUniformValue("meshColor", 
-                                   QVector4D(0.8f, 0.8f, 0.8f, 1.0f)); // 灰色网格
+                                   QVector4D(0.8f, 0.8f, 0.8f, 1.0f)); // 灰色填充
         
         glDrawElements(GL_TRIANGLES, meshFaces.size(), GL_UNSIGNED_INT, 0);
         
         // Draw wireframe
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(1.0f);
+        glLineWidth(1.5f);
         meshProgram.setUniformValue("meshColor", 
                                    QVector4D(0.0f, 0.0f, 0.0f, 1.0f)); // 黑色线框
         glDrawElements(GL_TRIANGLES, meshFaces.size(), GL_UNSIGNED_INT, 0);

@@ -1,4 +1,4 @@
-CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
+CMakeFiles/objViewer.dir/main.cpp.o: /opt/project/meshlab/main.cpp \
  /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QApplication \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qapplication.h \
@@ -315,8 +315,8 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstackedwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSplitter \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qsplitter.h \
- /opt/meshoperator/glwidget/modelglwidget.h \
- /opt/meshoperator/glwidget/baseglwidget.h \
+ /opt/project/meshlab/glwidget/modelglwidget.h \
+ /opt/project/meshlab/glwidget/baseglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QOpenGLWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qopenglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QWidget \
@@ -638,7 +638,7 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h \
- /opt/meshoperator/glwidget/../meshutils/my_traits.h \
+ /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
  /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
  /usr/local/include/OpenMesh/Core/IO/IOManager.hh \
  /usr/local/include/OpenMesh/Core/IO/Options.hh \
@@ -727,8 +727,8 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
  /usr/include/c++/13/bits/fstream.tcc \
- /opt/meshoperator/glwidget/baseglwidget.h \
- /opt/meshoperator/glwidget/cgalglwidget.h \
+ /opt/project/meshlab/glwidget/baseglwidget.h \
+ /opt/project/meshlab/glwidget/cgalglwidget.h \
  /usr/include/CGAL/Simple_cartesian.h \
  /usr/include/CGAL/Cartesian/Cartesian_base.h /usr/include/CGAL/basic.h \
  /usr/include/CGAL/config.h /usr/include/boost/config.hpp \
@@ -2779,10 +2779,10 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/CGAL/Converting_construction.h \
  /usr/include/CGAL/Cartesian/Is_trivial_construction.h \
  /usr/include/CGAL/Triangulation_structural_filtering_traits.h \
- /opt/meshoperator/glwidget/shortestpathglwidget.h \
+ /opt/project/meshlab/glwidget/shortestpathglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h \
- /opt/meshoperator/glwidget/uvparamwidget.h \
+ /opt/project/meshlab/glwidget/uvparamwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QVector2D \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qvector2d.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QFile \
@@ -2790,9 +2790,9 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qfiledevice.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QTextStream \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qtextstream.h \
- /opt/meshoperator/glwidget/simplesquarewidget.h \
- /opt/meshoperator/tabs/model_tab.h \
- /opt/meshoperator/tabs/../glwidget/modelglwidget.h \
+ /opt/project/meshlab/glwidget/simplesquarewidget.h \
+ /opt/project/meshlab/tabs/model_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qfiledialog.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qdir.h \
@@ -2817,24 +2817,25 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qradiobutton.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QCheckBox \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcheckbox.h \
- /opt/meshoperator/tabs/basic_tab.h \
- /opt/meshoperator/tabs/../glwidget/baseglwidget.h \
- /opt/meshoperator/tabs/cgal_tab.h \
- /opt/meshoperator/tabs/../glwidget/cgalglwidget.h \
- /opt/meshoperator/tabs/shortestpath_tab.h \
- /opt/meshoperator/tabs/../glwidget/shortestpathglwidget.h \
+ /opt/project/meshlab/tabs/basic_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/baseglwidget.h \
+ /opt/project/meshlab/tabs/cgal_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/cgalglwidget.h \
+ /opt/project/meshlab/tabs/shortestpath_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/shortestpathglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QDateTime \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qdatetime.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QButtonGroup \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qbuttongroup.h \
- /opt/meshoperator/tabs/uvparam_tab.h \
- /opt/meshoperator/tabs/../glwidget/uvparamwidget_extended.h \
- /opt/meshoperator/tabs/../glwidget/../lib/include/CommonFunctions.h \
- /opt/meshoperator/tabs/dualview_tab.h /opt/meshoperator/tabs/basic_tab.h \
- /opt/meshoperator/tabs/uvparam_tab.h \
+ /opt/project/meshlab/tabs/uvparam_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/uvparamwidget_extended.h \
+ /opt/project/meshlab/tabs/../glwidget/../lib/include/CommonFunctions.h \
+ /opt/project/meshlab/tabs/dualview_tab.h \
+ /opt/project/meshlab/tabs/basic_tab.h \
+ /opt/project/meshlab/tabs/uvparam_tab.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QFileInfo \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/qfileinfo.h \
- /opt/meshoperator/tabs/dualview_extended_tab.h \
+ /opt/project/meshlab/tabs/dualview_extended_tab.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QTextEdit \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtextedit.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractscrollarea.h \
@@ -2843,5 +2844,5 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/meshoperator/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextcursor.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextformat.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
- /opt/meshoperator/tabs/dualview_simple_tab.h \
- /opt/meshoperator/tabs/../glwidget/simplesquarewidget.h
+ /opt/project/meshlab/tabs/dualview_simple_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/simplesquarewidget.h

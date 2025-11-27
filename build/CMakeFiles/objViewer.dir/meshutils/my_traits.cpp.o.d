@@ -1,6 +1,6 @@
 CMakeFiles/objViewer.dir/meshutils/my_traits.cpp.o: \
- /opt/meshoperator/meshutils/my_traits.cpp /usr/include/stdc-predef.h \
- /opt/meshoperator/meshutils/my_traits.h \
+ /opt/project/meshlab/meshutils/my_traits.cpp /usr/include/stdc-predef.h \
+ /opt/project/meshlab/meshutils/my_traits.h \
  /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
  /usr/local/include/OpenMesh/Core/System/config.h /usr/include/assert.h \
  /usr/include/features.h /usr/include/features-time64.h \
