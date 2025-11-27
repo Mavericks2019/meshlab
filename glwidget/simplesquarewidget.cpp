@@ -7,7 +7,7 @@ SimpleSquareWidget::SimpleSquareWidget(QWidget *parent) : QOpenGLWidget(parent),
     squareEbo(QOpenGLBuffer::IndexBuffer),
     meshVbo(QOpenGLBuffer::VertexBuffer),
     meshEbo(QOpenGLBuffer::IndexBuffer),
-    squareSize(0.5f)  // 减小正方形尺寸
+    squareSize(1.0f)  // 保持为1.0，在resizeGL中动态调整
 {
     setFocusPolicy(Qt::StrongFocus);
     
@@ -104,11 +104,12 @@ void SimpleSquareWidget::setupSquare() {
     // 先移除旧的着色器
     squareProgram.removeAllShaders();
     
+    // 使用动态的正方形尺寸，在paintGL中通过投影矩阵控制大小
     float vertices[] = {
-        -squareSize, -squareSize, 0.0f,
-         squareSize, -squareSize, 0.0f,
-         squareSize,  squareSize, 0.0f,
-        -squareSize,  squareSize, 0.0f
+        -1.0f, -1.0f, 0.0f,  // 左下角
+         1.0f, -1.0f, 0.0f,  // 右下角
+         1.0f,  1.0f, 0.0f,  // 右上角
+        -1.0f,  1.0f, 0.0f   // 左上角
     };
     
     unsigned int indices[] = {
@@ -208,11 +209,15 @@ void SimpleSquareWidget::resizeGL(int w, int h) {
     
     // 创建保持宽高比的投影矩阵
     projection.setToIdentity();
-    float aspect = static_cast<float>(w) / h;
-    if (aspect > 1.0f) {
-        projection.ortho(-1.0f * aspect, 1.0f * aspect, -1.0f, 1.0f, -1.0f, 1.0f);
+    
+    if (w > h) {
+        // 宽屏 - 正方形适应高度
+        float aspect = static_cast<float>(w) / h;
+        projection.ortho(-aspect, aspect, -1.0f, 1.0f, -1.0f, 1.0f);
     } else {
-        projection.ortho(-1.0f, 1.0f, -1.0f / aspect, 1.0f / aspect, -1.0f, 1.0f);
+        // 竖屏 - 正方形适应宽度
+        float aspect = static_cast<float>(h) / w;
+        projection.ortho(-1.0f, 1.0f, -aspect, aspect, -1.0f, 1.0f);
     }
 }
 
