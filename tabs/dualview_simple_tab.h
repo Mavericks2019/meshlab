@@ -142,21 +142,56 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
     QGroupBox *parameterizationGroup = new QGroupBox("Parameterization Options");
     QVBoxLayout *paramLayout = new QVBoxLayout(parameterizationGroup);
     
-    // 创建单选按钮组
-    QButtonGroup *paramMethodGroup = new QButtonGroup(parameterizationGroup);
+    // 创建参数化方法选择组
+    QGroupBox *methodGroup = new QGroupBox("Parameterization Method");
+    QVBoxLayout *methodLayout = new QVBoxLayout(methodGroup);
     
-    // 极小曲面单选按钮
-    QRadioButton *minimalSurfaceRadio = new QRadioButton("Minimal Surface (Rectangle Boundary)");
-    minimalSurfaceRadio->setChecked(true); // 默认选中
-    minimalSurfaceRadio->setStyleSheet("color: white;");
-    paramMethodGroup->addButton(minimalSurfaceRadio);
-    paramLayout->addWidget(minimalSurfaceRadio);
+    QButtonGroup *methodBtnGroup = new QButtonGroup(methodGroup);
     
-    // 圆形边界单选按钮
-    QRadioButton *circleBoundaryRadio = new QRadioButton("Circular Boundary");
-    circleBoundaryRadio->setStyleSheet("color: white;");
-    paramMethodGroup->addButton(circleBoundaryRadio);
-    paramLayout->addWidget(circleBoundaryRadio);
+    // 均匀参数化方法 (Tutte)
+    QRadioButton *uniformRadio = new QRadioButton("Uniform Tutte Parametrization");
+    uniformRadio->setStyleSheet("color: white;");
+    uniformRadio->setToolTip("Each internal vertex is the barycenter of its neighbors");
+    methodBtnGroup->addButton(uniformRadio, 0);
+    methodLayout->addWidget(uniformRadio);
+    
+    // 加权Tutte参数化
+    QRadioButton *weightedRadio = new QRadioButton("Weighted Tutte Parametrization");
+    weightedRadio->setStyleSheet("color: white;");
+    weightedRadio->setToolTip("Weights based on inverse squared distance");
+    methodBtnGroup->addButton(weightedRadio, 1);
+    methodLayout->addWidget(weightedRadio);
+    
+    // 形状保持参数化 (默认)
+    QRadioButton *shapePreservingRadio = new QRadioButton("Shape-Preserving Parametrization (Floater)");
+    shapePreservingRadio->setChecked(true);
+    shapePreservingRadio->setStyleSheet("color: white;");
+    shapePreservingRadio->setToolTip("Cotangent weights that preserve local shape");
+    methodBtnGroup->addButton(shapePreservingRadio, 2);
+    methodLayout->addWidget(shapePreservingRadio);
+    
+    paramLayout->addWidget(methodGroup);
+    
+    // 边界类型选择组
+    QGroupBox *boundaryGroup = new QGroupBox("Boundary Type");
+    QVBoxLayout *boundaryLayout = new QVBoxLayout(boundaryGroup);
+    
+    QButtonGroup *boundaryBtnGroup = new QButtonGroup(boundaryGroup);
+    
+    // 矩形边界
+    QRadioButton *rectRadio = new QRadioButton("Rectangle Boundary");
+    rectRadio->setChecked(true);
+    rectRadio->setStyleSheet("color: white;");
+    boundaryBtnGroup->addButton(rectRadio);
+    boundaryLayout->addWidget(rectRadio);
+    
+    // 圆形边界
+    QRadioButton *circleRadio = new QRadioButton("Circular Boundary");
+    circleRadio->setStyleSheet("color: white;");
+    boundaryBtnGroup->addButton(circleRadio);
+    boundaryLayout->addWidget(circleRadio);
+    
+    paramLayout->addWidget(boundaryGroup);
     
     layout->addWidget(parameterizationGroup);
     
@@ -182,17 +217,38 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
     performParamButton->setEnabled(false);
     
     // 连接按钮点击事件
-    QObject::connect(performParamButton, &QPushButton::clicked, [minimalSurfaceRadio, circleBoundaryRadio, leftWidget, rightWidget, rightInfoLabel]() {
+    QObject::connect(performParamButton, &QPushButton::clicked, [=]() {
         if (!leftWidget->modelLoaded) {
-            QMessageBox::warning(nullptr, "Parameterization Error", "No model loaded in left view.");
+            QMessageBox::warning(mainWindow, "Parameterization Error", "No model loaded in left view.");
             return;
         }
         
-        // 获取当前选中的参数化方法
+        // 获取选中的参数化方法
+        BaseGLWidget::ParameterizationMethod paramMethod;
+        int methodId = methodBtnGroup->checkedId();
+        
+        switch (methodId) {
+        case 0:
+            paramMethod = BaseGLWidget::UniformTutte;
+            break;
+        case 1:
+            paramMethod = BaseGLWidget::WeightedTutte;
+            break;
+        case 2:
+            paramMethod = BaseGLWidget::FloaterShapePreserving;
+            break;
+        default:
+            paramMethod = BaseGLWidget::FloaterShapePreserving;
+        }
+        
+        // 获取选中的边界类型
         BaseGLWidget::BoundaryType boundaryType = BaseGLWidget::Rectangle;
-        if (circleBoundaryRadio->isChecked()) {
+        if (circleRadio->isChecked()) {
             boundaryType = BaseGLWidget::Circle;
         }
+        
+        // 设置参数化方法
+        rightWidget->setParameterizationMethod(paramMethod);
         
         // 将左侧网格数据传递给右侧进行参数化
         rightWidget->openMesh = leftWidget->openMesh;
@@ -203,7 +259,7 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
         rightWidget->originalMesh = leftWidget->openMesh;
         
         // 执行参数化
-        rightWidget->performParameterization(boundaryType);
+        rightWidget->performParameterization(boundaryType, paramMethod);
         
         if (rightWidget->isParameterized()) {
             // 获取参数化结果并传递给右视图
@@ -211,26 +267,56 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
             auto faces = rightWidget->getParameterizedFaces();
             rightWidget->setMeshData(vertices, faces);
             
-            QString method = circleBoundaryRadio->isChecked() ? "Circular Boundary" : "Rectangle Boundary";
-            rightInfoLabel->setText(QString("Parameterized Mesh (%1)\nVertices: %2, Faces: %3")
-                                   .arg(method)
+            QString methodStr;
+            switch (paramMethod) {
+            case BaseGLWidget::UniformTutte:
+                methodStr = "Uniform Tutte";
+                break;
+            case BaseGLWidget::WeightedTutte:
+                methodStr = "Weighted Tutte";
+                break;
+            case BaseGLWidget::FloaterShapePreserving:
+                methodStr = "Shape-Preserving (Floater)";
+                break;
+            default:
+                methodStr = "Unknown";
+            }
+            
+            QString boundaryStr = boundaryType == BaseGLWidget::Circle ? "Circle" : "Rectangle";
+            
+            rightInfoLabel->setText(QString("Parameterized Mesh\nMethod: %1\nBoundary: %2\nVertices: %3, Faces: %4")
+                                   .arg(methodStr)
+                                   .arg(boundaryStr)
                                    .arg(vertices.size() / 3)
                                    .arg(faces.size() / 3));
             
-            QMessageBox::information(nullptr, "Parameterization", 
+            QMessageBox::information(mainWindow, "Parameterization", 
                                    QString("Parameterization completed successfully!\n"
                                            "Method: %1\n"
-                                           "Vertices: %2, Faces: %3")
-                                   .arg(method)
+                                           "Boundary: %2\n"
+                                           "Vertices: %3, Faces: %4")
+                                   .arg(methodStr)
+                                   .arg(boundaryStr)
                                    .arg(vertices.size() / 3)
                                    .arg(faces.size() / 3));
         } else {
-            QMessageBox::critical(nullptr, "Parameterization Error", 
+            QMessageBox::critical(mainWindow, "Parameterization Error", 
                                 "Parameterization failed. Please check the model and try again.");
         }
     });
     
     layout->addWidget(performParamButton);
+    
+    // 添加方法说明标签
+    QLabel *methodInfoLabel = new QLabel(
+        "<b>Method Descriptions:</b><br>"
+        "• <b>Uniform Tutte:</b> Each vertex is placed at the barycenter of its neighbors<br>"
+        "• <b>Weighted Tutte:</b> Weights based on inverse squared distance in 3D<br>"
+        "• <b>Shape-Preserving:</b> Cotangent weights that better preserve local shape"
+    );
+    methodInfoLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 10px; border-radius: 5px;");
+    methodInfoLabel->setWordWrap(true);
+    layout->addWidget(methodInfoLabel);
     
     // 添加同步加载按钮
     QPushButton *syncLoadButton = new QPushButton("Load OBJ File (Left View Only)");

@@ -19,10 +19,17 @@ public:
     bool hasMeshData() const { return meshLoaded; }
 
     // 重写参数化相关方法
-    void performParameterization(BoundaryType boundaryType = Rectangle) override;
+    void performParameterization(BoundaryType boundaryType = Rectangle, 
+                                 ParameterizationMethod method = FloaterShapePreserving) override;
     std::vector<float> getParameterizedVertices() const override { return paramVertices; }
     std::vector<unsigned int> getParameterizedFaces() const override { return paramFaces; }
     bool isParameterized() const override { return parameterized; }
+    
+    // 设置参数化方法
+    void setParameterizationMethod(ParameterizationMethod method) { 
+        currentParamMethod = method; 
+        qDebug() << "Parameterization method set to:" << method;
+    }
 
 protected:
     void initializeGL() override;
@@ -37,7 +44,6 @@ private:
     void mapBoundaryToCircle();
     void mapBoundaryToRectangle();
     void normalizeMesh();
-    void solveParameterization();
 
     QOpenGLShaderProgram squareProgram;
     QOpenGLShaderProgram meshProgram;
@@ -57,6 +63,9 @@ private:
     std::vector<float> meshVertices;
     std::vector<unsigned int> meshFaces;
     bool meshLoaded = false;
+    
+    // 当前参数化方法
+    ParameterizationMethod currentParamMethod = FloaterShapePreserving;
 };
 
 #endif // SIMPLESQUAREWIDGET_H

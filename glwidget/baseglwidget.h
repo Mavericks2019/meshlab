@@ -14,6 +14,7 @@
 #include <QQuaternion>
 #include <Eigen/SparseLU>
 #include "../meshutils/my_traits.h"
+#include <map>
 
 class BaseGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -36,6 +37,13 @@ public:
         Rectangle
     };
 
+    // 参数化方法枚举
+    enum ParameterizationMethod {
+        UniformTutte,           // Tutte均匀参数化
+        WeightedTutte,          // 加权Tutte参数化
+        FloaterShapePreserving  // Floater形状保持参数化
+    };
+
     void setBackgroundColor(const QColor& color);
     void setWireframeColor(const QVector4D& color);
     void setSurfaceColor(const QVector3D& color);
@@ -50,7 +58,8 @@ public:
     void setViewScale(float scale);
     
     // 参数化相关方法 - 现在只是接口，在SimpleSquareWidget中实现
-    virtual void performParameterization(BoundaryType boundaryType = Rectangle) {}
+    virtual void performParameterization(BoundaryType boundaryType = Rectangle, 
+                                         ParameterizationMethod method = FloaterShapePreserving) {}
     virtual std::vector<float> getParameterizedVertices() const { return std::vector<float>(); }
     virtual std::vector<unsigned int> getParameterizedFaces() const { return std::vector<unsigned int>(); }
     virtual bool isParameterized() const { return false; }
@@ -102,6 +111,11 @@ protected:
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
+
+    // 参数化相关方法
+    std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
+    float computeCotangentWeight(Mesh::HalfedgeHandle heh);
+    void solveParameterization(ParameterizationMethod method);
 
     // 初始视图状态
     QQuaternion initialRotation;
