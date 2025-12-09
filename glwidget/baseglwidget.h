@@ -39,9 +39,10 @@ public:
 
     // 参数化方法枚举
     enum ParameterizationMethod {
+        OriginalMethod,          // 原来的参数化方法（余切权重）
         UniformTutte,           // Tutte均匀参数化
         WeightedTutte,          // 加权Tutte参数化
-        FloaterShapePreserving  // Floater形状保持参数化
+        FloaterShapePreserving  // Floater形状保持参数化（原来的方法，使用余切权重）
     };
 
     void setBackgroundColor(const QColor& color);
@@ -59,7 +60,7 @@ public:
     
     // 参数化相关方法 - 现在只是接口，在SimpleSquareWidget中实现
     virtual void performParameterization(BoundaryType boundaryType = Rectangle, 
-                                         ParameterizationMethod method = FloaterShapePreserving) {}
+                                         ParameterizationMethod method = OriginalMethod) {}
     virtual std::vector<float> getParameterizedVertices() const { return std::vector<float>(); }
     virtual std::vector<unsigned int> getParameterizedFaces() const { return std::vector<unsigned int>(); }
     virtual bool isParameterized() const { return false; }
@@ -112,7 +113,7 @@ protected:
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
 
-    // 参数化相关方法
+    // 参数化相关方法 - 现在只在BaseGLWidget中声明，在派生类中实现或使用
     std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
     float computeCotangentWeight(Mesh::HalfedgeHandle heh);
     void solveParameterization(ParameterizationMethod method);

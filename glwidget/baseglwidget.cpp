@@ -127,10 +127,31 @@ std::map<int, float> BaseGLWidget::computeWeightsForVertex(Mesh::VertexHandle vh
         }
         break;
         
+    case OriginalMethod:
     default:
-        // 默认使用均匀权重
-        for (auto neighbor : neighbors) {
-            weights[neighbor.idx()] = 1.0f / degree;
+        // 使用余切权重（原来的方法）
+        {
+            float totalWeight = 0.0f;
+            
+            // 遍历所有出边的一半边
+            for (auto heh : openMesh.voh_range(vh)) {
+                if (!openMesh.is_boundary(heh)) {
+                    Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
+                    float weight = computeCotangentWeight(heh);
+                    
+                    if (weight > 0) {
+                        weights[vj.idx()] = weight;
+                        totalWeight += weight;
+                    }
+                }
+            }
+            
+            // 归一化权重
+            if (totalWeight > 0) {
+                for (auto& kv : weights) {
+                    kv.second /= totalWeight;
+                }
+            }
         }
         break;
     }

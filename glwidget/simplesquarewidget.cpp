@@ -277,7 +277,7 @@ void SimpleSquareWidget::paintGL() {
     }
 }
 
-// 参数化相关方法实现
+// 参数化相关方法实现 - 恢复原来的方法
 void SimpleSquareWidget::mapBoundaryToCircle() {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
 
@@ -477,6 +477,125 @@ void SimpleSquareWidget::normalizeMesh() {
     }
 }
 
+// 原来的参数化方法（使用余切权重）
+void SimpleSquareWidget::solveParameterizationOriginal() {
+    if (!modelLoaded || openMesh.n_vertices() == 0) return;
+
+    // 标记边界顶点
+    std::vector<bool> isBoundary(openMesh.n_vertices(), false);
+    for (auto vh : openMesh.vertices()) {
+        isBoundary[vh.idx()] = openMesh.is_boundary(vh);
+    }
+
+    // 准备数据：计算每个顶点的余切权重
+    std::vector<std::map<int, float>> weights(openMesh.n_vertices());
+    for (auto vh : openMesh.vertices()) {
+        int i = vh.idx();
+        for (auto heh : openMesh.voh_range(vh)) {
+            if (!openMesh.is_boundary(heh)) {
+                auto vj = openMesh.to_vertex_handle(heh);
+                int j = vj.idx();
+                
+                // 计算两个相邻三角形的角度
+                auto from = openMesh.from_vertex_handle(heh);
+                auto to = openMesh.to_vertex_handle(heh);
+                auto next = openMesh.next_halfedge_handle(heh);
+                auto opp_next = openMesh.next_halfedge_handle(openMesh.opposite_halfedge_handle(heh));
+                
+                auto p1 = openMesh.point(from);
+                auto p2 = openMesh.point(to);
+                auto p3 = openMesh.point(openMesh.to_vertex_handle(next));
+                auto p4 = openMesh.point(openMesh.to_vertex_handle(opp_next));
+                
+                // 计算两个角度
+                Eigen::Vector3f v1 = {p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2]};
+                Eigen::Vector3f v2 = {p3[0]-p2[0], p3[1]-p2[1], p3[2]-p2[2]};
+                Eigen::Vector3f v3 = {p4[0]-p2[0], p4[1]-p2[1], p4[2]-p2[2]};
+                
+                float angle1 = acos(v1.dot(v2) / (v1.norm() * v2.norm()));
+                float angle2 = acos(v1.dot(v3) / (v1.norm() * v3.norm()));
+                
+                // 计算余切权重
+                float w1 = 1.0f / tan(angle1);
+                float w2 = 1.0f / tan(angle2);
+                float w = (w1 + w2) / 2.0f;  // 平均权重
+                
+                weights[i][j] = w;
+            }
+        }
+    }
+
+    // 构建线性方程组
+    using namespace Eigen;
+    using SpMat = SparseMatrix<float>;
+    using Triplet = Triplet<float>;
+    
+    int n = openMesh.n_vertices();
+    SpMat A(n, n);
+    VectorXf b_u(n), b_v(n);
+    VectorXf x(n), y(n);
+    
+    b_u.setZero();
+    b_v.setZero();
+    
+    std::vector<Triplet> triplets;
+    triplets.reserve(n * 10);
+    
+    for (int i = 0; i < n; i++) {
+        if (isBoundary[i]) {
+            // 边界顶点：固定位置
+            triplets.push_back(Triplet(i, i, 1.0f));
+            b_u[i] = openMesh.point(Mesh::VertexHandle(i))[0];
+            b_v[i] = openMesh.point(Mesh::VertexHandle(i))[1];
+        } else {
+            // 内部顶点：使用余切权重
+            float totalWeight = 0.0f;
+            for (const auto& [j, w] : weights[i]) {
+                triplets.push_back(Triplet(i, j, w));
+                totalWeight += w;
+            }
+            triplets.push_back(Triplet(i, i, -totalWeight));
+            b_u[i] = 0.0f;
+            b_v[i] = 0.0f;
+        }
+    }
+    
+    // 设置稀疏矩阵
+    A.setFromTriplets(triplets.begin(), triplets.end());
+    A.makeCompressed();
+    
+    // 使用SparseLU求解器
+    Eigen::SparseLU<SpMat> solver;
+    solver.analyzePattern(A);
+    solver.factorize(A);
+    
+    if (solver.info() != Eigen::Success) {
+        std::cerr << "Matrix factorization failed!" << std::endl;
+        return;
+    }
+    
+    // 求解坐标
+    x = solver.solve(b_u);
+    y = solver.solve(b_v);
+    
+    // 更新顶点位置
+    for (int i = 0; i < n; i++) {
+        Mesh::Point newPos(x[i], y[i], 0.0f);
+        openMesh.set_point(Mesh::VertexHandle(i), newPos);
+    }
+}
+
+// 新增的通用参数化方法
+void SimpleSquareWidget::solveParameterization() {
+    // 根据当前选择的方法调用不同的实现
+    if (currentParamMethod == OriginalMethod) {
+        solveParameterizationOriginal();  // 调用原来的方法
+    } else {
+        // 调用基类的新方法
+        BaseGLWidget::solveParameterization(currentParamMethod);
+    }
+}
+
 void SimpleSquareWidget::performParameterization(BoundaryType boundaryType, ParameterizationMethod method) {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
 
@@ -490,8 +609,11 @@ void SimpleSquareWidget::performParameterization(BoundaryType boundaryType, Para
         mapBoundaryToRectangle();
     }
     
-    // 使用基类的求解方法，传入当前参数化方法
-    solveParameterization(method);
+    // 设置当前参数化方法
+    currentParamMethod = method;
+    
+    // 执行参数化
+    solveParameterization();
     
     // 归一化网格
     normalizeMesh();
