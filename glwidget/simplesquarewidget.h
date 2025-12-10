@@ -4,6 +4,8 @@
 
 #include "baseglwidget.h"
 #include <vector>
+#include <map>
+#include <Eigen/SparseLU>
 
 class SimpleSquareWidget : public BaseGLWidget
 {
@@ -40,12 +42,17 @@ private:
     void setupSquare();
     void setupMesh();
     
-    // 参数化相关方法 - 恢复原来的方法
+    // 参数化相关方法 - 迁移到SimpleSquareWidget中
     void mapBoundaryToCircle();
     void mapBoundaryToRectangle();
     void normalizeMesh();
     void solveParameterizationOriginal();  // 原来的参数化方法
     void solveParameterization();  // 新增的通用参数化方法
+    
+    // 迁移的参数化权重计算方法
+    std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
+    float computeCotangentWeight(Mesh::HalfedgeHandle heh);
+    void solveParameterizationInternal(ParameterizationMethod method);
 
     QOpenGLShaderProgram squareProgram;
     QOpenGLShaderProgram meshProgram;

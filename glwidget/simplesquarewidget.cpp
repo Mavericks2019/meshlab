@@ -277,7 +277,233 @@ void SimpleSquareWidget::paintGL() {
     }
 }
 
-// 参数化相关方法实现 - 恢复原来的方法
+// 迁移的参数化权重计算方法
+std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method) {
+    std::map<int, float> weights;
+    int vertexId = vh.idx();
+    
+    // 获取邻居顶点
+    std::vector<Mesh::VertexHandle> neighbors;
+    for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
+        neighbors.push_back(*vv_it);
+    }
+    
+    int degree = neighbors.size();
+    
+    switch (method) {
+    case UniformTutte:
+        // Tutte均匀参数化：λ = 1/degree
+        for (auto neighbor : neighbors) {
+            weights[neighbor.idx()] = 1.0f / degree;
+        }
+        break;
+        
+    case WeightedTutte:
+        // 加权Tutte参数化：基于三维距离的权重
+        {
+            float totalWeight = 0.0f;
+            std::vector<float> rawWeights;
+            auto centerPos = openMesh.point(vh);
+            
+            for (auto neighbor : neighbors) {
+                auto neighborPos = openMesh.point(neighbor);
+                float dist = (neighborPos - centerPos).norm();
+                // 避免除零错误
+                float w = 1.0f / (dist * dist + 0.0001f);
+                rawWeights.push_back(w);
+                totalWeight += w;
+            }
+            
+            // 归一化权重
+            for (size_t i = 0; i < neighbors.size(); i++) {
+                weights[neighbors[i].idx()] = rawWeights[i] / totalWeight;
+            }
+        }
+        break;
+        
+    case FloaterShapePreserving:
+        // 使用余切权重（形状保持）
+        {
+            float totalWeight = 0.0f;
+            
+            // 遍历所有出边的一半边
+            for (auto heh : openMesh.voh_range(vh)) {
+                if (!openMesh.is_boundary(heh)) {
+                    Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
+                    float weight = computeCotangentWeight(heh);
+                    
+                    if (weight > 0) {
+                        weights[vj.idx()] = weight;
+                        totalWeight += weight;
+                    }
+                }
+            }
+            
+            // 归一化权重
+            if (totalWeight > 0) {
+                for (auto& kv : weights) {
+                    kv.second /= totalWeight;
+                }
+            }
+        }
+        break;
+        
+    case OriginalMethod:
+    default:
+        // 使用余切权重（原来的方法）
+        {
+            float totalWeight = 0.0f;
+            
+            // 遍历所有出边的一半边
+            for (auto heh : openMesh.voh_range(vh)) {
+                if (!openMesh.is_boundary(heh)) {
+                    Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
+                    float weight = computeCotangentWeight(heh);
+                    
+                    if (weight > 0) {
+                        weights[vj.idx()] = weight;
+                        totalWeight += weight;
+                    }
+                }
+            }
+            
+            // 归一化权重
+            if (totalWeight > 0) {
+                for (auto& kv : weights) {
+                    kv.second /= totalWeight;
+                }
+            }
+        }
+        break;
+    }
+    
+    return weights;
+}
+
+float SimpleSquareWidget::computeCotangentWeight(Mesh::HalfedgeHandle heh) {
+    // 获取半边对应的两个三角形并计算余切权重
+    if (!openMesh.is_boundary(heh)) {
+        // 主半边
+        Mesh::HalfedgeHandle heh_opp = openMesh.opposite_halfedge_handle(heh);
+        
+        // 获取顶点
+        Mesh::VertexHandle v0 = openMesh.from_vertex_handle(heh);
+        Mesh::VertexHandle v1 = openMesh.to_vertex_handle(heh);
+        
+        // 第一个三角形：v0-v1-v2
+        Mesh::HalfedgeHandle heh_next = openMesh.next_halfedge_handle(heh);
+        Mesh::VertexHandle v2 = openMesh.to_vertex_handle(heh_next);
+        
+        // 第二个三角形：v1-v0-v3
+        Mesh::HalfedgeHandle heh_opp_next = openMesh.next_halfedge_handle(heh_opp);
+        Mesh::VertexHandle v3 = openMesh.to_vertex_handle(heh_opp_next);
+        
+        // 计算两个角度的余切值
+        auto p0 = openMesh.point(v0);
+        auto p1 = openMesh.point(v1);
+        auto p2 = openMesh.point(v2);
+        auto p3 = openMesh.point(v3);
+        
+        // 向量计算
+        auto e01 = p1 - p0;
+        auto e02 = p2 - p0;
+        auto e10 = p0 - p1;
+        auto e13 = p3 - p1;
+        
+        // 计算角度并避免数值问题
+        float cos_alpha = (e01 | e02) / (sqrt((e01 | e01) * (e02 | e02)) + 1e-10);
+        float cos_beta = (e10 | e13) / (sqrt((e10 | e10) * (e13 | e13)) + 1e-10);
+        
+        cos_alpha = std::max(-1.0f, std::min(1.0f, cos_alpha));
+        cos_beta = std::max(-1.0f, std::min(1.0f, cos_beta));
+        
+        float sin_alpha = sqrt(1.0f - cos_alpha * cos_alpha);
+        float sin_beta = sqrt(1.0f - cos_beta * cos_beta);
+        
+        // 余切权重
+        float cot_alpha = cos_alpha / (sin_alpha + 1e-10);
+        float cot_beta = cos_beta / (sin_beta + 1e-10);
+        
+        return (cot_alpha + cot_beta) / 2.0f;
+    }
+    
+    return 0.0f;
+}
+
+void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod method) {
+    if (!modelLoaded || openMesh.n_vertices() == 0) return;
+    
+    // 标记边界顶点
+    std::vector<bool> isBoundary(openMesh.n_vertices(), false);
+    for (auto vh : openMesh.vertices()) {
+        isBoundary[vh.idx()] = openMesh.is_boundary(vh);
+    }
+    
+    // 构建线性方程组
+    using namespace Eigen;
+    using SpMat = SparseMatrix<float>;
+    using Triplet = Triplet<float>;
+    
+    int n = openMesh.n_vertices();
+    SpMat A(n, n);
+    VectorXf b_u(n), b_v(n);
+    VectorXf x(n), y(n);
+    
+    b_u.setZero();
+    b_v.setZero();
+    
+    std::vector<Triplet> triplets;
+    triplets.reserve(n * 10);
+    
+    for (auto vh : openMesh.vertices()) {
+        int i = vh.idx();
+        
+        if (isBoundary[i]) {
+            // 边界顶点：固定位置
+            triplets.push_back(Triplet(i, i, 1.0f));
+            b_u[i] = openMesh.point(vh)[0];
+            b_v[i] = openMesh.point(vh)[1];
+        } else {
+            // 内部顶点：根据方法计算权重
+            auto weights = computeWeightsForVertex(vh, method);
+            
+            float totalWeight = 0.0f;
+            for (const auto& [j, w] : weights) {
+                triplets.push_back(Triplet(i, j, w));
+                totalWeight += w;
+            }
+            triplets.push_back(Triplet(i, i, -totalWeight));
+            b_u[i] = 0.0f;
+            b_v[i] = 0.0f;
+        }
+    }
+    
+    // 设置稀疏矩阵
+    A.setFromTriplets(triplets.begin(), triplets.end());
+    A.makeCompressed();
+    
+    // 使用SparseLU求解器
+    Eigen::SparseLU<SpMat> solver;
+    solver.analyzePattern(A);
+    solver.factorize(A);
+    
+    if (solver.info() != Eigen::Success) {
+        qWarning() << "Matrix factorization failed!";
+        return;
+    }
+    
+    // 求解坐标
+    x = solver.solve(b_u);
+    y = solver.solve(b_v);
+    
+    // 更新顶点位置
+    for (int i = 0; i < n; i++) {
+        Mesh::Point newPos(x[i], y[i], 0.0f);
+        openMesh.set_point(Mesh::VertexHandle(i), newPos);
+    }
+}
+
+// 参数化相关方法实现
 void SimpleSquareWidget::mapBoundaryToCircle() {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
 
@@ -591,8 +817,8 @@ void SimpleSquareWidget::solveParameterization() {
     if (currentParamMethod == OriginalMethod) {
         solveParameterizationOriginal();  // 调用原来的方法
     } else {
-        // 调用基类的新方法
-        BaseGLWidget::solveParameterization(currentParamMethod);
+        // 调用迁移过来的新方法
+        solveParameterizationInternal(currentParamMethod);
     }
 }
 

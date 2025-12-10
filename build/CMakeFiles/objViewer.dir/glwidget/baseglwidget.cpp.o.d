@@ -414,8 +414,33 @@ CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o: \
  /usr/local/include/OpenMesh/Core/Mesh/TriMeshT_impl.hh \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QQuaternion \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qquaternion.h \
- /usr/include/eigen3/Eigen/SparseLU /usr/include/eigen3/Eigen/SparseCore \
- /usr/include/eigen3/Eigen/Core \
+ /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
+ /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
+ /usr/local/include/OpenMesh/Core/IO/IOManager.hh \
+ /usr/local/include/OpenMesh/Core/IO/Options.hh \
+ /usr/local/include/OpenMesh/Core/IO/reader/BaseReader.hh \
+ /usr/local/include/OpenMesh/Core/IO/importer/BaseImporter.hh \
+ /usr/local/include/OpenMesh/Core/IO/writer/BaseWriter.hh \
+ /usr/local/include/OpenMesh/Core/IO/exporter/BaseExporter.hh \
+ /usr/local/include/OpenMesh/Core/IO/importer/ImporterT.hh \
+ /usr/local/include/OpenMesh/Core/Utils/color_cast.hh \
+ /usr/local/include/OpenMesh/Core/IO/exporter/ExporterT.hh \
+ /usr/local/include/OpenMesh/Core/Utils/Predicates.hh \
+ /usr/local/include/OpenMesh/Core/Utils/PropertyManager.hh \
+ /usr/local/include/OpenMesh/Core/Utils/HandleToPropHandle.hh \
+ /usr/local/include/OpenMesh/Core/IO/OMFormat.hh \
+ /usr/local/include/OpenMesh/Core/Utils/Endian.hh \
+ /usr/local/include/OpenMesh/Core/IO/OMFormatT_impl.hh \
+ /usr/include/c++/13/iomanip /usr/include/c++/13/locale \
+ /usr/include/c++/13/bits/locale_facets_nonio.h \
+ /usr/include/x86_64-linux-gnu/c++/13/bits/time_members.h \
+ /usr/include/x86_64-linux-gnu/c++/13/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/13/bits/codecvt.h \
+ /usr/include/c++/13/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/13/bits/locale_conv.h \
+ /usr/include/c++/13/bits/quoted_string.h \
+ /usr/local/include/OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh \
+ /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
  /usr/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h \
@@ -549,90 +574,7 @@ CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o: \
  /usr/include/eigen3/Eigen/src/Core/StlIterators.h \
  /usr/include/eigen3/Eigen/src/Core/GlobalFunctions.h \
  /usr/include/eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
- /usr/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h \
- /usr/include/eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h \
- /usr/include/eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h \
- /usr/include/eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h \
- /usr/include/eigen3/Eigen/src/plugins/BlockMethods.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseAssign.h \
- /usr/include/eigen3/Eigen/src/SparseCore/CompressedStorage.h \
- /usr/include/eigen3/Eigen/src/SparseCore/AmbiVector.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseCompressedBase.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrix.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseMap.h \
- /usr/include/eigen3/Eigen/src/SparseCore/MappedSparseMatrix.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseVector.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseRef.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseUnaryOp.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseCwiseBinaryOp.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseTranspose.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseBlock.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseDot.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseRedux.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseView.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseDiagonalProduct.h \
- /usr/include/eigen3/Eigen/src/SparseCore/ConservativeSparseSparseProduct.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseSparseProductWithPruning.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseProduct.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseDenseProduct.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseSelfAdjointView.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseTriangularView.h \
- /usr/include/eigen3/Eigen/src/SparseCore/TriangularSolver.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparsePermutation.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseFuzzy.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseSolverBase.h \
- /usr/include/eigen3/Eigen/OrderingMethods \
- /usr/include/eigen3/Eigen/src/OrderingMethods/Amd.h \
- /usr/include/eigen3/Eigen/src/OrderingMethods/Ordering.h \
- /usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Structs.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLUImpl.h \
- /usr/include/eigen3/Eigen/src/SparseCore/SparseColEtree.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Memory.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_relax_snode.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pivotL.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_dfs.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_kernel_bmod.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_panel_bmod.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_dfs.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_column_bmod.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_copy_to_ucol.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h \
- /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h \
- /opt/project/meshlab/glwidget/../meshutils/my_traits.h \
- /usr/local/include/OpenMesh/Core/IO/MeshIO.hh \
- /usr/local/include/OpenMesh/Core/IO/IOManager.hh \
- /usr/local/include/OpenMesh/Core/IO/Options.hh \
- /usr/local/include/OpenMesh/Core/IO/reader/BaseReader.hh \
- /usr/local/include/OpenMesh/Core/IO/importer/BaseImporter.hh \
- /usr/local/include/OpenMesh/Core/IO/writer/BaseWriter.hh \
- /usr/local/include/OpenMesh/Core/IO/exporter/BaseExporter.hh \
- /usr/local/include/OpenMesh/Core/IO/importer/ImporterT.hh \
- /usr/local/include/OpenMesh/Core/Utils/color_cast.hh \
- /usr/local/include/OpenMesh/Core/IO/exporter/ExporterT.hh \
- /usr/local/include/OpenMesh/Core/Utils/Predicates.hh \
- /usr/local/include/OpenMesh/Core/Utils/PropertyManager.hh \
- /usr/local/include/OpenMesh/Core/Utils/HandleToPropHandle.hh \
- /usr/local/include/OpenMesh/Core/IO/OMFormat.hh \
- /usr/local/include/OpenMesh/Core/Utils/Endian.hh \
- /usr/local/include/OpenMesh/Core/IO/OMFormatT_impl.hh \
- /usr/include/c++/13/iomanip /usr/include/c++/13/locale \
- /usr/include/c++/13/bits/locale_facets_nonio.h \
- /usr/include/x86_64-linux-gnu/c++/13/bits/time_members.h \
- /usr/include/x86_64-linux-gnu/c++/13/bits/messages_members.h \
- /usr/include/libintl.h /usr/include/c++/13/bits/codecvt.h \
- /usr/include/c++/13/bits/locale_facets_nonio.tcc \
- /usr/include/c++/13/bits/locale_conv.h \
- /usr/include/c++/13/bits/quoted_string.h \
- /usr/local/include/OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh \
- /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/LU \
- /usr/include/eigen3/Eigen/src/misc/Kernel.h \
+ /usr/include/eigen3/Eigen/LU /usr/include/eigen3/Eigen/src/misc/Kernel.h \
  /usr/include/eigen3/Eigen/src/misc/Image.h \
  /usr/include/eigen3/Eigen/src/LU/FullPivLU.h \
  /usr/include/eigen3/Eigen/src/LU/PartialPivLU.h \
@@ -717,19 +659,4 @@ CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextoption.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QFont \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qfont.h \
- /usr/include/eigen3/Eigen/Sparse \
- /usr/include/eigen3/Eigen/SparseCholesky \
- /usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky.h \
- /usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky_impl.h \
- /usr/include/eigen3/Eigen/SparseLU /usr/include/eigen3/Eigen/SparseQR \
- /usr/include/eigen3/Eigen/src/SparseQR/SparseQR.h \
- /usr/include/eigen3/Eigen/IterativeLinearSolvers \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/SolveWithGuess.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
- /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qfont.h

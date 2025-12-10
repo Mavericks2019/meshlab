@@ -12,9 +12,7 @@
 #include <vector>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <QQuaternion>
-#include <Eigen/SparseLU>
 #include "../meshutils/my_traits.h"
-#include <map>
 
 class BaseGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -112,11 +110,6 @@ protected:
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
-
-    // 参数化相关方法 - 现在只在BaseGLWidget中声明，在派生类中实现或使用
-    std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
-    float computeCotangentWeight(Mesh::HalfedgeHandle heh);
-    void solveParameterization(ParameterizationMethod method);
 
     // 初始视图状态
     QQuaternion initialRotation;
