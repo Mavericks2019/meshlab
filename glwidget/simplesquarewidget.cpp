@@ -299,27 +299,44 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
         break;
         
     case WeightedTutte:
-        // 加权Tutte参数化：基于三维距离的权重
-        {
-            float totalWeight = 0.0f;
-            std::vector<float> rawWeights;
-            auto centerPos = openMesh.point(vh);
-            
-            for (auto neighbor : neighbors) {
-                auto neighborPos = openMesh.point(neighbor);
-                float dist = (neighborPos - centerPos).norm();
-                // 避免除零错误
-                float w = 1.0f / (dist * dist + 0.0001f);
-                rawWeights.push_back(w);
-                totalWeight += w;
-            }
-            
-            // 归一化权重
-            for (size_t i = 0; i < neighbors.size(); i++) {
-                weights[neighbors[i].idx()] = rawWeights[i] / totalWeight;
-            }
+    {
+        // 加权Tutte参数化：改进的权重计算方法
+        float totalWeight = 0.0f;
+        
+        // 获取中心顶点位置
+        auto centerPos = openMesh.point(vh);
+        
+        // 首先收集所有邻居的距离
+        std::vector<float> distances;
+        for (auto neighbor : neighbors) {
+            auto neighborPos = openMesh.point(neighbor);
+            float dist = (neighborPos - centerPos).norm();
+            distances.push_back(dist);
         }
-        break;
+        
+        // 计算平均距离
+        float avgDist = 0.0f;
+        for (float dist : distances) {
+            avgDist += dist;
+        }
+        avgDist /= distances.size();
+        
+        // 使用更好的权重函数：w = exp(-dist/avgDist)
+        // 这个函数在距离较大时权重较小，但不会像1/dist那样产生极端值
+        std::vector<float> rawWeights;
+        for (size_t i = 0; i < neighbors.size(); i++) {
+            float normalizedDist = distances[i] / (avgDist + 0.0001f);
+            float w = exp(-normalizedDist);
+            rawWeights.push_back(w);
+            totalWeight += w;
+        }
+        
+        // 归一化权重
+        for (size_t i = 0; i < neighbors.size(); i++) {
+            weights[neighbors[i].idx()] = rawWeights[i] / totalWeight;
+        }
+    }
+    break;
         
     case FloaterShapePreserving:
         // 使用余切权重（形状保持）
