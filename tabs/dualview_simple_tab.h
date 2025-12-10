@@ -304,18 +304,23 @@ QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquare
                                        .arg(vertices.size() / 3)
                                        .arg(faces.size() / 3));
                 
-                QMessageBox::information(mainWindow, "Parameterization", 
-                                       QString("Parameterization completed successfully!\n"
-                                               "Method: %1\n"
-                                               "Boundary: %2\n"
-                                               "Vertices: %3, Faces: %4")
-                                       .arg(methodStr)
-                                       .arg(boundaryStr)
-                                       .arg(vertices.size() / 3)
-                                       .arg(faces.size() / 3));
+                // 移除弹窗显示，只更新界面
+                // QMessageBox::information(mainWindow, "Parameterization", 
+                //                        QString("Parameterization completed successfully!\n"
+                //                                "Method: %1\n"
+                //                                "Boundary: %2\n"
+                //                                "Vertices: %3, Faces: %4")
+                //                        .arg(methodStr)
+                //                        .arg(boundaryStr)
+                //                        .arg(vertices.size() / 3)
+                //                        .arg(faces.size() / 3));
             } else {
-                QMessageBox::critical(mainWindow, "Parameterization Error", 
-                                    "Parameterization failed. Please check the model and try again.");
+                // 改为在右侧信息标签显示错误信息，而不是弹窗
+                rightInfoLabel->setText("Parameterization failed. Please check the model and try again.");
+                
+                // 移除错误弹窗
+                // QMessageBox::critical(mainWindow, "Parameterization Error", 
+                //                     "Parameterization failed. Please check the model and try again.");
             }
         });
     
