@@ -277,12 +277,11 @@ void SimpleSquareWidget::paintGL() {
     }
 }
 
-// 迁移的参数化权重计算方法
+// 修改后的权重计算方法：返回未归一化的原始权重
 std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method) {
     std::map<int, float> weights;
-    int vertexId = vh.idx();
     
-    // 获取邻居顶点并按顺序排列
+    // 获取邻居顶点
     std::vector<Mesh::VertexHandle> neighbors;
     for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
         neighbors.push_back(*vv_it);
@@ -292,350 +291,45 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
     
     switch (method) {
     case UniformTutte:
-        // Tutte均匀参数化：λ = 1/degree
+        // Tutte均匀参数化：每个邻居权重为1
         for (auto neighbor : neighbors) {
-            weights[neighbor.idx()] = 1.0f / degree;
+            weights[neighbor.idx()] = 1.0f;
         }
         break;
         
     case WeightedTutte:
     {
-        float totalWeight = 0.0f;
         auto centerPos = openMesh.point(vh);
-        
-        // 使用论文中的权重：w = 1/dist^q，q=1
-        float q = 0.5f;
-        std::vector<float> rawWeights;
-        
+        // 使用弦长权重：w = 1/dist
         for (auto neighbor : neighbors) {
             auto neighborPos = openMesh.point(neighbor);
             float dist = (neighborPos - centerPos).norm();
-            
-            // 避免除零
             float eps = 1e-6f;
-            float w = 1.0f / pow(dist + eps, q);
-            rawWeights.push_back(w);
-            totalWeight += w;
-        }
-        
-        // 归一化
-        for (size_t i = 0; i < neighbors.size(); i++) {
-            weights[neighbors[i].idx()] = rawWeights[i] / totalWeight;
+            weights[neighbor.idx()] = 1.0f / (dist + eps);
         }
     }
     break;
         
     case FloaterShapePreserving:
-        // 实现论文第6节的形状保持参数化
-    {
-        if (degree < 3) {
-            // 度小于3的情况，退化为均匀权重
-            for (auto neighbor : neighbors) {
-                weights[neighbor.idx()] = 1.0f / degree;
-            }
-            break;
-        }
-        
-        // 1. 获取邻居并按逆时针顺序排序（重要！）
-        // OpenMesh不保证顺序，我们需要按角度排序
-        auto center3D = openMesh.point(vh);
-        
-        // 创建一个带角度信息的邻居列表
-        struct NeighborInfo {
-            Mesh::VertexHandle vh;
-            float angle;  // 在切平面中的角度
-            float distance;
-        };
-        
-        std::vector<NeighborInfo> neighborInfos;
-        
-        // 估计切平面法向量（取邻域面法向平均）
-        Eigen::Vector3f normal(0, 0, 0);
-        for (auto fh : openMesh.vf_range(vh)) {
-            auto fn = openMesh.normal(fh);
-            normal += Eigen::Vector3f(fn[0], fn[1], fn[2]);
-        }
-        if (normal.norm() > 0) normal.normalize();
-        
-        // 创建一个参考向量（任意方向）
-        Eigen::Vector3f refVec(1, 0, 0);
-        // 如果refVec与normal平行，调整一下
-        if (std::abs(refVec.dot(normal)) > 0.99f) {
-            refVec = Eigen::Vector3f(0, 1, 0);
-        }
-        
-        // 创建切平面的基向量
-        Eigen::Vector3f u = refVec - normal.dot(refVec) * normal;
-        u.normalize();
-        Eigen::Vector3f v = normal.cross(u);
-        
-        // 将邻居投影到切平面并计算角度
+        // 暂时使用均匀权重
         for (auto neighbor : neighbors) {
-            auto neighborPos = openMesh.point(neighbor);
-            Eigen::Vector3f vec3D(neighborPos[0] - center3D[0],
-                                neighborPos[1] - center3D[1],
-                                neighborPos[2] - center3D[2]);
-            
-            // 投影到切平面
-            float x = vec3D.dot(u);
-            float y = vec3D.dot(v);
-            
-            float angle = atan2(y, x);  // [-π, π]
-            if (angle < 0) angle += 2 * M_PI;  // [0, 2π)
-            
-            NeighborInfo info;
-            info.vh = neighbor;
-            info.angle = angle;
-            info.distance = vec3D.norm();
-            neighborInfos.push_back(info);
+            weights[neighbor.idx()] = 1.0f;
         }
-        
-        // 按角度排序
-        std::sort(neighborInfos.begin(), neighborInfos.end(),
-                [](const NeighborInfo& a, const NeighborInfo& b) {
-                    return a.angle < b.angle;
-                });
-        
-        // 2. 计算3D中的角度和总角度（论文公式13）
-        std::vector<float> angles3D(degree);
-        float totalAngle3D = 0.0f;
-        
-        for (int i = 0; i < degree; i++) {
-            int j = (i + 1) % degree;
-            
-            // 计算向量
-            auto pos_i = openMesh.point(neighborInfos[i].vh);
-            auto pos_j = openMesh.point(neighborInfos[j].vh);
-            
-            Eigen::Vector3f vec_i(pos_i[0] - center3D[0],
-                                pos_i[1] - center3D[1],
-                                pos_i[2] - center3D[2]);
-            Eigen::Vector3f vec_j(pos_j[0] - center3D[0],
-                                pos_j[1] - center3D[1],
-                                pos_j[2] - center3D[2]);
-            
-            // 计算角度
-            float cos_angle = vec_i.dot(vec_j) / (vec_i.norm() * vec_j.norm() + 1e-6f);
-            cos_angle = std::max(-1.0f, std::min(1.0f, cos_angle));
-            float angle = acos(cos_angle);
-            
-            angles3D[i] = angle;
-            totalAngle3D += angle;
-        }
-        
-        // 3. 创建2D局部映射（论文公式13）
-        std::vector<Eigen::Vector2f> neighbor2DPoints(degree);
-        
-        // 第一个邻居在x轴正方向上
-        neighbor2DPoints[0] = Eigen::Vector2f(neighborInfos[0].distance, 0.0f);
-        
-        // 计算累积角度
-        float accumulatedAngle = 0.0f;
-        for (int i = 1; i < degree; i++) {
-            // 角度比例缩放：2π * (3D角度 / 总3D角度)
-            accumulatedAngle += 2.0f * M_PI * angles3D[i-1] / totalAngle3D;
-            
-            neighbor2DPoints[i] = Eigen::Vector2f(
-                neighborInfos[i].distance * cos(accumulatedAngle),
-                neighborInfos[i].distance * sin(accumulatedAngle)
-            );
-        }
-        
-        // 4. 计算权重（改进的射线法）
-        Eigen::Vector2f center2D(0.0f, 0.0f);
-        
-        // 检查是否为凸多边形且中心在内部
-        bool isConvex = true;
-        for (int i = 0; i < degree; i++) {
-            Eigen::Vector2f p1 = neighbor2DPoints[i];
-            Eigen::Vector2f p2 = neighbor2DPoints[(i+1)%degree];
-            Eigen::Vector2f p3 = neighbor2DPoints[(i+2)%degree];
-            
-            float cross = (p2 - p1).x() * (p3 - p2).y() - (p2 - p1).y() * (p3 - p2).x();
-            if (cross < 0) {
-                isConvex = false;
-                break;
-            }
-        }
-        
-        if (!isConvex || degree == 3) {
-            // 如果非凸或只有3个邻居，使用均值坐标作为后备方案
-            // 均值坐标通常能产生正权重且形状保持较好
-            
-            std::vector<float> meanValueWeights(degree, 0.0f);
-            float totalWeight = 0.0f;
-            
-            for (int i = 0; i < degree; i++) {
-                int prev = (i - 1 + degree) % degree;
-                int next = (i + 1) % degree;
-                
-                Eigen::Vector2f v_prev = neighbor2DPoints[prev] - center2D;
-                Eigen::Vector2f v_curr = neighbor2DPoints[i] - center2D;
-                Eigen::Vector2f v_next = neighbor2DPoints[next] - center2D;
-                
-                // 计算两个半角的正切值
-                float tan_alpha_2 = tan(0.5f * acos(v_curr.dot(v_next) / 
-                    (v_curr.norm() * v_next.norm() + 1e-6f)));
-                float tan_beta_2 = tan(0.5f * acos(v_curr.dot(v_prev) / 
-                    (v_curr.norm() * v_prev.norm() + 1e-6f)));
-                
-                float w = (tan_alpha_2 + tan_beta_2) / (v_curr.norm() + 1e-6f);
-                meanValueWeights[i] = w;
-                totalWeight += w;
-            }
-            
-            // 归一化
-            for (int i = 0; i < degree; i++) {
-                weights[neighborInfos[i].vh.idx()] = meanValueWeights[i] / totalWeight;
-            }
-            
-        } else {
-            // 凸多边形且degree > 3，使用射线法
-            std::vector<std::vector<float>> mu(degree, std::vector<float>(degree, 0.0f));
-            
-            for (int l = 0; l < degree; l++) {
-                // 射线方向
-                Eigen::Vector2f rayDir = neighbor2DPoints[l].normalized();
-                
-                // 找到射线与多边形另一侧的交点
-                // 我们需要找到第一个使叉积改变符号的边
-                int r = -1;
-                float bestT = 1e9f;  // 参数t，越小表示交点越近
-                
-                for (int k = 0; k < degree; k++) {
-                    int k_next = (k + 1) % degree;
-                    
-                    // 跳过相邻边和包含l的边
-                    if (k == l || k_next == l || (k - l + degree) % degree == degree - 1) {
-                        continue;
-                    }
-                    
-                    Eigen::Vector2f p_k = neighbor2DPoints[k];
-                    Eigen::Vector2f p_k_next = neighbor2DPoints[k_next];
-                    
-                    // 计算射线与线段的交点
-                    // 参数方程: ray: p = t * rayDir, segment: p = p_k + s * (p_k_next - p_k)
-                    // 求解 t, s
-                    
-                    Eigen::Vector2f segDir = p_k_next - p_k;
-                    
-                    // 解线性方程组
-                    float det = -rayDir.x() * segDir.y() + rayDir.y() * segDir.x();
-                    
-                    if (std::abs(det) > 1e-6f) {
-                        float t = (-p_k.x() * segDir.y() + p_k.y() * segDir.x()) / det;
-                        float s = (-rayDir.x() * p_k.y() + rayDir.y() * p_k.x()) / det;
-                        
-                        // 检查交点在射线上(t>0)且在线段上(0<=s<=1)
-                        if (t > 1e-6f && s >= 0.0f && s <= 1.0f && t < bestT) {
-                            bestT = t;
-                            r = k;
-                        }
-                    }
-                }
-                
-                if (r == -1) {
-                    // 没找到交点，使用对面的顶点
-                    r = (l + degree/2) % degree;
-                    bestT = (neighbor2DPoints[r] - center2D).norm();
-                }
-                
-                // 现在我们有交点 Q = bestT * rayDir
-                Eigen::Vector2f Q = bestT * rayDir;
-                
-                // 计算重心坐标
-                int r_next = (r + 1) % degree;
-                Eigen::Vector2f p_l = neighbor2DPoints[l];
-                Eigen::Vector2f p_r = neighbor2DPoints[r];
-                Eigen::Vector2f p_r_next = neighbor2DPoints[r_next];
-                
-                // 如果Q接近p_r，使用p_r作为交点
-                if ((Q - p_r).norm() < 1e-3f) {
-                    // Q在顶点p_r上
-                    // 中心点表示为p_l和p_r的凸组合
-                    float alpha = 0.5f;  // 简化处理
-                    float beta = 0.5f;
-                    
-                    mu[l][l] = alpha;
-                    mu[l][r] = beta;
-                } else {
-                    // Q在边(p_r, p_r_next)上
-                    // 将Q表示为p_r和p_r_next的凸组合
-                    float s = (Q - p_r).norm() / (p_r_next - p_r).norm();
-                    s = std::max(0.0f, std::min(1.0f, s));
-                    
-                    // 现在将中心点表示为p_l, p_r, p_r_next的凸组合
-                    // 简化：假设中心点在线段(p_l, Q)上
-                    float t = center2D.norm() / Q.norm();
-                    
-                    // 重心坐标
-                    float alpha = 1.0f - t;
-                    float beta = t * (1.0f - s);
-                    float gamma = t * s;
-                    
-                    mu[l][l] = alpha;
-                    mu[l][r] = beta;
-                    mu[l][r_next] = gamma;
-                }
-            }
-            
-            // 计算最终的 λ（公式15）
-            for (int k = 0; k < degree; k++) {
-                float sum = 0.0f;
-                for (int l = 0; l < degree; l++) {
-                    sum += mu[l][k];
-                }
-                weights[neighborInfos[k].vh.idx()] = sum / degree;
-            }
-        }
-        
-        // 确保所有权重为正且和为1
-        float weightSum = 0.0f;
-        for (auto& kv : weights) {
-            kv.second = std::max(kv.second, 0.0f);
-            weightSum += kv.second;
-        }
-        
-        if (weightSum > 0) {
-            for (auto& kv : weights) {
-                kv.second /= weightSum;
-            }
-        } else {
-            // 如果所有权重为0，使用均匀权重
-            for (int i = 0; i < degree; i++) {
-                weights[neighborInfos[i].vh.idx()] = 1.0f / degree;
-            }
-        }
-    }
-    break;
+        break;
         
     case OriginalMethod:
     default:
-        // 原来的余切权重方法
-    {
-        float totalWeight = 0.0f;
-        
-        // 遍历所有出边的一半边
+        // 原来的余切权重方法（返回未归一化的余切权重）
         for (auto heh : openMesh.voh_range(vh)) {
             if (!openMesh.is_boundary(heh)) {
                 Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
                 float weight = computeCotangentWeight(heh);
-                
                 if (weight > 0) {
                     weights[vj.idx()] = weight;
-                    totalWeight += weight;
                 }
             }
         }
-        
-        // 归一化权重
-        if (totalWeight > 0) {
-            for (auto& kv : weights) {
-                kv.second /= totalWeight;
-            }
-        }
-    }
-    break;
+        break;
     }
     
     return weights;
@@ -691,6 +385,7 @@ float SimpleSquareWidget::computeCotangentWeight(Mesh::HalfedgeHandle heh) {
     return 0.0f;
 }
 
+// 修改后的参数化内部求解函数，采用参考代码的形式
 void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod method) {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
     
@@ -700,43 +395,82 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
         isBoundary[vh.idx()] = openMesh.is_boundary(vh);
     }
     
+    // 分离内部顶点和边界顶点
+    std::vector<int> internalIndices;
+    std::vector<int> boundaryIndices;
+    
+    for (int i = 0; i < openMesh.n_vertices(); i++) {
+        if (isBoundary[i]) {
+            boundaryIndices.push_back(i);
+        } else {
+            internalIndices.push_back(i);
+        }
+    }
+    
+    int n_internal = internalIndices.size();
+    int n_total = openMesh.n_vertices();
+    
+    // 构建从顶点索引到内部索引的映射
+    std::vector<int> vertexToInternalIndex(n_total, -1);
+    for (int i = 0; i < n_internal; i++) {
+        vertexToInternalIndex[internalIndices[i]] = i;
+    }
+    
     // 构建线性方程组
     using namespace Eigen;
     using SpMat = SparseMatrix<float>;
     using Triplet = Triplet<float>;
     
-    int n = openMesh.n_vertices();
-    SpMat A(n, n);
-    VectorXf b_u(n), b_v(n);
-    VectorXf x(n), y(n);
+    // 根据参考代码的形式：ww_i * u_i - Σ_{邻居} w_ij * u_j = 边界项
+    SpMat A(n_internal, n_internal);
+    VectorXf b_u(n_internal), b_v(n_internal);
+    VectorXf x(n_internal), y(n_internal);
     
     b_u.setZero();
     b_v.setZero();
     
     std::vector<Triplet> triplets;
-    triplets.reserve(n * 10);
+    triplets.reserve(n_internal * 10);
     
-    for (auto vh : openMesh.vertices()) {
-        int i = vh.idx();
+    // 为每个内部顶点构建方程
+    for (int i = 0; i < n_internal; i++) {
+        int vertexIdx = internalIndices[i];
+        Mesh::VertexHandle vh(vertexIdx);
         
-        if (isBoundary[i]) {
-            // 边界顶点：固定位置
-            triplets.push_back(Triplet(i, i, 1.0f));
-            b_u[i] = openMesh.point(vh)[0];
-            b_v[i] = openMesh.point(vh)[1];
-        } else {
-            // 内部顶点：根据方法计算权重
-            auto weights = computeWeightsForVertex(vh, method);
-            
-            float totalWeight = 0.0f;
-            for (const auto& [j, w] : weights) {
-                triplets.push_back(Triplet(i, j, w));
-                totalWeight += w;
-            }
-            triplets.push_back(Triplet(i, i, -totalWeight));
-            b_u[i] = 0.0f;
-            b_v[i] = 0.0f;
+        // 获取未归一化的原始权重
+        auto weights = computeWeightsForVertex(vh, method);
+        
+        // 计算总权重
+        float totalWeight = 0.0f;
+        for (const auto& [neighborIdx, w] : weights) {
+            totalWeight += w;
         }
+        
+        // 构建左侧矩阵
+        // 对角线：总权重
+        triplets.push_back(Triplet(i, i, totalWeight));
+        
+        // 右侧向量
+        float boundarySumU = 0.0f;
+        float boundarySumV = 0.0f;
+        
+        // 遍历所有邻居
+        for (const auto& [neighborIdx, w] : weights) {
+            if (!isBoundary[neighborIdx]) {
+                // 内部邻居：贡献到左侧矩阵，系数为 -w
+                int j = vertexToInternalIndex[neighborIdx];
+                triplets.push_back(Triplet(i, j, -w));
+            } else {
+                // 边界邻居：贡献到右侧向量，系数为 w * u_j
+                auto boundaryPos = openMesh.point(Mesh::VertexHandle(neighborIdx));
+                boundarySumU += w * boundaryPos[0];
+                boundarySumV += w * boundaryPos[1];
+            }
+        }
+        
+        // 设置右侧向量
+        b_u(i) = boundarySumU;
+        b_v(i) = boundarySumV;
     }
     
     // 设置稀疏矩阵
@@ -757,14 +491,16 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
     x = solver.solve(b_u);
     y = solver.solve(b_v);
     
-    // 更新顶点位置
-    for (int i = 0; i < n; i++) {
+    // 更新内部顶点位置
+    for (int i = 0; i < n_internal; i++) {
+        int vertexIdx = internalIndices[i];
         Mesh::Point newPos(x[i], y[i], 0.0f);
-        openMesh.set_point(Mesh::VertexHandle(i), newPos);
+        openMesh.set_point(Mesh::VertexHandle(vertexIdx), newPos);
     }
+    
+    // 边界顶点位置已经在mapBoundaryToCircle/Rectangle中设置，保持不变
 }
 
-// 参数化相关方法实现
 void SimpleSquareWidget::mapBoundaryToCircle() {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
 
