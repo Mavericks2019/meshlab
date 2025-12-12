@@ -288,6 +288,7 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
     }
     
     int degree = neighbors.size();
+    if (degree == 0) return weights;  // 没有邻居，返回空权重
     
     switch (method) {
     case UniformTutte:
@@ -295,41 +296,281 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
         for (auto neighbor : neighbors) {
             weights[neighbor.idx()] = 1.0f;
         }
+        // 归一化
+        {
+            float sum = degree;
+            for (auto& [idx, w] : weights) {
+                w /= sum;
+            }
+        }
         break;
         
     case WeightedTutte:
     {
         auto centerPos = openMesh.point(vh);
-        // 使用弦长权重：w = 1/dist
+        float totalWeight = 0.0f;
+        
+        // 使用弦长权重：w = 1/dist^q，这里q=0.2
         for (auto neighbor : neighbors) {
             auto neighborPos = openMesh.point(neighbor);
             float dist = (neighborPos - centerPos).norm();
-            float eps = 1e-6f;
-            weights[neighbor.idx()] = 1.0f / pow(dist, 0.2);
+            float weight = 1.0f / pow(dist + 1e-6f, 0.2f);  // 加小值避免除零
+            weights[neighbor.idx()] = weight;
+            totalWeight += weight;
+        }
+        
+        // 归一化
+        if (totalWeight > 1e-10) {
+            for (auto& [idx, w] : weights) {
+                w /= totalWeight;
+            }
+        } else {
+            // 如果总权重太小，使用均匀权重
+            float uniformWeight = 1.0f / degree;
+            for (auto neighbor : neighbors) {
+                weights[neighbor.idx()] = uniformWeight;
+            }
         }
     }
     break;
         
     case FloaterShapePreserving:
-        // 暂时使用均匀权重
-        for (auto neighbor : neighbors) {
-            weights[neighbor.idx()] = 1.0f;
+    {
+        // 保形参数化权重计算
+        auto centerPos = openMesh.point(vh);
+        
+        // 步骤1: 计算局部映射
+        std::vector<float> angles;
+        std::vector<float> lengths;
+        
+        // 计算每个邻居的距离
+        for (int i = 0; i < degree; i++) {
+            auto neighbor = neighbors[i];
+            auto neighborPos = openMesh.point(neighbor);
+            float dist = (neighborPos - centerPos).norm();
+            lengths.push_back(dist);
         }
-        break;
+        
+        // 计算角度（需要邻居按顺序排列）
+        for (int i = 0; i < degree; i++) {
+            int next_i = (i + 1) % degree;
+            auto neighbor1 = neighbors[i];
+            auto neighbor2 = neighbors[next_i];
+            
+            auto pos1 = openMesh.point(neighbor1);
+            auto pos2 = openMesh.point(neighbor2);
+            
+            // 计算向量
+            auto vec1 = pos1 - centerPos;
+            auto vec2 = pos2 - centerPos;
+            
+            // 计算夹角
+            float dot = vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
+            float len1 = sqrt(vec1[0]*vec1[0] + vec1[1]*vec1[1] + vec1[2]*vec1[2]);
+            float len2 = sqrt(vec2[0]*vec2[0] + vec2[1]*vec2[1] + vec2[2]*vec2[2]);
+            float cosAngle = dot / (len1 * len2 + 1e-10);
+            cosAngle = std::max(-1.0f, std::min(1.0f, cosAngle));
+            float angle = acos(cosAngle);
+            angles.push_back(angle);
+        }
+        
+        // 步骤2: 在平面上创建局部映射
+        std::vector<Eigen::Vector2f> planePoints;
+        float totalAngle = 0;
+        for (float ang : angles) totalAngle += ang;
+        
+        // 避免除零
+        if (totalAngle < 1e-10) {
+            // 退化情况，使用均匀权重
+            for (auto neighbor : neighbors) {
+                weights[neighbor.idx()] = 1.0f / degree;
+            }
+            break;
+        }
+        
+        // 第一个点在x轴上
+        float currentAngle = 0;
+        planePoints.push_back(Eigen::Vector2f(lengths[0], 0));
+        
+        // 其他点按角度比例放置
+        for (int i = 1; i < degree; i++) {
+            currentAngle += angles[i-1] * 2 * M_PI / totalAngle;
+            float x = lengths[i] * cos(currentAngle);
+            float y = lengths[i] * sin(currentAngle);
+            planePoints.push_back(Eigen::Vector2f(x, y));
+        }
+        
+        // 辅助函数：计算二维叉积（返回标量）
+        auto cross2D = [](const Eigen::Vector2f& a, const Eigen::Vector2f& b) {
+            return a.x() * b.y() - a.y() * b.x();
+        };
+        
+        // 辅助函数：计算三角形面积
+        auto triangleArea = [&cross2D](const Eigen::Vector2f& a, 
+                                       const Eigen::Vector2f& b, 
+                                       const Eigen::Vector2f& c) {
+            return fabs(cross2D(b - a, c - a)) * 0.5f;
+        };
+        
+        // 定义原点
+        Eigen::Vector2f origin(0, 0);
+        
+        // 步骤3: 计算权重
+        if (degree == 3) {
+            // 三角形情况：使用重心坐标
+            Eigen::Vector2f p1 = planePoints[0];
+            Eigen::Vector2f p2 = planePoints[1];
+            Eigen::Vector2f p3 = planePoints[2];
+            
+            float area123 = triangleArea(p1, p2, p3);
+            
+            if (area123 > 1e-10) {
+                float area023 = triangleArea(origin, p2, p3);
+                float area013 = triangleArea(p1, origin, p3);
+                float area012 = triangleArea(p1, p2, origin);
+                
+                weights[neighbors[0].idx()] = area023 / area123;
+                weights[neighbors[1].idx()] = area013 / area123;
+                weights[neighbors[2].idx()] = area012 / area123;
+            } else {
+                // 退化情况，使用均匀权重
+                for (auto neighbor : neighbors) {
+                    weights[neighbor.idx()] = 1.0f / degree;
+                }
+            }
+        } else {
+            // 大于3个邻居：使用Floater的方法
+            // 初始化Mu矩阵
+            Eigen::MatrixXf Mu = Eigen::MatrixXf::Zero(degree, degree);
+            
+            for (int l = 0; l < degree; l++) {
+                Eigen::Vector2f pl = planePoints[l];
+                
+                // 找到与pl相对的边或顶点
+                bool found = false;
+                
+                for (int k = 0; k < degree && !found; k++) {
+                    int k_next = (k + 1) % degree;
+                    
+                    if (k == l || k_next == l) continue;
+                    
+                    Eigen::Vector2f pk = planePoints[k];
+                    Eigen::Vector2f pk_next = planePoints[k_next];
+                    
+                    // 检查原点是否在三角形(pl, pk, pk_next)内
+                    // 使用重心坐标方法
+                    Eigen::Vector2f v0 = pk_next - pk;
+                    Eigen::Vector2f v1 = pl - pk;
+                    Eigen::Vector2f v2 = origin - pk;
+                    
+                    float dot00 = v0.dot(v0);
+                    float dot01 = v0.dot(v1);
+                    float dot02 = v0.dot(v2);
+                    float dot11 = v1.dot(v1);
+                    float dot12 = v1.dot(v2);
+                    
+                    float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01 + 1e-10);
+                    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+                    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+                    
+                    if (u >= -1e-6 && v >= -1e-6 && (u + v) <= 1.0 + 1e-6) {
+                        // 原点在三角形内
+                        float area = triangleArea(pk, pk_next, pl);
+                        
+                        if (area > 1e-10) {
+                            float area0 = triangleArea(origin, pk_next, pl);
+                            float area1 = triangleArea(origin, pl, pk);
+                            float area2 = triangleArea(origin, pk, pk_next);
+                            
+                            Mu(l, l) = area0 / area;
+                            Mu(k, l) = area1 / area;
+                            Mu(k_next, l) = area2 / area;
+                        }
+                        found = true;
+                    }
+                }
+                
+                // 如果没找到三角形，使用均匀权重
+                if (!found) {
+                    Mu(l, l) = 1.0f;
+                }
+            }
+            
+            // 计算平均权重
+            for (int k = 0; k < degree; k++) {
+                float sum = 0;
+                for (int l = 0; l < degree; l++) {
+                    sum += Mu(k, l);
+                }
+                weights[neighbors[k].idx()] = sum / degree;
+            }
+        }
+        
+        // 确保权重已归一化
+        float sum = 0.0f;
+        for (const auto& [idx, w] : weights) {
+            sum += w;
+        }
+        if (sum > 1e-10) {
+            for (auto& [idx, w] : weights) {
+                w /= sum;
+            }
+        } else {
+            // 如果和为0，使用均匀权重
+            float uniformWeight = 1.0f / degree;
+            for (auto neighbor : neighbors) {
+                weights[neighbor.idx()] = uniformWeight;
+            }
+        }
+    }
+    break;
         
     case OriginalMethod:
     default:
-        // 原来的余切权重方法（返回未归一化的余切权重）
+        // 原来的余切权重方法
+        float totalWeight = 0.0f;
         for (auto heh : openMesh.voh_range(vh)) {
             if (!openMesh.is_boundary(heh)) {
                 Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
                 float weight = computeCotangentWeight(heh);
                 if (weight > 0) {
                     weights[vj.idx()] = weight;
+                    totalWeight += weight;
                 }
             }
         }
+        
+        // 归一化余切权重
+        if (totalWeight > 1e-10) {
+            for (auto& [idx, w] : weights) {
+                w /= totalWeight;
+            }
+        } else {
+            // 如果总权重太小，使用均匀权重
+            for (auto neighbor : neighbors) {
+                weights[neighbor.idx()] = 1.0f / neighbors.size();
+            }
+        }
         break;
+    }
+    
+    // 最后检查：确保所有权重为正且和为1
+    float finalSum = 0.0f;
+    for (const auto& [idx, w] : weights) {
+        if (w < 0) {
+            qWarning() << "Warning: Negative weight found at vertex" << vh.idx() 
+                       << "for neighbor" << idx << ":" << w;
+        }
+        finalSum += w;
+    }
+    
+    // 如果和不接近1，重新归一化
+    if (fabs(finalSum - 1.0f) > 0.01f && finalSum > 1e-10) {
+        qDebug() << "Weights sum is" << finalSum << "for vertex" << vh.idx() 
+                 << ", renormalizing...";
+        for (auto& [idx, w] : weights) {
+            w /= finalSum;
+        }
     }
     
     return weights;
@@ -421,7 +662,7 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
     using SpMat = SparseMatrix<float>;
     using Triplet = Triplet<float>;
     
-    // 根据参考代码的形式：ww_i * u_i - Σ_{邻居} w_ij * u_j = 边界项
+    // 使用归一化形式：u_i - Σ λ_ij * u_j = Σ_{边界} λ_ij * u_j
     SpMat A(n_internal, n_internal);
     VectorXf b_u(n_internal), b_v(n_internal);
     VectorXf x(n_internal), y(n_internal);
@@ -437,18 +678,11 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
         int vertexIdx = internalIndices[i];
         Mesh::VertexHandle vh(vertexIdx);
         
-        // 获取未归一化的原始权重
+        // 获取权重（已归一化）
         auto weights = computeWeightsForVertex(vh, method);
         
-        // 计算总权重
-        float totalWeight = 0.0f;
-        for (const auto& [neighborIdx, w] : weights) {
-            totalWeight += w;
-        }
-        
-        // 构建左侧矩阵
-        // 对角线：总权重
-        triplets.push_back(Triplet(i, i, totalWeight));
+        // 对角线为1（归一化形式）
+        triplets.push_back(Triplet(i, i, 1.0f));
         
         // 右侧向量
         float boundarySumU = 0.0f;
@@ -457,11 +691,11 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
         // 遍历所有邻居
         for (const auto& [neighborIdx, w] : weights) {
             if (!isBoundary[neighborIdx]) {
-                // 内部邻居：贡献到左侧矩阵，系数为 -w
+                // 内部邻居：贡献到左侧矩阵，系数为 -λ
                 int j = vertexToInternalIndex[neighborIdx];
                 triplets.push_back(Triplet(i, j, -w));
             } else {
-                // 边界邻居：贡献到右侧向量，系数为 w * u_j
+                // 边界邻居：贡献到右侧向量，系数为 λ * u_j
                 auto boundaryPos = openMesh.point(Mesh::VertexHandle(neighborIdx));
                 boundarySumU += w * boundaryPos[0];
                 boundarySumV += w * boundaryPos[1];
@@ -484,6 +718,26 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
     
     if (solver.info() != Eigen::Success) {
         qWarning() << "Matrix factorization failed!";
+        
+        // 添加调试信息
+        qDebug() << "Matrix size:" << A.rows() << "x" << A.cols();
+        qDebug() << "Non-zero entries:" << A.nonZeros();
+        qDebug() << "Number of internal vertices:" << n_internal;
+        qDebug() << "Solver info:" << solver.info();
+        
+        // 尝试打印矩阵的一部分来调试
+        if (A.rows() < 10) {
+            qDebug() << "Matrix A:";
+            Eigen::MatrixXf denseA = A.toDense();
+            for (int i = 0; i < denseA.rows(); i++) {
+                QString rowStr;
+                for (int j = 0; j < denseA.cols(); j++) {
+                    rowStr += QString::number(denseA(i, j), 'f', 3) + " ";
+                }
+                qDebug() << rowStr;
+            }
+        }
+        
         return;
     }
     
@@ -498,7 +752,23 @@ void SimpleSquareWidget::solveParameterizationInternal(ParameterizationMethod me
         openMesh.set_point(Mesh::VertexHandle(vertexIdx), newPos);
     }
     
-    // 边界顶点位置已经在mapBoundaryToCircle/Rectangle中设置，保持不变
+    // 添加求解后的调试信息
+    qDebug() << "Parameterization solved successfully";
+    qDebug() << "Internal vertices count:" << n_internal;
+    
+    // 检查解的质量
+    VectorXf residual_u = A * x - b_u;
+    VectorXf residual_v = A * y - b_v;
+    qDebug() << "Residual norm u:" << residual_u.norm();
+    qDebug() << "Residual norm v:" << residual_v.norm();
+    
+    // 检查坐标范围
+    float min_u = x.minCoeff();
+    float max_u = x.maxCoeff();
+    float min_v = y.minCoeff();
+    float max_v = y.maxCoeff();
+    qDebug() << "u range: [" << min_u << ", " << max_u << "]";
+    qDebug() << "v range: [" << min_v << ", " << max_v << "]";
 }
 
 void SimpleSquareWidget::mapBoundaryToCircle() {
