@@ -305,7 +305,7 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
             auto neighborPos = openMesh.point(neighbor);
             float dist = (neighborPos - centerPos).norm();
             float eps = 1e-6f;
-            weights[neighbor.idx()] = 1.0f / (dist + eps);
+            weights[neighbor.idx()] = 1.0f / pow(dist, 0.2);
         }
     }
     break;
