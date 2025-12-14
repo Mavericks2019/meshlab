@@ -2699,7 +2699,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qopenglframebufferobject.h \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_simplesquarewidget.cpp \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/simplesquarewidget.h \
- /usr/include/eigen3/Eigen/SparseLU /usr/include/eigen3/Eigen/SparseCore \
+ /usr/include/eigen3/Eigen/Sparse /usr/include/eigen3/Eigen/SparseCore \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
  /usr/include/eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h \
@@ -2738,6 +2738,10 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/eigen3/Eigen/src/OrderingMethods/Amd.h \
  /usr/include/eigen3/Eigen/src/OrderingMethods/Ordering.h \
  /usr/include/eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h \
+ /usr/include/eigen3/Eigen/SparseCholesky \
+ /usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky.h \
+ /usr/include/eigen3/Eigen/src/SparseCholesky/SimplicialCholesky_impl.h \
+ /usr/include/eigen3/Eigen/SparseLU \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Structs.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h \
@@ -2756,6 +2760,19 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU_Utils.h \
  /usr/include/eigen3/Eigen/src/SparseLU/SparseLU.h \
+ /usr/include/eigen3/Eigen/SparseQR \
+ /usr/include/eigen3/Eigen/src/SparseQR/SparseQR.h \
+ /usr/include/eigen3/Eigen/IterativeLinearSolvers \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/SolveWithGuess.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
+ /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
+ /usr/include/eigen3/Eigen/SparseLU \
+ /usr/include/eigen3/Eigen/IterativeLinearSolvers \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget.cpp \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/uvparamwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QVector2D \

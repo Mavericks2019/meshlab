@@ -5,7 +5,12 @@
 #include "baseglwidget.h"
 #include <vector>
 #include <map>
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 #include <Eigen/SparseLU>
+#include <Eigen/IterativeLinearSolvers>  // 添加迭代求解器支持
+#include <cmath>
+#include <tuple>
 
 class SimpleSquareWidget : public BaseGLWidget
 {
@@ -19,7 +24,7 @@ public:
     void setMeshData(const std::vector<float>& vertices, const std::vector<unsigned int>& faces);
     void clearMeshData();
     bool hasMeshData() const { return meshLoaded; }
-
+    void solveParameterizationFloater();
     // 重写参数化相关方法
     void performParameterization(BoundaryType boundaryType = Rectangle, 
                                  ParameterizationMethod method = OriginalMethod) override;
@@ -42,17 +47,25 @@ private:
     void setupSquare();
     void setupMesh();
     
-    // 参数化相关方法 - 迁移到SimpleSquareWidget中
+    // 参数化相关方法
     void mapBoundaryToCircle();
     void mapBoundaryToRectangle();
     void normalizeMesh();
     void solveParameterizationOriginal();  // 原来的参数化方法
     void solveParameterization();  // 新增的通用参数化方法
     
-    // 迁移的参数化权重计算方法
+    // 参数化权重计算方法
     std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
     float computeCotangentWeight(Mesh::HalfedgeHandle heh);
     void solveParameterizationInternal(ParameterizationMethod method);
+    
+    // 数学辅助函数
+    float computeAngle(const Mesh::Point& a, const Mesh::Point& b) const;
+    float computeVectorAngle(const Mesh::Point& a, const Mesh::Point& b) const;
+    std::tuple<float, float, float> computeBarycentric(float px, float py,
+                                                      float ax, float ay,
+                                                      float bx, float by,
+                                                      float cx, float cy) const;
 
     QOpenGLShaderProgram squareProgram;
     QOpenGLShaderProgram meshProgram;
@@ -65,7 +78,7 @@ private:
 
     QMatrix4x4 projection;
     QColor squareColor;
-    QColor meshColor;  // 添加网格颜色成员变量
+    QColor meshColor;
     float squareSize;
 
     // 网格数据
