@@ -43,7 +43,7 @@ protected:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
-private:
+public:
     void setupSquare();
     void setupMesh();
     
@@ -80,7 +80,7 @@ private:
     QColor squareColor;
     QColor meshColor;
     float squareSize;
-
+    Mesh original;
     // 网格数据
     std::vector<float> meshVertices;
     std::vector<unsigned int> meshFaces;

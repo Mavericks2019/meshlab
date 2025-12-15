@@ -286,7 +286,7 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
     std::map<int, float> weights;
     std::vector<Mesh::VertexHandle> neighbors;
     
-    for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
+    for (auto vv_it = original.vv_begin(vh); vv_it != original.vv_end(vh); ++vv_it) {
         neighbors.push_back(*vv_it);
     }
     
@@ -308,13 +308,13 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
         
     case WeightedTutte:
     {
-        auto centerPos = openMesh.point(vh);
+        auto centerPos = original.point(vh);
         float totalWeight = 0.0f;
         
         for (auto neighbor : neighbors) {
-            auto neighborPos = openMesh.point(neighbor);
+            auto neighborPos = original.point(neighbor);
             float dist = (neighborPos - centerPos).norm();
-            float weight = 1.0f / pow(dist + 1e-6f, 0.2f);
+            float weight = 1.0f / pow(dist + 1e-6f, 2.0f);
             weights[neighbor.idx()] = weight;
             totalWeight += weight;
         }
@@ -335,9 +335,9 @@ std::map<int, float> SimpleSquareWidget::computeWeightsForVertex(Mesh::VertexHan
     case OriginalMethod:
     default:
         float totalWeight = 0.0f;
-        for (auto heh : openMesh.voh_range(vh)) {
-            if (!openMesh.is_boundary(heh)) {
-                Mesh::VertexHandle vj = openMesh.to_vertex_handle(heh);
+        for (auto heh : original.voh_range(vh)) {
+            if (!original.is_boundary(heh)) {
+                Mesh::VertexHandle vj = original.to_vertex_handle(heh);
                 float weight = computeCotangentWeight(heh);
                 if (weight > 0) {
                     weights[vj.idx()] = weight;
@@ -561,8 +561,8 @@ void SimpleSquareWidget::solveParameterizationFloater() {
     // 保存原始网格坐标
     std::vector<Mesh::Point> originalPositions;
     originalPositions.reserve(n_vertices);
-    for (auto vh : openMesh.vertices()) {
-        originalPositions.push_back(openMesh.point(vh));
+    for (auto vh : original.vertices()) {
+        originalPositions.push_back(original.point(vh));
     }
     
     // 确定边界顶点和内部顶点
@@ -1301,7 +1301,7 @@ void SimpleSquareWidget::solveParameterization() {
 void SimpleSquareWidget::performParameterization(BoundaryType boundaryType, ParameterizationMethod method) {
     if (!modelLoaded || openMesh.n_vertices() == 0) return;
 
-    Mesh original = openMesh;
+    original = openMesh;
     
     if (boundaryType == Circle) {
         mapBoundaryToCircle();
