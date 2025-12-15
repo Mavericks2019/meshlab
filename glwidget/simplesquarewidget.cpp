@@ -550,19 +550,51 @@ void SimpleSquareWidget::solveParameterizationFloater() {
     qDebug() << "Starting Floater shape-preserving parameterization...";
     int n_vertices = openMesh.n_vertices();
     
-    std::vector<bool> isBoundary(n_vertices, false);
-    for (auto vh : openMesh.vertices()) {
-        isBoundary[vh.idx()] = openMesh.is_boundary(vh);
+    // 打开调试文件，追加模式
+    std::ofstream debugFile("debug.txt", std::ios::app);
+    if (debugFile.is_open()) {
+        debugFile << "===========================================\n";
+        debugFile << "=== SimpleSquareWidget - Floater Method ===\n";
+        debugFile << "===========================================\n\n";
     }
     
-    std::vector<int> internalIndices;
-    std::vector<int> boundaryIndices;
+    // 保存原始网格坐标
+    std::vector<Mesh::Point> originalPositions;
+    originalPositions.reserve(n_vertices);
+    for (auto vh : openMesh.vertices()) {
+        originalPositions.push_back(openMesh.point(vh));
+    }
     
-    for (int i = 0; i < n_vertices; i++) {
-        if (isBoundary[i]) {
-            boundaryIndices.push_back(i);
+    // 确定边界顶点和内部顶点
+    std::vector<bool> isBoundary(n_vertices, false);
+    std::vector<int> boundaryIndices;
+    std::vector<int> internalIndices;
+    
+    for (auto vh : openMesh.vertices()) {
+        int idx = vh.idx();
+        isBoundary[idx] = openMesh.is_boundary(vh);
+        if (isBoundary[idx]) {
+            boundaryIndices.push_back(idx);
         } else {
-            internalIndices.push_back(i);
+            internalIndices.push_back(idx);
+        }
+    }
+    
+    // 打开边界调试文件
+    std::ofstream marginDebugFile("debug_margin.txt", std::ios::app);
+    if (marginDebugFile.is_open()) {
+        marginDebugFile << "===========================================\n";
+        marginDebugFile << "=== SimpleSquareWidget - Boundary Vertices ===\n";
+        marginDebugFile << "===========================================\n\n";
+        
+        // 输出边界顶点原始坐标
+        for (int idx : boundaryIndices) {
+            Mesh::VertexHandle vh(idx);
+            auto pos = originalPositions[idx];
+            marginDebugFile << "=== Boundary Vertex " << idx << " ===\n";
+            marginDebugFile << "Original Position: (" << pos[0] << ", " 
+                           << pos[1] << ", " << pos[2] << ")\n";
+            marginDebugFile << "============================================\n\n";
         }
     }
     
@@ -582,15 +614,21 @@ void SimpleSquareWidget::solveParameterizationFloater() {
     
     qDebug() << "Building linear system...";
     
+    // 第一阶段：使用原始坐标计算权重
     for (auto vh : openMesh.vertices()) {
         int idx = vh.idx();
         
         if (isBoundary[idx]) {
+            // 边界顶点：直接固定位置
+            // 这里我们先设置为1，具体值会在后面设置
             triplets.push_back(Triplet(idx, idx, 1.0f));
-            auto pos = openMesh.point(vh);
-            Bu(idx) = pos[0];
-            Bv(idx) = pos[1];
+            
+            if (marginDebugFile.is_open()) {
+                auto pos = originalPositions[idx];
+                marginDebugFile << "Boundary Vertex " << idx << " equation set\n";
+            }
         } else {
+            // 内部顶点：使用原始坐标计算权重
             std::vector<Mesh::VertexHandle> neighbors;
             for (auto vv_it = openMesh.vv_begin(vh); vv_it != openMesh.vv_end(vh); ++vv_it) {
                 neighbors.push_back(*vv_it);
@@ -598,75 +636,100 @@ void SimpleSquareWidget::solveParameterizationFloater() {
             
             int n_neighbors = neighbors.size();
             
-            // 使用简洁的角度计算
+            // 调试输出开始
+            if (debugFile.is_open()) {
+                debugFile << "=== Vertex " << idx << " (Internal) - Computing Weights ===\n";
+                auto centerPos = originalPositions[idx];
+                debugFile << "Center Point (Original): (" << centerPos[0] << ", " 
+                         << centerPos[1] << ", " << centerPos[2] << ")\n";
+                debugFile << "Neighbors count: " << n_neighbors << "\n\n";
+            }
+            
+            // 使用原始坐标计算角度
             std::vector<float> angles;
             float total_angle = 0.0f;
-            std::ofstream outfile3("angs1.txt", std::ios::app);
             
             // 计算最后一个邻居和第一个邻居的角度
-            auto centerPos = openMesh.point(vh);
-            auto vec1 = openMesh.point(neighbors.back()) - centerPos;
-            auto vec2 = openMesh.point(neighbors.front()) - centerPos;
+            auto centerPos = originalPositions[idx];
+            auto vec1 = originalPositions[neighbors.back().idx()] - centerPos;
+            auto vec2 = originalPositions[neighbors.front().idx()] - centerPos;
             float angle = computeAngle(vec1, vec2);
             angles.push_back(angle);
-            outfile3 << "a:" << angle;
+            
+            // 调试输出第一个角度
+            if (debugFile.is_open()) {
+                auto p_last = originalPositions[neighbors.back().idx()];
+                auto p_first = originalPositions[neighbors.front().idx()];
+                debugFile << "Angle " << 0 << " (last->first):\n";
+                debugFile << "  Point1 (last neighbor): (" << p_last[0] << ", " 
+                         << p_last[1] << ", " << p_last[2] << ")\n";
+                debugFile << "  Point2 (first neighbor): (" << p_first[0] << ", " 
+                         << p_first[1] << ", " << p_first[2] << ")\n";
+                debugFile << "  Vector1: (" << vec1[0] << ", " << vec1[1] << ", " << vec1[2] << ")\n";
+                debugFile << "  Vector2: (" << vec2[0] << ", " << vec2[1] << ", " << vec2[2] << ")\n";
+                debugFile << "  Computed Angle: " << angle << " radians (" 
+                         << angle * 180.0f / M_PI << " degrees)\n\n";
+            }
+            
             total_angle += angle;
             
             // 计算其他连续邻居的角度
             for (size_t i = 1; i < neighbors.size(); i++) {
-                vec1 = openMesh.point(neighbors[i-1]) - centerPos;
-                vec2 = openMesh.point(neighbors[i]) - centerPos;
+                vec1 = originalPositions[neighbors[i-1].idx()] - centerPos;
+                vec2 = originalPositions[neighbors[i].idx()] - centerPos;
                 angle = computeAngle(vec1, vec2);
                 angles.push_back(angle);
-                outfile3 << "a:" << angle;
+                
+                // 调试输出其他角度
+                if (debugFile.is_open()) {
+                    auto p_prev = originalPositions[neighbors[i-1].idx()];
+                    auto p_curr = originalPositions[neighbors[i].idx()];
+                    debugFile << "Angle " << i << " (neighbor " << (i-1) << "->" << i << "):\n";
+                    debugFile << "  Point1 (neighbor " << (i-1) << "): (" << p_prev[0] << ", " 
+                             << p_prev[1] << ", " << p_prev[2] << ")\n";
+                    debugFile << "  Point2 (neighbor " << i << "): (" << p_curr[0] << ", " 
+                             << p_curr[1] << ", " << p_curr[2] << ")\n";
+                    debugFile << "  Vector1: (" << vec1[0] << ", " << vec1[1] << ", " << vec1[2] << ")\n";
+                    debugFile << "  Vector2: (" << vec2[0] << ", " << vec2[1] << ", " << vec2[2] << ")\n";
+                    debugFile << "  Computed Angle: " << angle << " radians (" 
+                             << angle * 180.0f / M_PI << " degrees)\n\n";
+                }
+                
                 total_angle += angle;
             }
-            outfile3 << "b:" << total_angle << std::endl;
-            outfile3.close();
+            
+            // 输出角度统计
+            if (debugFile.is_open()) {
+                debugFile << "--- Summary for Vertex " << idx << " ---\n";
+                debugFile << "Total angle sum: " << total_angle << " radians (" 
+                         << total_angle * 180.0f / M_PI << " degrees)\n";
+                debugFile << "Expected (2π): " << 2.0f * M_PI << " radians (360 degrees)\n";
+                debugFile << "Difference: " << (total_angle - 2.0f * M_PI) 
+                         << " radians\n";
+                debugFile << "===========================================\n\n";
+            }
             
             // 角度重新参数化
             std::vector<float> phi;
-            std::ofstream outfile2("angs.txt", std::ios::app);
             for (float angle_val : angles) {
-                outfile2 << "a:" << angle_val << std::endl;
                 phi.push_back(2.0f * M_PI * angle_val / total_angle);
             }
-            outfile2.close();
             
-            std::ofstream outfile("output.txt", std::ios::app);
-            if (outfile.is_open()) {
-                for (const auto& ph : phi) {
-                    outfile << "a:" << ph << std::endl;
-                }
-                outfile << "###########" << std::endl;
-                outfile.close();
-            } else {
-                std::cerr << "无法打开文件进行写入！" << std::endl;
-            }
-            
-            // 构建局部二维坐标系
+            // 构建局部二维坐标系（使用原始坐标的距离）
             std::vector<std::pair<float, float>> local_positions;
+            
+            // 第一个邻居
             Mesh::VertexHandle first_neighbor = neighbors[0];
-            auto first_pos = openMesh.point(first_neighbor);
-            
-            float first_dist = sqrt(
-                (first_pos[0]-centerPos[0])*(first_pos[0]-centerPos[0]) +
-                (first_pos[1]-centerPos[1])*(first_pos[1]-centerPos[1]) +
-                (first_pos[2]-centerPos[2])*(first_pos[2]-centerPos[2])
-            );
-            
+            auto first_pos = originalPositions[first_neighbor.idx()];
+            float first_dist = (first_pos - centerPos).norm();
             local_positions.push_back({first_dist, 0.0f});
             
             float current_angle = 0.0f;
             for (size_t i = 1; i < phi.size(); i++) {
                 current_angle += phi[i];
                 Mesh::VertexHandle neighbor = neighbors[i];
-                auto neighbor_pos = openMesh.point(neighbor);
-                float dist = sqrt(
-                    (neighbor_pos[0]-centerPos[0])*(neighbor_pos[0]-centerPos[0]) +
-                    (neighbor_pos[1]-centerPos[1])*(neighbor_pos[1]-centerPos[1]) +
-                    (neighbor_pos[2]-centerPos[2])*(neighbor_pos[2]-centerPos[2])
-                );
+                auto neighbor_pos = originalPositions[neighbor.idx()];
+                float dist = (neighbor_pos - centerPos).norm();
                 
                 float x = dist * cos(current_angle);
                 float y = dist * sin(current_angle);
@@ -755,20 +818,114 @@ void SimpleSquareWidget::solveParameterizationFloater() {
             }
             
             triplets.push_back(Triplet(idx, idx, -sum_weight));
+            
+            // 设置右端项为0（将在第二阶段更新）
+            Bu(idx) = 0.0f;
+            Bv(idx) = 0.0f;
         }
     }
     
+    // 第二阶段：设置边界条件（映射后的坐标）
+    // 将边界映射到单位圆
+    if (!boundaryIndices.empty()) {
+        // 将边界顶点映射到单位圆
+        float arc_len = 0.0f;
+        std::vector<Mesh::VertexHandle> boundaryVertices;
+        
+        // 找到边界顺序
+        Mesh::VertexHandle start_v;
+        for(auto vh : openMesh.vertices()) {
+            if(openMesh.is_boundary(vh)) {
+                start_v = vh;
+                break;
+            }
+        }
+        
+        boundaryVertices.push_back(start_v);
+        Mesh::VertexHandle pre = start_v, now = start_v;
+        
+        for(auto vv_it = openMesh.vv_begin(now); vv_it != openMesh.vv_end(now); ++vv_it) {
+            if(openMesh.is_boundary(*vv_it)) {
+                now = *vv_it;
+                break;
+            }
+        }
+        
+        while(now != start_v) {
+            boundaryVertices.push_back(now);
+            Mesh::VertexHandle next;
+            for(auto vv_it = openMesh.vv_begin(now); vv_it != openMesh.vv_end(now); ++vv_it) {
+                if(openMesh.is_boundary(*vv_it) && *vv_it != pre) {
+                    next = *vv_it;
+                    break;
+                }
+            }
+            pre = now;
+            now = next;
+        }
+        
+        // 计算总弧长
+        for(size_t i = 0; i < boundaryVertices.size(); ++i) {
+            size_t next_i = (i + 1) % boundaryVertices.size();
+            auto p1 = originalPositions[boundaryVertices[i].idx()];
+            auto p2 = originalPositions[boundaryVertices[next_i].idx()];
+            arc_len += (p2 - p1).norm();
+        }
+        
+        // 设置边界顶点在单位圆上的位置
+        std::vector<std::pair<float, float>> boundaryPositions;
+        float current_angle = 0.0f;
+        
+        for(size_t i = 0; i < boundaryVertices.size(); ++i) {
+            float x = cos(current_angle);
+            float y = sin(current_angle);
+            boundaryPositions.push_back({x, y});
+            
+            // 更新当前角度
+            if (i < boundaryVertices.size() - 1) {
+                auto p1 = originalPositions[boundaryVertices[i].idx()];
+                auto p2 = originalPositions[boundaryVertices[i+1].idx()];
+                float seg_len = (p2 - p1).norm();
+                current_angle += 2.0f * M_PI * (seg_len / arc_len);
+            }
+        }
+        
+        // 设置边界顶点的固定值
+        for (size_t i = 0; i < boundaryVertices.size(); ++i) {
+            int idx = boundaryVertices[i].idx();
+            Bu(idx) = boundaryPositions[i].first;
+            Bv(idx) = boundaryPositions[i].second;
+            
+            if (marginDebugFile.is_open()) {
+                marginDebugFile << "Boundary Vertex " << idx << " mapped to: (" 
+                              << Bu(idx) << ", " << Bv(idx) << ")\n";
+            }
+        }
+    }
+    
+    // 关闭调试文件
+    if (debugFile.is_open()) {
+        debugFile.close();
+    }
+    if (marginDebugFile.is_open()) {
+        marginDebugFile.close();
+    }
+    
+    // 构建稀疏矩阵
     A.setFromTriplets(triplets.begin(), triplets.end());
     A.makeCompressed();
     
     qDebug() << "Linear system built. Matrix size:" << A.rows() << "x" << A.cols();
     qDebug() << "Non-zero elements:" << A.nonZeros();
     
+    // 输出线性系统到日志文件
     QFile logFile("solveParameterizationFloater_log.txt");
     if (logFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&logFile);
-        out << "=== Linear System AX = B ===" << "\n";
+        out << "=== Linear System AX = B ===\n";
         out << "Matrix A (size: " << A.rows() << "x" << A.cols() << ", non-zero: " << A.nonZeros() << ")\n";
+        
+        // 输出矩阵A的非零元素
         out << "Non-zero elements of A:\n";
         for (int k = 0; k < A.outerSize(); ++k) {
             for (SpMat::InnerIterator it(A, k); it; ++it) {
@@ -776,29 +933,23 @@ void SimpleSquareWidget::solveParameterizationFloater() {
             }
         }
         
+        // 输出向量Bu
         out << "\nVector Bu (size: " << Bu.size() << "):\n";
         for (int i = 0; i < Bu.size(); ++i) {
             out << "Bu[" << i << "] = " << Bu(i) << "\n";
         }
         
+        // 输出向量Bv
         out << "\nVector Bv (size: " << Bv.size() << "):\n";
         for (int i = 0; i < Bv.size(); ++i) {
             out << "Bv[" << i << "] = " << Bv(i) << "\n";
-        }
-        
-        out << "\nBoundary vertices (fixed positions):\n";
-        for (auto vh : openMesh.vertices()) {
-            int idx = vh.idx();
-            if (isBoundary[idx]) {
-                auto pos = openMesh.point(vh);
-                out << "Vertex " << idx << " -> (" << pos[0] << ", " << pos[1] << ")\n";
-            }
         }
         
         logFile.close();
         qDebug() << "solveParameterizationFloater linear system logged to solveParameterizationFloater_log.txt";
     }
     
+    // 求解线性方程组
     SparseLU<SpMat> solver;
     solver.compute(A);
     
@@ -824,13 +975,13 @@ void SimpleSquareWidget::solveParameterizationFloater() {
         qDebug() << "SparseLU solver succeeded";
     }
     
+    // 更新所有顶点的位置（包括边界）
     int internal_count = 0;
     for (auto vh : openMesh.vertices()) {
         int idx = vh.idx();
-        
+        Mesh::Point newPos(Xu(idx), Xv(idx), 0.0f);
+        openMesh.set_point(vh, newPos);
         if (!isBoundary[idx]) {
-            Mesh::Point newPos(Xu(idx), Xv(idx), 0.0f);
-            openMesh.set_point(vh, newPos);
             internal_count++;
         }
     }
@@ -850,6 +1001,7 @@ void SimpleSquareWidget::solveParameterizationFloater() {
     qDebug() << "u coordinate range: [" << min_u << ", " << max_u << "]";
     qDebug() << "v coordinate range: [" << min_v << ", " << max_v << "]";
     
+    // 保存结果到文件
     QFile file("floater_result.txt");
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&file);
