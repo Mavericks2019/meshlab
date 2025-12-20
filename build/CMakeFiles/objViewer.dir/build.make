@@ -241,10 +241,24 @@ CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /opt/project/meshlab/glwidget/uvparamwidget_extended.cpp -o CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.s
 
+CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o: CMakeFiles/objViewer.dir/flags.make
+CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o: /opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp
+CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o: CMakeFiles/objViewer.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o -MF CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o.d -o CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o -c /opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp
+
+CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp > CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.i
+
+CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp -o CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.s
+
 CMakeFiles/objViewer.dir/qrc_shaders.cpp.o: CMakeFiles/objViewer.dir/flags.make
 CMakeFiles/objViewer.dir/qrc_shaders.cpp.o: qrc_shaders.cpp
 CMakeFiles/objViewer.dir/qrc_shaders.cpp.o: CMakeFiles/objViewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/objViewer.dir/qrc_shaders.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/objViewer.dir/qrc_shaders.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/objViewer.dir/qrc_shaders.cpp.o -MF CMakeFiles/objViewer.dir/qrc_shaders.cpp.o.d -o CMakeFiles/objViewer.dir/qrc_shaders.cpp.o -c /opt/project/meshlab/build/qrc_shaders.cpp
 
 CMakeFiles/objViewer.dir/qrc_shaders.cpp.i: cmake_force
@@ -267,6 +281,7 @@ objViewer_OBJECTS = \
 "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o" \
 "CMakeFiles/objViewer.dir/meshutils/my_traits.cpp.o" \
 "CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.o" \
+"CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o" \
 "CMakeFiles/objViewer.dir/qrc_shaders.cpp.o"
 
 # External object files for target objViewer
@@ -282,6 +297,7 @@ objViewer: CMakeFiles/objViewer.dir/glwidget/uvparamwidget.cpp.o
 objViewer: CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o
 objViewer: CMakeFiles/objViewer.dir/meshutils/my_traits.cpp.o
 objViewer: CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.o
+objViewer: CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o
 objViewer: CMakeFiles/objViewer.dir/qrc_shaders.cpp.o
 objViewer: CMakeFiles/objViewer.dir/build.make
 objViewer: /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so.5.15.13
@@ -294,7 +310,7 @@ objViewer: /usr/lib/x86_64-linux-gnu/libgmpxx.so
 objViewer: /usr/lib/x86_64-linux-gnu/libmpfr.so
 objViewer: /usr/lib/x86_64-linux-gnu/libgmp.so
 objViewer: CMakeFiles/objViewer.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable objViewer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX executable objViewer"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/objViewer.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

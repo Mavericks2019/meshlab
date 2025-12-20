@@ -14,6 +14,7 @@ objViewer_autogen/timestamp: \
 	/opt/project/meshlab/glwidget/shortestpathglwidget.h \
 	/opt/project/meshlab/glwidget/simplesquarewidget.cpp \
 	/opt/project/meshlab/glwidget/simplesquarewidget.h \
+	/opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp \
 	/opt/project/meshlab/glwidget/uvparamwidget.cpp \
 	/opt/project/meshlab/glwidget/uvparamwidget.h \
 	/opt/project/meshlab/glwidget/uvparamwidget_extended.cpp \

@@ -390,6 +390,11 @@
 		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "MU", null ],
 		[ "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp", "MU", null ],
 		[ "/opt/project/meshlab/glwidget/simplesquarewidget.cpp", "MU", null ],
+		[
+			"/opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp",
+			"MU",
+			null
+		],
 		[ "/opt/project/meshlab/glwidget/uvparamwidget.cpp", "MU", null ],
 		[
 			"/opt/project/meshlab/glwidget/uvparamwidget_extended.cpp",

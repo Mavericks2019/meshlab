@@ -320,6 +320,30 @@ glwidget/simplesquarewidget.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.s
 .PHONY : glwidget/simplesquarewidget.cpp.s
 
+glwidget/simplesquarewidget_parameterization.o: glwidget/simplesquarewidget_parameterization.cpp.o
+.PHONY : glwidget/simplesquarewidget_parameterization.o
+
+# target to build an object file
+glwidget/simplesquarewidget_parameterization.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o
+.PHONY : glwidget/simplesquarewidget_parameterization.cpp.o
+
+glwidget/simplesquarewidget_parameterization.i: glwidget/simplesquarewidget_parameterization.cpp.i
+.PHONY : glwidget/simplesquarewidget_parameterization.i
+
+# target to preprocess a source file
+glwidget/simplesquarewidget_parameterization.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.i
+.PHONY : glwidget/simplesquarewidget_parameterization.cpp.i
+
+glwidget/simplesquarewidget_parameterization.s: glwidget/simplesquarewidget_parameterization.cpp.s
+.PHONY : glwidget/simplesquarewidget_parameterization.s
+
+# target to generate assembly for a file
+glwidget/simplesquarewidget_parameterization.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.s
+.PHONY : glwidget/simplesquarewidget_parameterization.cpp.s
+
 glwidget/uvparamwidget.o: glwidget/uvparamwidget.cpp.o
 .PHONY : glwidget/uvparamwidget.o
 
@@ -494,6 +518,9 @@ help:
 	@echo "... glwidget/simplesquarewidget.o"
 	@echo "... glwidget/simplesquarewidget.i"
 	@echo "... glwidget/simplesquarewidget.s"
+	@echo "... glwidget/simplesquarewidget_parameterization.o"
+	@echo "... glwidget/simplesquarewidget_parameterization.i"
+	@echo "... glwidget/simplesquarewidget_parameterization.s"
 	@echo "... glwidget/uvparamwidget.o"
 	@echo "... glwidget/uvparamwidget.i"
 	@echo "... glwidget/uvparamwidget.s"
