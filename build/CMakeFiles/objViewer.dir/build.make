@@ -95,9 +95,8 @@ qrc_shaders.cpp: shaders.qrc.depends
 	/usr/lib/qt5/bin/rcc --name shaders --output /opt/project/meshlab/build/qrc_shaders.cpp /opt/project/meshlab/shaders.qrc
 
 objViewer_autogen/timestamp: /usr/lib/qt5/bin/moc
-objViewer_autogen/timestamp: /usr/lib/qt5/bin/uic
 objViewer_autogen/timestamp: CMakeFiles/objViewer.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Automatic MOC and UIC for target objViewer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Automatic MOC for target objViewer"
 	/usr/bin/cmake -E cmake_autogen /opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/AutogenInfo.json ""
 	/usr/bin/cmake -E touch /opt/project/meshlab/build/objViewer_autogen/timestamp
 

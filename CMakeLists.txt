@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 自动处理Qt的moc、uic、rcc
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+# 禁用AUTOUIC，因为我们没有使用.ui文件
+set(CMAKE_AUTOUIC OFF)
 
 set(COMMONLIB_INCLUDE_DIR ../lib/include)
 set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
@@ -37,6 +38,12 @@ include_directories(${CGAL_INCLUDE_DIRS})
 # 添加可执行文件
 add_executable(${PROJECT_NAME}
     main.cpp
+    # utils/menu_utils.h
+    # utils/menu_utils.cpp
+    # utils/tab_utils.h
+    # utils/tab_utils.cpp
+    # utils/app_ui.h
+    # utils/app_ui.cpp
     glwidget/baseglwidget.h
     glwidget/baseglwidget.cpp
     glwidget/modelglwidget.cpp
@@ -63,7 +70,7 @@ target_link_libraries(${PROJECT_NAME}
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
-    CGAL::CGAL  # 新增
+    CGAL::CGAL
 )
 
 # 如果 CommonLib 存在，链接它

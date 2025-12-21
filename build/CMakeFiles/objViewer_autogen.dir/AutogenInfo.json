@@ -142,55 +142,55 @@
 	[
 		[
 			"/opt/project/meshlab/glwidget/baseglwidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_baseglwidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/cgalglwidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_cgalglwidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/modelglwidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_modelglwidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/shortestpathglwidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_shortestpathglwidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/simplesquarewidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_simplesquarewidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/uvparamwidget.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_uvparamwidget.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/glwidget/uvparamwidget_extended.h",
-			"MU",
+			"Mu",
 			"KTNQVRIVIS/moc_uvparamwidget_extended.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/meshutils/my_traits.h",
-			"MU",
+			"Mu",
 			"FSMLRMIT5H/moc_my_traits.cpp",
 			null
 		],
 		[
 			"/opt/project/meshlab/tabs/dualview_simple_tab.h",
-			"MU",
+			"Mu",
 			"GEPDHEUI4U/moc_dualview_simple_tab.cpp",
 			null
 		]
@@ -251,34 +251,30 @@
 	"PARALLEL" : 10,
 	"PARSE_CACHE_FILE" : "/opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/ParseCache.txt",
 	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
-	"QT_UIC_EXECUTABLE" : "/usr/lib/qt5/bin/uic",
+	"QT_UIC_EXECUTABLE" : "",
 	"QT_VERSION_MAJOR" : 5,
 	"QT_VERSION_MINOR" : 15,
 	"SETTINGS_FILE" : "/opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
-		[ "/opt/project/meshlab/glwidget/baseglwidget.cpp", "MU", null ],
-		[ "/opt/project/meshlab/glwidget/cgalglwidget.cpp", "MU", null ],
-		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "MU", null ],
-		[ "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp", "MU", null ],
-		[ "/opt/project/meshlab/glwidget/simplesquarewidget.cpp", "MU", null ],
+		[ "/opt/project/meshlab/glwidget/baseglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/cgalglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/simplesquarewidget.cpp", "Mu", null ],
 		[
 			"/opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp",
-			"MU",
+			"Mu",
 			null
 		],
-		[ "/opt/project/meshlab/glwidget/uvparamwidget.cpp", "MU", null ],
+		[ "/opt/project/meshlab/glwidget/uvparamwidget.cpp", "Mu", null ],
 		[
 			"/opt/project/meshlab/glwidget/uvparamwidget_extended.cpp",
-			"MU",
+			"Mu",
 			null
 		],
-		[ "/opt/project/meshlab/main.cpp", "MU", null ],
-		[ "/opt/project/meshlab/meshutils/my_traits.cpp", "MU", null ]
+		[ "/opt/project/meshlab/main.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/meshutils/my_traits.cpp", "Mu", null ]
 	],
-	"UIC_OPTIONS" : [],
-	"UIC_SEARCH_PATHS" : [],
-	"UIC_SKIP" : [],
-	"UIC_UI_FILES" : [],
 	"VERBOSITY" : 0
 }

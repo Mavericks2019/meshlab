@@ -69,9 +69,8 @@ include CMakeFiles/objViewer_autogen.dir/progress.make
 CMakeFiles/objViewer_autogen: objViewer_autogen/timestamp
 
 objViewer_autogen/timestamp: /usr/lib/qt5/bin/moc
-objViewer_autogen/timestamp: /usr/lib/qt5/bin/uic
 objViewer_autogen/timestamp: CMakeFiles/objViewer_autogen.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target objViewer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/opt/project/meshlab/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target objViewer"
 	/usr/bin/cmake -E cmake_autogen /opt/project/meshlab/build/CMakeFiles/objViewer_autogen.dir/AutogenInfo.json ""
 	/usr/bin/cmake -E touch /opt/project/meshlab/build/objViewer_autogen/timestamp
 
