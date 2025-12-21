@@ -9,6 +9,10 @@
 #include <QPalette>
 #include <QStackedWidget>
 #include <QSplitter>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
+#include <QActionGroup>
 #include "glwidget/modelglwidget.h"
 #include "glwidget/baseglwidget.h"
 #include "glwidget/cgalglwidget.h"
@@ -230,6 +234,129 @@ namespace UIUtils {
         QFont defaultFont("Arial", 12);
         app.setFont(defaultFont);
     }
+
+    // 创建菜单栏
+    QMenuBar* createMenuBar(QTabWidget* tabWidget, QWidget* mainWindow) {
+        QMenuBar* menuBar = new QMenuBar(mainWindow);
+        menuBar->setStyleSheet(
+            "QMenuBar {"
+            "   background-color: #404040;"
+            "   color: white;"
+            "   font-size: 14px;"
+            "   padding: 5px;"
+            "}"
+            "QMenuBar::item {"
+            "   background-color: transparent;"
+            "   padding: 5px 15px;"
+            "   border-radius: 3px;"
+            "}"
+            "QMenuBar::item:selected {"
+            "   background-color: #505050;"
+            "}"
+            "QMenu {"
+            "   background-color: #404040;"
+            "   color: white;"
+            "   border: 1px solid #505050;"
+            "   font-size: 14px;"
+            "}"
+            "QMenu::item {"
+            "   padding: 8px 30px 8px 20px;"
+            "}"
+            "QMenu::item:selected {"
+            "   background-color: #505050;"
+            "}"
+            "QMenu::separator {"
+            "   height: 1px;"
+            "   background-color: #505050;"
+            "   margin: 5px 0;"
+            "}"
+        );
+
+        // Parameter 菜单
+        QMenu* parameterMenu = menuBar->addMenu("&Parameter");
+        
+        // 为每个标签页创建菜单项
+        QStringList tabNames = {
+            "OpenMesh", "CGAL", "Model", "Shortest Path", 
+            "UV Parameterization", "Dual View", 
+            "Extended Dual View", "Simple Dual View"
+        };
+        
+        // 创建动作组，确保只有一个被选中
+        QActionGroup* tabActionGroup = new QActionGroup(parameterMenu);
+        tabActionGroup->setExclusive(true);
+        
+        for (int i = 0; i < tabNames.size(); ++i) {
+            QAction* action = new QAction(tabNames[i], parameterMenu);
+            
+            // 设置可选中
+            action->setCheckable(true);
+            
+            // 设置第一个标签页为默认选中
+            if (i == 0) {
+                action->setChecked(true);
+            }
+            
+            // 添加快捷键（Ctrl+数字键）
+            if (i < 9) { // 只设置前9个快捷键
+                action->setShortcut(QKeySequence(QString("Ctrl+%1").arg(i + 1)));
+            }
+            
+            // 添加到动作组
+            tabActionGroup->addAction(action);
+            
+            // 添加到菜单
+            parameterMenu->addAction(action);
+            
+            // 连接信号
+            QObject::connect(action, &QAction::triggered, [tabWidget, i, mainWindow]() {
+                tabWidget->setCurrentIndex(i);
+                mainWindow->setWindowTitle("OBJ Viewer - " + tabWidget->tabText(i));
+            });
+        }
+        
+        // 添加分隔线
+        parameterMenu->addSeparator();
+        
+        // 添加退出动作
+        QAction* exitAction = new QAction("E&xit", parameterMenu);
+        exitAction->setShortcut(QKeySequence::Quit);
+        QObject::connect(exitAction, &QAction::triggered, []() {
+            QApplication::quit();
+        });
+        parameterMenu->addAction(exitAction);
+
+        // Render 菜单 (暂时留空，后续可以添加功能)
+        QMenu* renderMenu = menuBar->addMenu("&Render");
+        
+        // 添加渲染选项
+        QAction* wireframeAction = new QAction("Toggle Wireframe", renderMenu);
+        wireframeAction->setShortcut(QKeySequence("Ctrl+W"));
+        wireframeAction->setCheckable(true);
+        wireframeAction->setChecked(true);
+        renderMenu->addAction(wireframeAction);
+        
+        renderMenu->addSeparator();
+        
+        QAction* flatShadingAction = new QAction("Flat Shading", renderMenu);
+        flatShadingAction->setShortcut(QKeySequence("Ctrl+F"));
+        flatShadingAction->setCheckable(true);
+        renderMenu->addAction(flatShadingAction);
+        
+        QAction* smoothShadingAction = new QAction("Smooth Shading", renderMenu);
+        smoothShadingAction->setShortcut(QKeySequence("Ctrl+S"));
+        smoothShadingAction->setCheckable(true);
+        smoothShadingAction->setChecked(true);
+        renderMenu->addAction(smoothShadingAction);
+        
+        // 创建渲染模式动作组
+        QActionGroup* shadingGroup = new QActionGroup(renderMenu);
+        shadingGroup->addAction(flatShadingAction);
+        shadingGroup->addAction(smoothShadingAction);
+        shadingGroup->setExclusive(true);
+        
+        return menuBar;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -242,8 +369,9 @@ int main(int argc, char *argv[])
     mainWindow.resize(2480, 1800);
     
     // 创建主布局
-    QHBoxLayout *mainLayout = new QHBoxLayout(&mainWindow);
-    mainLayout->setContentsMargins(10, 10, 10, 10);
+    QVBoxLayout *outerLayout = new QVBoxLayout(&mainWindow);
+    outerLayout->setContentsMargins(0, 0, 0, 0);
+    outerLayout->setSpacing(0);
     
     // 创建OpenGL窗口
     ModelGLWidget *modelGlWidget = new ModelGLWidget;
@@ -273,7 +401,16 @@ int main(int argc, char *argv[])
     tabWidget->addTab(createUVParamTab(uvParamWidget), "UV Parameterization");
     tabWidget->addTab(createDualViewTab(dualViewLeftWidget, dualViewRightWidget), "Dual View");
     tabWidget->addTab(createDualViewExtendedTab(dualViewExtendedLeftWidget, uvParamWidgetExtended), "Extended Dual View");
-    tabWidget->addTab(createDualViewSimpleTab(dualViewSimpleLeftWidget, dualViewSimpleRightWidget), "Simple Dual View");  // 新增标签页
+    tabWidget->addTab(createDualViewSimpleTab(dualViewSimpleLeftWidget, dualViewSimpleRightWidget), "Simple Dual View");
+    
+    // 创建菜单栏
+    QMenuBar* menuBar = UIUtils::createMenuBar(tabWidget, &mainWindow);
+    outerLayout->addWidget(menuBar);
+    
+    // 创建主内容区域
+    QWidget *contentWidget = new QWidget;
+    QHBoxLayout *mainLayout = new QHBoxLayout(contentWidget);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
     
     // 创建右侧控制面板堆栈
     QStackedWidget *controlStack = new QStackedWidget;
@@ -419,7 +556,7 @@ int main(int argc, char *argv[])
     controlStack->addWidget(uvParamControlPanel);    // UV Parameterization
     controlStack->addWidget(dualViewControlPanel);   // Dual View
     controlStack->addWidget(dualViewExtendedControlPanel); // Extended Dual View
-    controlStack->addWidget(dualViewSimpleControlPanel);   // Simple Dual View - 新增
+    controlStack->addWidget(dualViewSimpleControlPanel);   // Simple Dual View
     
     // 连接标签切换信号
     QObject::connect(tabWidget, &QTabWidget::currentChanged, [controlStack](int index) {
@@ -433,8 +570,11 @@ int main(int argc, char *argv[])
     mainLayout->addWidget(tabWidget, 8);
     mainLayout->addWidget(controlStack);
     
+    // 将内容添加到外层布局
+    outerLayout->addWidget(contentWidget, 1);
+    
     // 设置主窗口
-    mainWindow.setLayout(mainLayout);
+    mainWindow.setLayout(outerLayout);
     mainWindow.setWindowTitle("OBJ Viewer");
     mainWindow.show();
 
