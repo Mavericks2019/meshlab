@@ -16,6 +16,9 @@ namespace UIUtils {
         setMovable(true);
         
         // 设置TabBar样式
+        // 修改样式表中的关闭按钮部分
+        // 将原来的 #CCCCCC 改为白色（white），并添加悬停效果
+
         setStyleSheet(R"(
             QTabWidget::pane {
                 border: 1px solid #505050;
@@ -64,7 +67,7 @@ namespace UIUtils {
             
             QTabBar::close-button::after {
                 content: "×";
-                color: #CCCCCC;
+                color: black;  /* 改为白色 */
                 font-size: 18px;
                 font-weight: bold;
                 position: absolute;
@@ -74,7 +77,8 @@ namespace UIUtils {
             }
             
             QTabBar::close-button:hover::after {
-                color: white;
+                color: #FF6666;  /* 悬停时改为红色，增强可见性 */
+                font-size: 20px; /* 悬停时稍微放大 */
             }
             
             QTabBar::scroller {

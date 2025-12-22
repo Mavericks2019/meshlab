@@ -70,11 +70,28 @@ void TabManager::initializeTabs() {
     // 设置控制面板固定宽度
     controlContainer->setFixedWidth(400);
     
+    // 先连接信号
+    connectSignals();
+    
     // 创建第一个tab（OpenMesh），并切换到它
     createTab("OpenMesh", true);
     
-    // 连接信号
-    connectSignals();
+    // 重要：手动触发第一次控制面板显示
+    // 因为连接信号是在创建第一个tab之前，所以需要手动显示控制面板
+    if (tabWidget->count() > 0) {
+        QString currentTitle = tabWidget->tabText(0);
+        
+        // 显示当前tab对应的控制面板
+        if (controlPanelMap.contains(currentTitle)) {
+            QWidget* controlPanel = controlPanelMap[currentTitle];
+            // 隐藏所有控制面板
+            for (QWidget* panel : controlPanelMap.values()) {
+                panel->setVisible(false);
+            }
+            // 显示当前控制面板
+            controlPanel->setVisible(true);
+        }
+    }
 }
 
 void TabManager::createTab(const QString& title, bool switchToTab) {
