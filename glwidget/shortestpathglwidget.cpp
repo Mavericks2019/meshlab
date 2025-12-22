@@ -38,20 +38,29 @@ void ShortestPathGLWidget::initializeGL()
 
 void ShortestPathGLWidget::initializePickingShaders()
 {
+    // 确保OpenGL上下文正确
+    if (!context()->isValid()) {
+        qDebug() << "OpenGL context is not valid during initialization!";
+        return;
+    }
+    
     // 顶点拾取着色器
     pickingProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/picking.vert");
     pickingProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/picking.frag");
-    pickingProgram.link();
+    if (!pickingProgram.link()) {
+        qDebug() << "Failed to link picking shader program:" << pickingProgram.log();
+    }
     
     // 面元拾取着色器
     facePickingProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/picking.vert");
     facePickingProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/face_picking.frag");
-    facePickingProgram.link();
+    if (!facePickingProgram.link()) {
+        qDebug() << "Failed to link face picking shader program:" << facePickingProgram.log();
+    }
     
-    // 创建帧缓冲对象用于颜色编码拾取
-    QOpenGLFramebufferObjectFormat format;
-    format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
-    pickingFBO = new QOpenGLFramebufferObject(width(), height(), format);
+    // 延迟创建FBO，直到widget有有效尺寸
+    // 这里只创建空指针，实际在pickVertexAtPosition中创建
+    pickingFBO = nullptr;
 }
 
 void ShortestPathGLWidget::paintGL()
@@ -115,11 +124,31 @@ void ShortestPathGLWidget::paintGL()
     }
 }
 
+void ShortestPathGLWidget::resizeGL(int w, int h)
+{
+    BaseGLWidget::resizeGL(w, h);
+    
+    // 当widget尺寸变化时，重新创建FBO
+    makeCurrent();
+    
+    if (pickingFBO && (pickingFBO->width() != w || pickingFBO->height() != h)) {
+        delete pickingFBO;
+        pickingFBO = nullptr;
+    }
+    
+    doneCurrent();
+}
+
 void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && modelLoaded) {
+        qDebug() << "Mouse click at:" << event->x() << event->y();
+        qDebug() << "Widget size:" << width() << height();
+        qDebug() << "OpenGL context valid:" << context()->isValid();
+        
         int vertexId = pickVertexAtPosition(event->x(), event->y());
-        std::cout << vertexId << std::endl;
+        qDebug() << "Picked vertex ID:" << vertexId;
+        
         if (vertexId != -1) {
             selectedVertices.push_back(vertexId);
             update();
@@ -132,20 +161,63 @@ void ShortestPathGLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
 {
     makeCurrent();
-    // 保存当前的清除颜色和深度测试状态
-    GLfloat oldClearColor[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, oldClearColor);
+    
+    // 确保widget有有效尺寸
+    if (width() <= 0 || height() <= 0) {
+        return -1;
+    }
+    
+    // 确保OpenGL上下文正确
+    if (!context()->isValid()) {
+        qDebug() << "OpenGL context is not valid!";
+        return -1;
+    }
+    
+    // 检查是否需要重新创建FBO（尺寸变化或未初始化）
+    if (!pickingFBO || 
+        pickingFBO->width() != width() || 
+        pickingFBO->height() != height()) {
+        
+        // 清理旧的FBO
+        if (pickingFBO) {
+            delete pickingFBO;
+            pickingFBO = nullptr;
+        }
+        
+        // 创建新的FBO
+        QOpenGLFramebufferObjectFormat format;
+        format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+        pickingFBO = new QOpenGLFramebufferObject(width(), height(), format);
+        
+        if (!pickingFBO->isValid()) {
+            qDebug() << "Failed to create picking FBO!";
+            delete pickingFBO;
+            pickingFBO = nullptr;
+            return -1;
+        }
+    }
+    
+    // 保存当前状态
     GLboolean depthTestEnabled;
     glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-    // 绑定拾取FBO
+    GLboolean blendEnabled;
+    glGetBooleanv(GL_BLEND, &blendEnabled);
+    
+    // 禁用混合
+    glDisable(GL_BLEND);
+    
+    // 绑定FBO
     pickingFBO->bind();
+    
+    // 设置视口
     glViewport(0, 0, width(), height());
     
-    // 使用黑色背景进行清除，并启用深度测试
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glEnable(GL_DEPTH_TEST);  // 启用深度测试
+    // 清除颜色和深度缓冲
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    // 设置矩阵（与正常渲染一致）
     QMatrix4x4 model, view, projection;
     
     model.rotate(rotation);
@@ -156,7 +228,7 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     
     projection.perspective(45.0f, width() / float(height()), 0.1f, 100.0f);
     
-    // 首先绘制面元（黑色）
+    // 绘制面元
     facePickingProgram.bind();
     vao.bind();
     faceEbo.bind();
@@ -171,7 +243,7 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     vao.release();
     facePickingProgram.release();
     
-    // 然后绘制顶点（使用ID编码颜色）
+    // 绘制顶点
     pickingProgram.bind();
     vao.bind();
     
@@ -179,41 +251,60 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     pickingProgram.setUniformValue("view", view);
     pickingProgram.setUniformValue("projection", projection);
     
-    // 绘制所有顶点，每个顶点使用其ID作为颜色
     glDrawArrays(GL_POINTS, 0, openMesh.n_vertices());
     
-    // 定义搜索半径
+    // 转换鼠标坐标：Qt坐标（左上角为原点）到OpenGL坐标（左下角为原点）
+    int glY = height() - y - 1;
+    
+    // 读取像素
+    GLubyte pixel[4];
+    glReadPixels(x, glY, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    
+    int vertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+    
+    // 如果顶点ID有效
+    if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {
+        vao.release();
+        pickingProgram.release();
+        pickingFBO->release();
+        
+        // 恢复默认FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
+        glViewport(0, 0, width(), height());
+        
+        // 恢复状态
+        if (blendEnabled) glEnable(GL_BLEND);
+        if (!depthTestEnabled) glDisable(GL_DEPTH_TEST);
+        
+        glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
+        
+        return vertexId;
+    }
+    
+    // 如果直接拾取失败，尝试搜索周围的像素
     const int searchRadius = 10;
-    
-    // 计算搜索区域的边界
-    int startX = std::max(0, x - searchRadius);
-    int startY = std::max(0, y - searchRadius);
-    int endX = std::min(width() - 1, x + searchRadius);
-    int endY = std::min(height() - 1, y + searchRadius);
-    
     int bestVertexId = -1;
-    float bestDepth = 1.0f; // 初始化为最大深度值
+    float bestDepth = 1.0f;
     
-    // 遍历搜索区域内的所有像素
-    for (int py = startY; py <= endY; ++py) {
-        for (int px = startX; px <= endX; ++px) {
-            // 读取像素颜色
-            GLubyte pixel[4];
-            glReadPixels(px, height() - py - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    for (int dy = -searchRadius; dy <= searchRadius; ++dy) {
+        for (int dx = -searchRadius; dx <= searchRadius; ++dx) {
+            int px = x + dx;
+            int py = glY + dy;
             
-            // 将颜色转换回顶点ID
-            int vertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+            if (px < 0 || px >= width() || py < 0 || py >= height()) {
+                continue;
+            }
             
-            // 如果读取的ID有效且不超过顶点数量
-            if (vertexId >= 0 && vertexId < static_cast<int>(openMesh.n_vertices())) {
-                // 读取深度值
+            glReadPixels(px, py, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            int currentVertexId = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+            
+            if (currentVertexId >= 0 && currentVertexId < static_cast<int>(openMesh.n_vertices())) {
                 GLfloat depth;
-                glReadPixels(px, height() - py - 1, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+                glReadPixels(px, py, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
                 
-                // 选择最前面的顶点（深度值最小的）
-                if (depth < bestDepth) {
+                if (depth < bestDepth && depth > 0.0f) {
                     bestDepth = depth;
-                    bestVertexId = vertexId;
+                    bestVertexId = currentVertexId;
                 }
             }
         }
@@ -223,17 +314,14 @@ int ShortestPathGLWidget::pickVertexAtPosition(int x, int y)
     pickingProgram.release();
     pickingFBO->release();
     
-    // 恢复默认FBO和视口
+    // 恢复默认FBO
     glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebufferObject());
     glViewport(0, 0, width(), height());
     
-    // 恢复深度测试状态
-    if (!depthTestEnabled) {
-        glDisable(GL_DEPTH_TEST);
-    }
+    // 恢复状态
+    if (blendEnabled) glEnable(GL_BLEND);
+    if (!depthTestEnabled) glDisable(GL_DEPTH_TEST);
     
-    // 恢复清除颜色到BaseGLWidget中设置的值
-    QColor bgColor = this->bgColor; // 从基类获取背景颜色
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     
     return bestVertexId;

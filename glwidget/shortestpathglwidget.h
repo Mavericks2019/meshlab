@@ -31,7 +31,7 @@ public:
     void clearSelectedPoints();
     void calculateShortestPath(); // 计算最短路径
     void savePickingImage(const QString& filename);
-    
+    void resizeGL(int w, int h);
     // 新增：计算所有选中点之间的最短路径
     void calculateAllShortestPaths();
     
