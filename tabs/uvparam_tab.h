@@ -15,7 +15,7 @@
 #include <QCheckBox>
 
 // 创建UV参数化标签页
-QWidget* createUVParamTab(UVParamWidget* uvWidget) {
+inline QWidget* createUVParamTab(UVParamWidget* uvWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(uvWidget);
@@ -23,7 +23,7 @@ QWidget* createUVParamTab(UVParamWidget* uvWidget) {
 }
 
 // 创建OBJ文件加载按钮（UV参数化版）
-QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File (UV Parameterization)");
     button->setStyleSheet(
         "QPushButton {"
@@ -52,7 +52,7 @@ QWidget* createUVParamModelLoadButton(UVParamWidget* uvWidget, QLabel* infoLabel
 }
 
 // 创建打印Mesh信息按钮
-QPushButton* createPrintMeshInfoButton(UVParamWidget* uvWidget) {
+inline QPushButton* createPrintMeshInfoButton(UVParamWidget* uvWidget) {
     QPushButton *button = new QPushButton("Print Mesh Info");
     button->setStyleSheet(
         "QPushButton {"
@@ -72,7 +72,7 @@ QPushButton* createPrintMeshInfoButton(UVParamWidget* uvWidget) {
 }
 
 // 创建显示控制组
-QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
+inline QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     group->setStyleSheet("QGroupBox { color: white; font-weight: bold; }");
     QVBoxLayout *layout = new QVBoxLayout(group);
@@ -117,7 +117,7 @@ QGroupBox* createUVDisplayControlGroup(UVParamWidget* uvWidget) {
 }
 
 // 创建UV参数化控制面板
-QWidget* createUVParamControlPanel(UVParamWidget* uvWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createUVParamControlPanel(UVParamWidget* uvWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

@@ -23,7 +23,7 @@
 #include <algorithm> // 添加 algorithm 头文件
 
 // 创建扩展双视图标签页
-QWidget* createDualViewExtendedTab(BaseGLWidget* leftWidget, UVParamWidgetExtended* rightWidget) {
+inline QWidget* createDualViewExtendedTab(BaseGLWidget* leftWidget, UVParamWidgetExtended* rightWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     
@@ -43,7 +43,7 @@ QWidget* createDualViewExtendedTab(BaseGLWidget* leftWidget, UVParamWidgetExtend
 }
 
 // 创建扩展双视图控制面板
-QWidget* createDualViewExtendedControlPanel(BaseGLWidget* leftWidget, UVParamWidgetExtended* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
+inline QWidget* createDualViewExtendedControlPanel(BaseGLWidget* leftWidget, UVParamWidgetExtended* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

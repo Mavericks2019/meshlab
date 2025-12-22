@@ -17,7 +17,7 @@
 #include <QCheckBox>
 
 // 创建模型标签页
-QWidget* createModelTab(ModelGLWidget* glWidget) {
+inline QWidget* createModelTab(ModelGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
@@ -25,7 +25,7 @@ QWidget* createModelTab(ModelGLWidget* glWidget) {
 }
 
 // 创建OBJ文件加载按钮
-QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File");
     button->setStyleSheet(
         "QPushButton {"
@@ -52,7 +52,7 @@ QWidget* createModelLoadButton(ModelGLWidget* glWidget, QLabel* infoLabel, QWidg
 }
 
 // 创建渲染模式选择组
-QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
+inline QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -87,7 +87,7 @@ QGroupBox* createRenderingModeGroup(ModelGLWidget* glWidget) {
 }
 
 // 创建显示选项组
-QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
+inline QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -109,7 +109,7 @@ QGroupBox* createDisplayOptionsGroup(ModelGLWidget* glWidget) {
 }
 
 // 创建视图重置按钮
-QPushButton* createViewResetButton(ModelGLWidget* glWidget) {
+inline QPushButton* createViewResetButton(ModelGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Reset View");
     button->setStyleSheet(
         "QPushButton {"
@@ -129,7 +129,7 @@ QPushButton* createViewResetButton(ModelGLWidget* glWidget) {
 }
 
 // 创建自适应视图按钮
-QPushButton* createCenterViewButton(ModelGLWidget* glWidget) {
+inline QPushButton* createCenterViewButton(ModelGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Center View");
     button->setStyleSheet(
         "QPushButton {"
@@ -149,7 +149,7 @@ QPushButton* createCenterViewButton(ModelGLWidget* glWidget) {
 }
 
 // 创建模型控制面板
-QWidget* createModelControlPanel(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createModelControlPanel(ModelGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

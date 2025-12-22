@@ -18,7 +18,7 @@
 #include <QStackedWidget>
 
 // 创建OpenMesh标签页
-QWidget* createBasicTab(BaseGLWidget* glWidget) {
+inline QWidget* createBasicTab(BaseGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
@@ -26,7 +26,7 @@ QWidget* createBasicTab(BaseGLWidget* glWidget) {
 }
 
 // 创建OBJ文件加载按钮（OpenMesh版）
-QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File (OpenMesh)");
     button->setStyleSheet(
         "QPushButton {"
@@ -53,7 +53,7 @@ QWidget* createBasicModelLoadButton(BaseGLWidget* glWidget, QLabel* infoLabel, Q
 }
 
 // 创建OpenMesh渲染模式选择组
-QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
+inline QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -82,7 +82,7 @@ QGroupBox* createBasicRenderingModeGroup(BaseGLWidget* glWidget) {
 }
 
 // 创建OpenMesh显示选项组
-QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
+inline QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -105,7 +105,7 @@ QGroupBox* createBasicDisplayOptionsGroup(BaseGLWidget* glWidget) {
 }
 
 // 创建OpenMesh模型控制面板
-QWidget* createBasicControlPanel(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createBasicControlPanel(BaseGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

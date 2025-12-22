@@ -328,4 +328,99 @@ namespace UIUtils {
         return menuBar;
     }
 
-} // namespace UIUtils
+}
+
+namespace UIUtils {
+
+    // 创建颜色设置组
+    QGroupBox* createColorSettingsGroup(QWidget* glWidget) {
+        QGroupBox *colorGroup = new QGroupBox("Color Settings");
+        QVBoxLayout *colorLayout = new QVBoxLayout(colorGroup);
+        
+        // 背景颜色按钮
+        QPushButton *bgColorButton = new QPushButton("Change Background Color");
+        bgColorButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #505050;"
+            "   color: white;"
+            "   border: none;"
+            "   padding: 10px 20px;"
+            "   font-size: 16px;"
+            "   border-radius: 5px;"
+            "}"
+            "QPushButton:hover { background-color: #606060; }"
+        );
+        
+        // 网格颜色按钮
+        QPushButton *gridColorButton = new QPushButton("Change Grid Color");
+        gridColorButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #505050;"
+            "   color: white;"
+            "   border: none;"
+            "   padding: 10px 20px;"
+            "   font-size: 16px;"
+            "   border-radius: 5px;"
+            "}"
+            "QPushButton:hover { background-color: #606060; }"
+        );
+        
+        // 模型颜色按钮
+        QPushButton *modelColorButton = new QPushButton("Change Model Color");
+        modelColorButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #505050;"
+            "   color: white;"
+            "   border: none;"
+            "   padding: 10px 20px;"
+            "   font-size: 16px;"
+            "   border-radius: 5px;"
+            "}"
+            "QPushButton:hover { background-color: #606060; }"
+        );
+        
+        colorLayout->addWidget(bgColorButton);
+        colorLayout->addWidget(gridColorButton);
+        colorLayout->addWidget(modelColorButton);
+        
+        // 默认情况下，我们只启用背景颜色按钮，其他按钮可以根据需要连接相应的信号
+        // 这里只是一个示例实现，具体功能需要根据BaseGLWidget的接口来调整
+        
+        // 背景颜色按钮的连接（假设BaseGLWidget有设置背景颜色的方法）
+        QObject::connect(bgColorButton, &QPushButton::clicked, [glWidget]() {
+            QColor color = QColorDialog::getColor(QColor(25, 25, 25), nullptr, "Select Background Color");
+            if (color.isValid()) {
+                // 这里需要调用BaseGLWidget的方法来设置背景颜色
+                // 例如：glWidget->setBackgroundColor(color);
+                // 由于BaseGLWidget的具体实现未知，这里只显示一个消息框
+                QMessageBox::information(nullptr, "Color Change", 
+                    QString("Background color changed to (%1, %2, %3). Note: This is a demo - implement in BaseGLWidget.")
+                    .arg(color.red()).arg(color.green()).arg(color.blue()));
+            }
+        });
+        
+        return colorGroup;
+    }
+    
+    // 创建模型信息组
+    QGroupBox* createModelInfoGroup(QLabel** infoLabel) {
+        QGroupBox *infoGroup = new QGroupBox("Model Information");
+        QVBoxLayout *infoLayout = new QVBoxLayout(infoGroup);
+        
+        // 创建信息标签
+        QLabel *label = new QLabel("No model loaded");
+        label->setAlignment(Qt::AlignCenter);
+        label->setFixedHeight(50);
+        label->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+        label->setWordWrap(true);
+        
+        // 如果提供了infoLabel指针，则赋值
+        if (infoLabel) {
+            *infoLabel = label;
+        }
+        
+        infoLayout->addWidget(label);
+        return infoGroup;
+    }
+
+} // namespace UIUtils// namespace UIUtils

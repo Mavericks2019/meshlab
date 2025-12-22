@@ -20,7 +20,7 @@
 #include <QButtonGroup>
 
 // 创建最短路径标签页
-QWidget* createShortestPathTab(ShortestPathGLWidget* glWidget) {
+inline QWidget* createShortestPathTab(ShortestPathGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
@@ -28,7 +28,7 @@ QWidget* createShortestPathTab(ShortestPathGLWidget* glWidget) {
 }
 
 // 创建OBJ文件加载按钮（最短路径版）
-QWidget* createShortestPathModelLoadButton(ShortestPathGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createShortestPathModelLoadButton(ShortestPathGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File (Shortest Path)");
     button->setStyleSheet(
         "QPushButton {"
@@ -55,7 +55,7 @@ QWidget* createShortestPathModelLoadButton(ShortestPathGLWidget* glWidget, QLabe
 }
 
 // 创建最短路径计算按钮
-QWidget* createShortestPathCalculateButton(ShortestPathGLWidget* glWidget) {
+inline QWidget* createShortestPathCalculateButton(ShortestPathGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Calculate Shortest Path");
     button->setStyleSheet(
         "QPushButton {"
@@ -75,7 +75,7 @@ QWidget* createShortestPathCalculateButton(ShortestPathGLWidget* glWidget) {
 }
 
 // 创建清除选择按钮
-QWidget* createClearSelectionButton(ShortestPathGLWidget* glWidget) {
+inline QWidget* createClearSelectionButton(ShortestPathGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Clear Selection");
     button->setStyleSheet(
         "QPushButton {"
@@ -95,7 +95,7 @@ QWidget* createClearSelectionButton(ShortestPathGLWidget* glWidget) {
 }
 
 // 创建保存拾取图像按钮
-QWidget* createSavePickingImageButton(ShortestPathGLWidget* glWidget) {
+inline QWidget* createSavePickingImageButton(ShortestPathGLWidget* glWidget) {
     QPushButton *button = new QPushButton("Save Picking Image");
     button->setStyleSheet(
         "QPushButton {"
@@ -127,7 +127,7 @@ QWidget* createSavePickingImageButton(ShortestPathGLWidget* glWidget) {
 }
 
 // 创建最短路径控制面板
-QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createShortestPathControlPanel(ShortestPathGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

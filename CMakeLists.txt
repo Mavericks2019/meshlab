@@ -61,8 +61,10 @@ add_executable(${PROJECT_NAME}
     tabs/dualview_extended_tab.h
     tabs/dualview_simple_tab.h
     
-    menu_utils.cpp  # 添加这个
-    menu_utils.h    # 添加这个
+    menu_utils.cpp
+    menu_utils.h
+    tab_manager.cpp    # 添加这个
+    tab_manager.h      # 添加这个
     ${RESOURCE_FILES}
 )
 

@@ -26,6 +26,7 @@
 #include <QFileInfo>
 #include <QMap>
 #include <QList>
+#include <QColorDialog>  // 添加这个
 
 namespace UIUtils {
 
@@ -78,6 +79,12 @@ namespace UIUtils {
     // 创建菜单栏
     QMenuBar* createMenuBar(CloseableTabWidget* tabWidget, QWidget* mainWindow, 
                            QList<TabInfo>& tabInfos, QMap<QString, QWidget*>& controlPanelMap);
+
+    // 创建模型信息组
+    QGroupBox* createModelInfoGroup(QLabel** infoLabel = nullptr);
+
+    // 创建颜色设置组
+    QGroupBox* createColorSettingsGroup(QWidget* glWidget);
 
 } // namespace UIUtils
 

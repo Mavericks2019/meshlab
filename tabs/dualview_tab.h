@@ -20,7 +20,7 @@
 #include <QTabWidget>
 
 // 创建双视图标签页
-QWidget* createDualViewTab(BaseGLWidget* leftWidget, UVParamWidget* rightWidget) {
+inline QWidget* createDualViewTab(BaseGLWidget* leftWidget, UVParamWidget* rightWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     
@@ -40,7 +40,7 @@ QWidget* createDualViewTab(BaseGLWidget* leftWidget, UVParamWidget* rightWidget)
 }
 
 // 创建双视图控制面板
-QWidget* createDualViewControlPanel(BaseGLWidget* leftWidget, UVParamWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
+inline QWidget* createDualViewControlPanel(BaseGLWidget* leftWidget, UVParamWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

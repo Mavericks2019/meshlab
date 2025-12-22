@@ -22,7 +22,7 @@
 #include <QColorDialog>
 
 // 创建简单双视图标签页
-QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget) {
+inline QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     
@@ -42,7 +42,7 @@ QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* r
 }
 
 // 创建简单双视图控制面板
-QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
+inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget, QLabel* leftInfoLabel, QLabel* rightInfoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     

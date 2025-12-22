@@ -17,14 +17,14 @@
 #include <QCheckBox>
 
 // 创建CGAL标签页
-QWidget* createCGALTab(CGALGLWidget* glWidget) {
+inline QWidget* createCGALTab(CGALGLWidget* glWidget) {
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     layout->addWidget(glWidget);
     return tab;
 }
 
-QGroupBox* createCGALDisplayOptionsGroup(CGALGLWidget* glWidget) {
+inline QGroupBox* createCGALDisplayOptionsGroup(CGALGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Display Options");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -45,7 +45,7 @@ QGroupBox* createCGALDisplayOptionsGroup(CGALGLWidget* glWidget) {
     return group;
 }
 
-QGroupBox* createCGALRenderingModeGroup(CGALGLWidget* glWidget) {
+inline QGroupBox* createCGALRenderingModeGroup(CGALGLWidget* glWidget) {
     QGroupBox *group = new QGroupBox("Rendering Mode");
     QVBoxLayout *layout = new QVBoxLayout(group);
     
@@ -73,7 +73,7 @@ QGroupBox* createCGALRenderingModeGroup(CGALGLWidget* glWidget) {
 }
 
 // 创建OBJ文件加载按钮（CGAL版）
-QWidget* createCGALModelLoadButton(CGALGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createCGALModelLoadButton(CGALGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QPushButton *button = new QPushButton("Load OBJ File (CGAL)");
     button->setStyleSheet(
         "QPushButton {"
@@ -100,7 +100,7 @@ QWidget* createCGALModelLoadButton(CGALGLWidget* glWidget, QLabel* infoLabel, QW
 }
 
 // 创建CGAL模型控制面板
-QWidget* createCGALControlPanel(CGALGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
+inline QWidget* createCGALControlPanel(CGALGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     
