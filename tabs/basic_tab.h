@@ -1,4 +1,4 @@
-// basic_tab.h
+#pragma once
 #ifndef BASIC_TAB_H
 #define BASIC_TAB_H
 

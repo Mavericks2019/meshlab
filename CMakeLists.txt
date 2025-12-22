@@ -52,6 +52,17 @@ add_executable(${PROJECT_NAME}
     glwidget/uvparamwidget_extended.cpp
     tabs/dualview_simple_tab.h
     glwidget/simplesquarewidget_parameterization.cpp
+    tabs/model_tab.h
+    tabs/basic_tab.h
+    tabs/cgal_tab.h
+    tabs/shortestpath_tab.h
+    tabs/uvparam_tab.h
+    tabs/dualview_tab.h
+    tabs/dualview_extended_tab.h
+    tabs/dualview_simple_tab.h
+    
+    menu_utils.cpp  # 添加这个
+    menu_utils.h    # 添加这个
     ${RESOURCE_FILES}
 )
 

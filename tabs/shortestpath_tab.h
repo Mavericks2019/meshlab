@@ -1,4 +1,4 @@
-// shortestpath_tab.h
+#pragma once
 #ifndef SHORTESTPATH_TAB_H
 #define SHORTESTPATH_TAB_H
 

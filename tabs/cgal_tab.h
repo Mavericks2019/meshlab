@@ -1,4 +1,4 @@
-// cgal_tab.h
+#pragma once
 #ifndef CGAL_TAB_H
 #define CGAL_TAB_H
 

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MODEL_TAB_H
 #define MODEL_TAB_H
 

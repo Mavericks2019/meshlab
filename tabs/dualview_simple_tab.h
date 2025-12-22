@@ -1,4 +1,4 @@
-// dualview_simple_tab.h
+#pragma once
 #ifndef DUALVIEW_SIMPLE_TAB_H
 #define DUALVIEW_SIMPLE_TAB_H
 
@@ -19,6 +19,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QColorDialog>
 
 // 创建简单双视图标签页
 QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWidget* rightWidget) {

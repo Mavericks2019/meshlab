@@ -1,4 +1,4 @@
-// dualview_extended_tab.h
+#pragma once
 #ifndef DUALVIEW_EXTENDED_TAB_H
 #define DUALVIEW_EXTENDED_TAB_H
 
