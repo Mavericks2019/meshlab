@@ -126,9 +126,20 @@ namespace UIUtils {
         }
         return titles;
     }
+    
+    void CloseableTabWidget::removeWidgetAssociations(QWidget* widget) {
+        if (!widget) return;
+        
+        QString title = tabTitles.take(widget);
+        if (!title.isEmpty()) {
+            titleToWidget.remove(title);
+            titleToAction.remove(title);
+        }
+    }
 
     QMenuBar* createMenuBar(CloseableTabWidget* tabWidget, QWidget* mainWindow, 
-                           QList<TabInfo>& tabInfos, QMap<QString, QWidget*>& controlPanelMap) {
+                           QList<TabInfo>& tabInfos, QMap<QString, QWidget*>& controlPanelMap,
+                           std::function<void(const QString&, bool)> createTabFunc) {
         QMenuBar* menuBar = new QMenuBar(mainWindow);
         menuBar->setStyleSheet(R"(
             QMenuBar {
@@ -208,40 +219,55 @@ namespace UIUtils {
             info.name = tabNames[i];
             info.title = tabNames[i];
             info.action = action;
-            info.isVisible = true;
+            info.isVisible = false; // 初始不可见，除了第一个
             info.originalIndex = i;
+            info.widget = nullptr; // 初始没有widget
+            info.controlPanel = nullptr; // 初始没有控制面板
             tabInfos.append(info);
             
             // 将action与tabWidget关联
             tabWidget->setActionForTitle(tabNames[i], action);
             
-            // 连接信号 - 修复：正确传递所有需要的变量
-            QObject::connect(action, &QAction::triggered, [tabWidget, title = tabNames[i], &tabInfos, mainWindow, action, &controlPanelMap, i]() {
-                // 如果Tab当前不可见，先恢复它
-                if (tabWidget->indexOf(tabWidget->getWidgetByTitle(title)) == -1) {
-                    tabWidget->restoreTabByTitle(title);
-                    tabInfos[i].isVisible = true;
+            // 连接信号 - 菜单点击tab逻辑
+            QObject::connect(action, &QAction::triggered, [tabWidget, title = tabNames[i], &tabInfos, mainWindow, action, &controlPanelMap, i, createTabFunc]() {
+                // 查找tab是否已经存在且显示在tab栏中
+                QWidget* widget = tabWidget->getWidgetByTitle(title);
+                bool tabExists = false;
+                
+                if (widget) {
+                    // 检查widget是否在tabWidget中（是否显示）
+                    int tabIndex = tabWidget->indexOf(widget);
+                    if (tabIndex >= 0) {
+                        // Tab已存在且在tab栏中显示，直接切换到该tab
+                        tabWidget->setCurrentIndex(tabIndex);
+                        tabExists = true;
+                    }
                 }
                 
-                // 切换到该tab
-                QWidget* widget = tabWidget->getWidgetByTitle(title);
-                if (widget) {
-                    tabWidget->setCurrentWidget(widget);
-                    mainWindow->setWindowTitle("OBJ Viewer - " + title);
-                    
-                    // 更新action选中状态
-                    action->setChecked(true);
-                    
-                    // 显示对应的控制面板
-                    if (controlPanelMap.contains(title)) {
-                        QWidget* controlPanel = controlPanelMap[title];
-                        // 隐藏所有控制面板
-                        for (QWidget* panel : controlPanelMap.values()) {
-                            panel->setVisible(false);
-                        }
-                        // 显示当前控制面板
-                        controlPanel->setVisible(true);
+                if (!tabExists && createTabFunc) {
+                    // Tab不存在或不显示，调用创建函数
+                    createTabFunc(title, true); // true表示创建后切换到该tab
+                }
+                
+                // 更新窗口标题
+                mainWindow->setWindowTitle("OBJ Viewer - " + title);
+                
+                // 更新所有action选中状态
+                for (int j = 0; j < tabInfos.size(); ++j) {
+                    if (tabInfos[j].action) {
+                        tabInfos[j].action->setChecked(tabInfos[j].title == title);
                     }
+                }
+                
+                // 显示对应的控制面板
+                if (controlPanelMap.contains(title)) {
+                    QWidget* controlPanel = controlPanelMap[title];
+                    // 隐藏所有控制面板
+                    for (QWidget* panel : controlPanelMap.values()) {
+                        panel->setVisible(false);
+                    }
+                    // 显示当前控制面板
+                    controlPanel->setVisible(true);
                 }
             });
         }
@@ -251,32 +277,31 @@ namespace UIUtils {
         
         // 添加显示所有tab的选项
         QAction* showAllTabsAction = new QAction("Show All Tabs", parameterMenu);
-        QObject::connect(showAllTabsAction, &QAction::triggered, [tabWidget, &tabInfos, tabNames, &controlPanelMap]() {
-            // 按原始顺序重新添加所有tab
+        QObject::connect(showAllTabsAction, &QAction::triggered, [tabWidget, &tabInfos, tabNames, &controlPanelMap, createTabFunc]() {
+            // 创建所有tab
             for (int i = 0; i < tabNames.size(); ++i) {
                 QString title = tabNames[i];
                 QWidget* widget = tabWidget->getWidgetByTitle(title);
+                
+                if (!widget && createTabFunc) {
+                    createTabFunc(title, false); // 只创建，不切换到该tab
+                    widget = tabWidget->getWidgetByTitle(title);
+                }
+                
                 if (widget && tabWidget->indexOf(widget) == -1) {
-                    tabWidget->restoreTabByTitle(title);
+                    tabWidget->addTab(widget, title);
                     tabInfos[i].isVisible = true;
-                    
-                    // 更新对应的action状态
-                    if (tabInfos[i].action) {
-                        tabInfos[i].action->setChecked(true);
-                    }
                 }
             }
             
             // 确保至少有一个tab被选中
             if (tabWidget->count() > 0) {
                 tabWidget->setCurrentIndex(0);
-                if (tabInfos[0].action) {
-                    tabInfos[0].action->setChecked(true);
-                }
                 
                 // 显示第一个tab的控制面板
-                if (controlPanelMap.contains(tabNames[0])) {
-                    QWidget* controlPanel = controlPanelMap[tabNames[0]];
+                QString firstTitle = tabNames[0];
+                if (controlPanelMap.contains(firstTitle)) {
+                    QWidget* controlPanel = controlPanelMap[firstTitle];
                     // 隐藏所有控制面板
                     for (QWidget* panel : controlPanelMap.values()) {
                         panel->setVisible(false);
@@ -423,4 +448,4 @@ namespace UIUtils {
         return infoGroup;
     }
 
-} // namespace UIUtils// namespace UIUtils
+} // namespace UIUtils

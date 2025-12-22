@@ -9,6 +9,7 @@
 #include <QMenuBar>
 #include <QMap>
 #include <QList>
+#include <functional>
 
 #include "menu_utils.h"
 
@@ -50,7 +51,16 @@ public:
     QWidget* getControlContainer() const { return controlContainer; }
 
 private:
-    // 创建各个tab页面
+    // 动态创建各个tab页面
+    void createTab(const QString& title, bool switchToTab);
+    
+    // 删除tab
+    void deleteTab(const QString& title);
+    
+    // 清理tab的所有资源
+    void cleanupTab(const QString& title);
+
+    // 创建特定的tab页面
     void createBasicTab();
     void createCGALTab();
     void createModelTab();
@@ -61,7 +71,7 @@ private:
     void createDualViewSimpleTab();
 
     // 创建控制面板
-    void createControlPanels();
+    void createControlPanel(const QString& title);
     
     // 连接信号
     void connectSignals();
@@ -81,6 +91,9 @@ private:
     
     // 控制面板容器
     QWidget* controlContainer;
+    
+    // 存储是否已创建的标记
+    QMap<QString, bool> tabCreated;
 
     // GLWidgets
     ModelGLWidget* modelGlWidget;

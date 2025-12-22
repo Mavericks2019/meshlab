@@ -26,7 +26,8 @@
 #include <QFileInfo>
 #include <QMap>
 #include <QList>
-#include <QColorDialog>  // 添加这个
+#include <QColorDialog>
+#include <functional>
 
 namespace UIUtils {
 
@@ -63,6 +64,9 @@ namespace UIUtils {
         
         // 获取所有标题
         QStringList getTitles() const;
+        
+        // 清理widget的关联
+        void removeWidgetAssociations(QWidget* widget);
     };
 
     // Tab信息结构体
@@ -78,7 +82,8 @@ namespace UIUtils {
 
     // 创建菜单栏
     QMenuBar* createMenuBar(CloseableTabWidget* tabWidget, QWidget* mainWindow, 
-                           QList<TabInfo>& tabInfos, QMap<QString, QWidget*>& controlPanelMap);
+                           QList<TabInfo>& tabInfos, QMap<QString, QWidget*>& controlPanelMap,
+                           std::function<void(const QString&, bool)> createTabFunc = nullptr);
 
     // 创建模型信息组
     QGroupBox* createModelInfoGroup(QLabel** infoLabel = nullptr);

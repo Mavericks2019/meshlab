@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     
     // 设置主窗口
     mainWindow.setLayout(outerLayout);
-    mainWindow.setWindowTitle("OBJ Viewer");
+    mainWindow.setWindowTitle("OBJ Viewer - OpenMesh");
     mainWindow.show();
 
     return app.exec();
