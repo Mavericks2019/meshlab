@@ -1,9 +1,10 @@
+// dualview_simple_tab.h
 #pragma once
 #ifndef DUALVIEW_SIMPLE_TAB_H
 #define DUALVIEW_SIMPLE_TAB_H
 
 #include "../glwidget/baseglwidget.h"
-#include "../glwidget/simplesquarewidget.h"  // 修改为新的SimpleSquareWidget
+#include "../glwidget/simplesquarewidget.h"
 #include "basic_tab.h"
 #include <QApplication>
 #include <QVBoxLayout>
@@ -26,14 +27,11 @@ inline QWidget* createDualViewSimpleTab(BaseGLWidget* leftWidget, SimpleSquareWi
     QWidget *tab = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout(tab);
     
-    // 使用分割器创建左右视图
     QSplitter *splitter = new QSplitter(Qt::Horizontal);
     
-    // 添加左右视图
     splitter->addWidget(leftWidget);
     splitter->addWidget(rightWidget);
     
-    // 设置初始分割比例
     splitter->setSizes(QList<int>() << 500 << 500);
     
     layout->addWidget(splitter);
@@ -46,29 +44,23 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     QWidget *panel = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(panel);
     
-    // 创建标签页来分隔左右视图的控制
     QTabWidget *controlTabs = new QTabWidget;
     
-    // 左侧视图控制面板 (使用BaseGLWidget的控制)
     QWidget *leftControlPanel = createBasicControlPanel(leftWidget, leftInfoLabel, mainWindow);
     controlTabs->addTab(leftControlPanel, "Left View Controls");
     
-    // 右侧视图控制面板 - 简化版本
     QWidget *rightControlPanel = new QWidget;
     QVBoxLayout *rightLayout = new QVBoxLayout(rightControlPanel);
     rightLayout->setAlignment(Qt::AlignTop);
     
-    // 右侧视图信息显示
     QGroupBox *rightInfoGroup = new QGroupBox("Right View Information");
     QVBoxLayout *rightInfoLayout = new QVBoxLayout(rightInfoGroup);
     rightInfoLayout->addWidget(rightInfoLabel);
     rightLayout->addWidget(rightInfoGroup);
     
-    // 添加右侧视图颜色设置
     QGroupBox *rightColorGroup = new QGroupBox("Square Settings");
     QVBoxLayout *rightColorLayout = new QVBoxLayout(rightColorGroup);
     
-    // 背景颜色按钮
     QPushButton *bgColorButton = new QPushButton("Change Background Color");
     bgColorButton->setStyleSheet(
         "QPushButton {"
@@ -89,7 +81,6 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     });
     rightColorLayout->addWidget(bgColorButton);
     
-    // 正方形颜色按钮
     QPushButton *squareColorButton = new QPushButton("Change Square Color");
     squareColorButton->setStyleSheet(
         "QPushButton {"
@@ -112,7 +103,84 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     
     rightLayout->addWidget(rightColorGroup);
     
-    // 添加右侧视图重置按钮
+    // 添加检测翻转按钮
+    QGroupBox *flipCheckGroup = new QGroupBox("Flip Detection");
+    QVBoxLayout *flipCheckLayout = new QVBoxLayout(flipCheckGroup);
+    
+    QPushButton *checkFlipButton = new QPushButton("Check for Flipped Triangles");
+    checkFlipButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #A05050;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "}"
+        "QPushButton:hover { background-color: #B06060; }"
+        "QPushButton:disabled {"
+        "   background-color: #404040;"
+        "   color: #808080;"
+        "}"
+    );
+    
+    // 初始时禁用检测按钮
+    checkFlipButton->setEnabled(false);
+    
+    QLabel *flipResultLabel = new QLabel("No flip detection performed yet");
+    flipResultLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 5px; border-radius: 3px;");
+    flipResultLabel->setWordWrap(true);
+    
+    QObject::connect(checkFlipButton, &QPushButton::clicked, [=]() {
+        if (!rightWidget->isParameterized()) {
+            QMessageBox::warning(mainWindow, "Flip Detection", 
+                "No parameterized mesh available. Please perform parameterization first.");
+            return;
+        }
+        
+        int flipCount = rightWidget->checkForFlips();
+        
+        if (flipCount == 0) {
+            flipResultLabel->setText("<b>✓ All triangles are oriented correctly!</b><br>"
+                                     "No flipped triangles found.");
+            flipResultLabel->setStyleSheet("color: #90EE90; background-color: #303030; padding: 5px; border-radius: 3px;");
+        } else {
+            auto flippedIndices = rightWidget->getFlippedTriangles();
+            QString indicesStr;
+            for (size_t i = 0; i < std::min(flippedIndices.size(), size_t(10)); i++) {
+                indicesStr += QString::number(flippedIndices[i]) + " ";
+            }
+            if (flippedIndices.size() > 10) {
+                indicesStr += "... (and " + QString::number(flippedIndices.size() - 10) + " more)";
+            }
+            
+            flipResultLabel->setText(QString("<b>⚠ Warning: %1 triangles flipped!</b><br>"
+                                           "Flipped triangle indices: %2<br>"
+                                           "A flipped triangle has negative area in parameter space, "
+                                           "indicating orientation reversal.")
+                                    .arg(flipCount)
+                                    .arg(indicesStr));
+            flipResultLabel->setStyleSheet("color: #FFA07A; background-color: #303030; padding: 5px; border-radius: 3px;");
+            
+            QMessageBox::warning(mainWindow, "Flip Detection", 
+                QString("Found %1 flipped triangles in the parameterization.\n"
+                       "This means these triangles have negative area in parameter space, "
+                       "which can cause issues in texture mapping and other applications.")
+                .arg(flipCount));
+        }
+        
+        rightInfoLabel->setText(QString("Parameterized Mesh\n"
+                                      "Vertices: %1, Faces: %2\n"
+                                      "Flipped triangles: %3")
+                              .arg(rightWidget->getParameterizedVertices().size() / 3)
+                              .arg(rightWidget->getParameterizedFaces().size() / 3)
+                              .arg(flipCount));
+    });
+    
+    flipCheckLayout->addWidget(checkFlipButton);
+    flipCheckLayout->addWidget(flipResultLabel);
+    rightLayout->addWidget(flipCheckGroup);
+    
     QPushButton *resetRightButton = new QPushButton("Reset Right View");
     resetRightButton->setStyleSheet(
         "QPushButton {"
@@ -125,11 +193,13 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
         "}"
         "QPushButton:hover { background-color: #606060; }"
     );
-    QObject::connect(resetRightButton, &QPushButton::clicked, [rightWidget]() {
-        // 重置为默认颜色
+    QObject::connect(resetRightButton, &QPushButton::clicked, [=]() {
         rightWidget->setBackgroundColor(QColor(0, 85, 127));
         rightWidget->setSquareColor(Qt::white);
         rightWidget->clearMeshData();
+        flipResultLabel->setText("No flip detection performed yet");
+        flipResultLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 5px; border-radius: 3px;");
+        checkFlipButton->setEnabled(false);
     });
     rightLayout->addWidget(resetRightButton);
     
@@ -139,17 +209,14 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     
     layout->addWidget(controlTabs);
     
-    // 添加参数化选项组
     QGroupBox *parameterizationGroup = new QGroupBox("Parameterization Options");
     QVBoxLayout *paramLayout = new QVBoxLayout(parameterizationGroup);
     
-    // 创建参数化方法选择组
     QGroupBox *methodGroup = new QGroupBox("Parameterization Method");
     QVBoxLayout *methodLayout = new QVBoxLayout(methodGroup);
     
     QButtonGroup *methodBtnGroup = new QButtonGroup(methodGroup);
     
-    // 原来的参数化方法（默认选中）
     QRadioButton *originalRadio = new QRadioButton("Original Method (Cotangent Weights)");
     originalRadio->setChecked(true);
     originalRadio->setStyleSheet("color: white;");
@@ -157,21 +224,18 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     methodBtnGroup->addButton(originalRadio, 0);
     methodLayout->addWidget(originalRadio);
     
-    // 均匀参数化方法 (Tutte)
     QRadioButton *uniformRadio = new QRadioButton("Uniform Tutte Parametrization");
     uniformRadio->setStyleSheet("color: white;");
     uniformRadio->setToolTip("Each internal vertex is the barycenter of its neighbors");
     methodBtnGroup->addButton(uniformRadio, 1);
     methodLayout->addWidget(uniformRadio);
     
-    // 加权Tutte参数化
     QRadioButton *weightedRadio = new QRadioButton("Weighted Tutte Parametrization");
     weightedRadio->setStyleSheet("color: white;");
     weightedRadio->setToolTip("Weights based on inverse squared distance");
     methodBtnGroup->addButton(weightedRadio, 2);
     methodLayout->addWidget(weightedRadio);
     
-    // Floater形状保持参数化
     QRadioButton *floaterRadio = new QRadioButton("Floater Shape-Preserving");
     floaterRadio->setStyleSheet("color: white;");
     floaterRadio->setToolTip("Floater's shape-preserving parametrization");
@@ -180,20 +244,17 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     
     paramLayout->addWidget(methodGroup);
     
-    // 边界类型选择组
     QGroupBox *boundaryGroup = new QGroupBox("Boundary Type");
     QVBoxLayout *boundaryLayout = new QVBoxLayout(boundaryGroup);
     
     QButtonGroup *boundaryBtnGroup = new QButtonGroup(boundaryGroup);
     
-    // 矩形边界
     QRadioButton *rectRadio = new QRadioButton("Rectangle Boundary");
     rectRadio->setChecked(true);
     rectRadio->setStyleSheet("color: white;");
     boundaryBtnGroup->addButton(rectRadio);
     boundaryLayout->addWidget(rectRadio);
     
-    // 圆形边界
     QRadioButton *circleRadio = new QRadioButton("Circular Boundary");
     circleRadio->setStyleSheet("color: white;");
     boundaryBtnGroup->addButton(circleRadio);
@@ -203,7 +264,6 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
     
     layout->addWidget(parameterizationGroup);
     
-    // 添加执行参数化按钮
     QPushButton *performParamButton = new QPushButton("Perform Parameterization");
     performParamButton->setStyleSheet(
         "QPushButton {"
@@ -221,18 +281,15 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
         "}"
     );
     
-    // 初始时禁用参数化按钮（因为没有加载模型）
     performParamButton->setEnabled(false);
     
-    // 连接按钮点击事件 - 修复捕获列表，包含所有需要的变量
     QObject::connect(performParamButton, &QPushButton::clicked, 
-        [=]() {  // 使用 [=] 捕获所有局部变量
+        [=]() {
             if (!leftWidget->modelLoaded) {
                 QMessageBox::warning(mainWindow, "Parameterization Error", "No model loaded in left view.");
                 return;
             }
             
-            // 获取选中的参数化方法
             BaseGLWidget::ParameterizationMethod paramMethod;
             int methodId = methodBtnGroup->checkedId();
             
@@ -253,16 +310,13 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
                 paramMethod = BaseGLWidget::OriginalMethod;
             }
             
-            // 获取选中的边界类型
             BaseGLWidget::BoundaryType boundaryType = BaseGLWidget::Rectangle;
             if (circleRadio->isChecked()) {
                 boundaryType = BaseGLWidget::Circle;
             }
             
-            // 设置参数化方法
             rightWidget->setParameterizationMethod(paramMethod);
             
-            // 将左侧网格数据传递给右侧进行参数化
             rightWidget->openMesh = leftWidget->openMesh;
             rightWidget->modelLoaded = true;
             rightWidget->faces = leftWidget->faces;
@@ -270,11 +324,9 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
             rightWidget->hasOriginalMesh = true;
             rightWidget->originalMesh = leftWidget->openMesh;
             
-            // 执行参数化
             rightWidget->performParameterization(boundaryType, paramMethod);
             
             if (rightWidget->isParameterized()) {
-                // 获取参数化结果并传递给右视图
                 auto vertices = rightWidget->getParameterizedVertices();
                 auto faces = rightWidget->getParameterizedFaces();
                 rightWidget->setMeshData(vertices, faces);
@@ -305,41 +357,32 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
                                        .arg(vertices.size() / 3)
                                        .arg(faces.size() / 3));
                 
-                // 移除弹窗显示，只更新界面
-                // QMessageBox::information(mainWindow, "Parameterization", 
-                //                        QString("Parameterization completed successfully!\n"
-                //                                "Method: %1\n"
-                //                                "Boundary: %2\n"
-                //                                "Vertices: %3, Faces: %4")
-                //                        .arg(methodStr)
-                //                        .arg(boundaryStr)
-                //                        .arg(vertices.size() / 3)
-                //                        .arg(faces.size() / 3));
-            } else {
-                // 改为在右侧信息标签显示错误信息，而不是弹窗
-                rightInfoLabel->setText("Parameterization failed. Please check the model and try again.");
+                // 启用检测翻转按钮
+                checkFlipButton->setEnabled(true);
+                flipResultLabel->setText("Click 'Check for Flipped Triangles' to detect flips");
+                flipResultLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 5px; border-radius: 3px;");
                 
-                // 移除错误弹窗
-                // QMessageBox::critical(mainWindow, "Parameterization Error", 
-                //                     "Parameterization failed. Please check the model and try again.");
+            } else {
+                rightInfoLabel->setText("Parameterization failed. Please check the model and try again.");
+                checkFlipButton->setEnabled(false);
             }
         });
     
     layout->addWidget(performParamButton);
     
-    // 添加方法说明标签
     QLabel *methodInfoLabel = new QLabel(
         "<b>Method Descriptions:</b><br>"
         "• <b>Original Method:</b> Uses cotangent weights for shape preservation<br>"
         "• <b>Uniform Tutte:</b> Each vertex is placed at the barycenter of its neighbors<br>"
         "• <b>Weighted Tutte:</b> Weights based on inverse squared distance in 3D<br>"
-        "• <b>Floater Shape-Preserving:</b> Advanced shape-preserving parametrization"
+        "• <b>Floater Shape-Preserving:</b> Advanced shape-preserving parametrization<br><br>"
+        "<b>Flip Detection:</b> Checks for triangles with negative area in parameter space, "
+        "which indicates orientation reversal (flipping)."
     );
     methodInfoLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 10px; border-radius: 5px;");
     methodInfoLabel->setWordWrap(true);
     layout->addWidget(methodInfoLabel);
     
-    // 添加同步加载按钮
     QPushButton *syncLoadButton = new QPushButton("Load OBJ File (Left View Only)");
     syncLoadButton->setStyleSheet(
         "QPushButton {"
@@ -352,21 +395,21 @@ inline QWidget* createDualViewSimpleControlPanel(BaseGLWidget* leftWidget, Simpl
         "}"
         "QPushButton:hover { background-color: #606060; }"
     );
-    QObject::connect(syncLoadButton, &QPushButton::clicked, [=]() {  // 使用 [=] 捕获所有局部变量
+    QObject::connect(syncLoadButton, &QPushButton::clicked, [=]() {
         QString filePath = QFileDialog::getOpenFileName(
             mainWindow, "Open OBJ File", "", "OBJ Files (*.obj)");
         
         if (!filePath.isEmpty()) {
-            // 只加载到左侧视图
             leftWidget->loadOBJ(filePath);
             leftInfoLabel->setText("Model loaded (Left View): " + QFileInfo(filePath).fileName());
             
-            // 清空右侧视图的网格数据，显示默认正方形
             rightWidget->clearMeshData();
             rightInfoLabel->setText("White Square View - Ready for parameterization");
             
-            // 启用参数化按钮，因为现在有模型了
             performParamButton->setEnabled(true);
+            checkFlipButton->setEnabled(false);
+            flipResultLabel->setText("No flip detection performed yet");
+            flipResultLabel->setStyleSheet("color: #CCCCCC; background-color: #303030; padding: 5px; border-radius: 3px;");
             
             mainWindow->setWindowTitle("OBJ Viewer - " + QFileInfo(filePath).fileName() + " (Simple Dual View)");
         }

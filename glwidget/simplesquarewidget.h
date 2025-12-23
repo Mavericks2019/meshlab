@@ -8,7 +8,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 #include <Eigen/SparseLU>
-#include <Eigen/IterativeLinearSolvers>  // 添加迭代求解器支持
+#include <Eigen/IterativeLinearSolvers>
 #include <cmath>
 #include <tuple>
 
@@ -25,6 +25,7 @@ public:
     void clearMeshData();
     bool hasMeshData() const { return meshLoaded; }
     void solveParameterizationFloater();
+    
     // 重写参数化相关方法
     void performParameterization(BoundaryType boundaryType = Rectangle, 
                                  ParameterizationMethod method = OriginalMethod) override;
@@ -37,6 +38,10 @@ public:
         currentParamMethod = method; 
         qDebug() << "Parameterization method set to:" << method;
     }
+
+    // 添加检测翻转的方法
+    int checkForFlips() const;
+    std::vector<int> getFlippedTriangles() const { return flippedTriangles; }
 
 protected:
     void initializeGL() override;
@@ -51,8 +56,8 @@ public:
     void mapBoundaryToCircle();
     void mapBoundaryToRectangle();
     void normalizeMesh();
-    void solveParameterizationOriginal();  // 原来的参数化方法
-    void solveParameterization();  // 新增的通用参数化方法
+    void solveParameterizationOriginal();
+    void solveParameterization();
     
     // 参数化权重计算方法
     std::map<int, float> computeWeightsForVertex(Mesh::VertexHandle vh, ParameterizationMethod method);
@@ -81,13 +86,26 @@ public:
     QColor meshColor;
     float squareSize;
     Mesh original;
+    
     // 网格数据
     std::vector<float> meshVertices;
     std::vector<unsigned int> meshFaces;
     bool meshLoaded = false;
     
+    // 参数化结果
+    std::vector<float> paramVertices;
+    std::vector<unsigned int> paramFaces;
+    bool parameterized = false;
+    
     // 当前参数化方法
     ParameterizationMethod currentParamMethod = OriginalMethod;
+    
+    // 存储翻转的三角形索引
+    mutable std::vector<int> flippedTriangles;
+    void outputDebugFiles() const;
+private:
+    // 添加私有辅助方法
+    float computeDeterminant2D(float x1, float y1, float x2, float y2, float x3, float y3) const;
 };
 
 #endif // SIMPLESQUAREWIDGET_H
