@@ -258,6 +258,339 @@ void SimpleSquareWidget::paintGL() {
     }
 }
 
+// 新增函数：计算变形梯度算子
+DeformationGradientOperator SimpleSquareWidget::computeDeformationGradientOperator(
+    const std::vector<float>& vertices, 
+    const std::vector<unsigned int>& faces) const {
+    
+    DeformationGradientOperator result;
+    
+    int nv = vertices.size() / 3;  // 顶点数量
+    int nf = faces.size() / 3;     // 面数量
+    
+    if (nv == 0 || nf == 0) {
+        qDebug() << "Error: Empty mesh data";
+        return result;
+    }
+    
+    // 将顶点转换为Eigen格式以便计算
+    std::vector<Eigen::Vector3d> V(nv);
+    for (int i = 0; i < nv; i++) {
+        V[i] = Eigen::Vector3d(
+            vertices[i * 3],
+            vertices[i * 3 + 1],
+            vertices[i * 3 + 2]
+        );
+    }
+    
+    // 初始化面积向量
+    result.areas = Eigen::VectorXd::Zero(nf);
+    
+    // 为 grad_3d 预分配空间 (3*nf x nv 稀疏矩阵)
+    std::vector<Eigen::Triplet<double>> triplets_grad3d;
+    triplets_grad3d.reserve(9 * nf);
+    
+    // 为投影矩阵P预分配空间 (2*nf x 3*nf 稀疏矩阵)
+    std::vector<Eigen::Triplet<double>> triplets_proj;
+    triplets_proj.reserve(6 * nf);
+    
+    // 遍历所有三角形
+    for (int t = 0; t < nf; t++) {
+        unsigned int i = faces[t * 3];
+        unsigned int j = faces[t * 3 + 1];
+        unsigned int k = faces[t * 3 + 2];
+        
+        // 获取顶点坐标
+        Eigen::Vector3d vi = V[i];
+        Eigen::Vector3d vj = V[j];
+        Eigen::Vector3d vk = V[k];
+        
+        // 计算边向量
+        Eigen::Vector3d e1 = vj - vi;  // 边 vi->vj
+        Eigen::Vector3d e2 = vk - vi;  // 边 vi->vk
+        Eigen::Vector3d e3 = vk - vj;  // 边 vj->vk
+        
+        // 计算三角形法向量和面积
+        Eigen::Vector3d n = cross(e1, e2);
+        double area = norm(n) / 2.0;  // 三角形面积 (n的长度是2倍面积)
+        result.areas(t) = area;
+        
+        // 归一化法向量
+        Eigen::Vector3d n_unit = n / (2.0 * area + 1e-12);
+        
+        // 计算基函数梯度
+        // 公式: ∇φ_i = (n × e_jk) / (2A)
+        // 其中 e_jk 是与顶点 i 相对的边 (v_k - v_j)
+        Eigen::Vector3d grad_phi_i = cross(n_unit, e3) / (2.0 * area + 1e-12);
+        Eigen::Vector3d grad_phi_j = cross(n_unit, -e2) / (2.0 * area + 1e-12);  // e_ki = -(v_k - v_i)
+        Eigen::Vector3d grad_phi_k = cross(n_unit, e1) / (2.0 * area + 1e-12);
+        
+        // 添加 grad_3d 的三元组 (每个三角形贡献3行，每行对应一个坐标分量)
+        // 行索引: 3*t + 0, 3*t + 1, 3*t + 2 分别对应三角形的 x, y, z 分量
+        // 列索引: 顶点索引 i, j, k
+        
+        // 顶点 i 的贡献
+        triplets_grad3d.emplace_back(3*t,     i, grad_phi_i.x());  // x分量
+        triplets_grad3d.emplace_back(3*t + 1, i, grad_phi_i.y());  // y分量
+        triplets_grad3d.emplace_back(3*t + 2, i, grad_phi_i.z());  // z分量
+        
+        // 顶点 j 的贡献
+        triplets_grad3d.emplace_back(3*t,     j, grad_phi_j.x());
+        triplets_grad3d.emplace_back(3*t + 1, j, grad_phi_j.y());
+        triplets_grad3d.emplace_back(3*t + 2, j, grad_phi_j.z());
+        
+        // 顶点 k 的贡献
+        triplets_grad3d.emplace_back(3*t,     k, grad_phi_k.x());
+        triplets_grad3d.emplace_back(3*t + 1, k, grad_phi_k.y());
+        triplets_grad3d.emplace_back(3*t + 2, k, grad_phi_k.z());
+        
+        // 计算局部坐标系
+        // 第一条边方向作为局部x轴
+        Eigen::Vector3d lx = e1.normalized();
+        
+        // 在三角形平面内与lx垂直的方向作为局部y轴
+        Eigen::Vector3d ly = cross(n_unit, lx).normalized();
+        
+        // 添加投影矩阵P的三元组
+        // 投影矩阵P的大小为 (2*nf) x (3*nf)
+        // 对于三角形t，投影矩阵的块 P_t = [lx^T; ly^T] ∈ R^{2x3}
+        
+        int row_base = 2 * t;  // 当前三角形在P中的起始行索引
+        int col_base = 3 * t;  // 当前三角形在P中的起始列索引
+        
+        // 第一行: lx
+        triplets_proj.emplace_back(row_base,     col_base,     lx.x());
+        triplets_proj.emplace_back(row_base,     col_base + 1, lx.y());
+        triplets_proj.emplace_back(row_base,     col_base + 2, lx.z());
+        
+        // 第二行: ly
+        triplets_proj.emplace_back(row_base + 1, col_base,     ly.x());
+        triplets_proj.emplace_back(row_base + 1, col_base + 1, ly.y());
+        triplets_proj.emplace_back(row_base + 1, col_base + 2, ly.z());
+    }
+    
+    // 构建稀疏矩阵
+    result.grad_3d = Eigen::SparseMatrix<double>(3 * nf, nv);
+    result.grad_3d.setFromTriplets(triplets_grad3d.begin(), triplets_grad3d.end());
+    
+    // 构建投影矩阵P
+    Eigen::SparseMatrix<double> P(2 * nf, 3 * nf);
+    P.setFromTriplets(triplets_proj.begin(), triplets_proj.end());
+    
+    // 计算grad_2d = P * grad_3d
+    result.grad_2d = P * result.grad_3d;
+    
+    qDebug() << "Deformation gradient operator computed:";
+    qDebug() << "  grad_3d: " << result.grad_3d.rows() << "x" << result.grad_3d.cols();
+    qDebug() << "  grad_2d: " << result.grad_2d.rows() << "x" << result.grad_2d.cols();
+    qDebug() << "  areas: " << result.areas.size();
+    
+    return result;
+}
+
+// 新增函数：构建变形梯度矩阵D
+Eigen::SparseMatrix<double> SimpleSquareWidget::buildDeformationMatrix(
+    const DeformationGradientOperator& op) const {
+    
+    int nf = op.areas.size();
+    int nv = op.grad_2d.cols();
+    
+    // 提取grad_2d的奇数行(D1)和偶数行(D2)
+    Eigen::SparseMatrix<double> D1(nf, nv);
+    Eigen::SparseMatrix<double> D2(nf, nv);
+    
+    // 为D1和D2预分配空间
+    std::vector<Eigen::Triplet<double>> triplets_D1, triplets_D2;
+    
+    // grad_2d的大小是(2*nf) x nv
+    // 奇数行(0,2,4,...)对应∂/∂x分量 -> D1
+    // 偶数行(1,3,5,...)对应∂/∂y分量 -> D2
+    
+    for (int k = 0; k < op.grad_2d.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(op.grad_2d, k); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            double value = it.value();
+            
+            if (row % 2 == 0) {  // 偶数行索引(0,2,4,...)，对应∂/∂x
+                triplets_D1.emplace_back(row / 2, col, value);
+            } else {  // 奇数行索引(1,3,5,...)，对应∂/∂y
+                triplets_D2.emplace_back(row / 2, col, value);
+            }
+        }
+    }
+    
+    D1.setFromTriplets(triplets_D1.begin(), triplets_D1.end());
+    D2.setFromTriplets(triplets_D2.begin(), triplets_D2.end());
+    
+    // 构建完整的变形梯度矩阵D
+    // D = [D1  0 ; 0 D1; D2 0; 0 D2] ∈ R^{(4*nf) x (2*nv)}
+    
+    int D_rows = 4 * nf;
+    int D_cols = 2 * nv;
+    
+    std::vector<Eigen::Triplet<double>> triplets_D;
+    triplets_D.reserve(4 * D1.nonZeros());  // D1和D2各有两个副本
+    
+    // 第1块: D1作用于u
+    for (int k = 0; k < D1.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(D1, k); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            triplets_D.emplace_back(row, col, it.value());
+        }
+    }
+    
+    // 第2块: D1作用于v (偏移nv列)
+    for (int k = 0; k < D1.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(D1, k); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            triplets_D.emplace_back(row + nf, col + nv, it.value());
+        }
+    }
+    
+    // 第3块: D2作用于u (偏移2*nf行)
+    for (int k = 0; k < D2.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(D2, k); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            triplets_D.emplace_back(row + 2 * nf, col, it.value());
+        }
+    }
+    
+    // 第4块: D2作用于v (偏移2*nf行, nv列)
+    for (int k = 0; k < D2.outerSize(); ++k) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(D2, k); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            triplets_D.emplace_back(row + 2 * nf + nf, col + nv, it.value());
+        }
+    }
+    
+    Eigen::SparseMatrix<double> D(D_rows, D_cols);
+    D.setFromTriplets(triplets_D.begin(), triplets_D.end());
+    
+    qDebug() << "Deformation matrix D built: " << D.rows() << "x" << D.cols();
+    return D;
+}
+
+// 新增函数：使用算子方法检测翻转
+int SimpleSquareWidget::checkForFlipsWithOperator(
+    const std::vector<float>& vertices,
+    const std::vector<unsigned int>& faces,
+    const std::vector<float>& uv) const {
+    
+    flippedTriangles.clear();
+    
+    if (vertices.empty() || uv.empty() || faces.empty()) {
+        return 0;
+    }
+    
+    // 计算变形梯度算子
+    DeformationGradientOperator op = computeDeformationGradientOperator(vertices, faces);
+    
+    int nv = vertices.size() / 3;
+    int nf = faces.size() / 3;
+    
+    // 提取u和v坐标
+    Eigen::VectorXd u_vec(nv);
+    Eigen::VectorXd v_vec(nv);
+    
+    for (int i = 0; i < nv; i++) {
+        u_vec(i) = uv[i * 3];      // u坐标
+        v_vec(i) = uv[i * 3 + 1];  // v坐标
+    }
+    
+    // 计算u和v的2D梯度
+    Eigen::VectorXd grad_u_2d = op.grad_2d * u_vec;
+    Eigen::VectorXd grad_v_2d = op.grad_2d * v_vec;
+    
+    // 计算每个三角形的Jacobian矩阵行列式
+    int flipCount = 0;
+    
+    for (int t = 0; t < nf; t++) {
+        // 提取三角形t的梯度
+        double du_dx = grad_u_2d(2 * t);      // ∂u/∂x
+        double du_dy = grad_u_2d(2 * t + 1);  // ∂u/∂y
+        double dv_dx = grad_v_2d(2 * t);      // ∂v/∂x
+        double dv_dy = grad_v_2d(2 * t + 1);  // ∂v/∂y
+        
+        // 计算Jacobian行列式
+        double det = du_dx * dv_dy - du_dy * dv_dx;
+        
+        // 如果行列式为负，表示翻转
+        if (det < 0.0) {
+            flipCount++;
+            flippedTriangles.push_back(t);
+        }
+    }
+    
+    qDebug() << "Using gradient operator: found" << flipCount << "flipped triangles out of" << nf;
+    return flipCount;
+}
+
+// 修改函数：检查翻转（添加算子方法选择）
+int SimpleSquareWidget::checkForFlips() const {
+    flippedTriangles.clear();
+    
+    if (paramVertices.empty() || meshVertices.empty() || paramFaces.empty()) {
+        return 0;
+    }
+    
+    // 方法选择开关：true使用算子方法，false使用原方法
+    bool useOperatorMethod = false;
+    
+    if (useOperatorMethod) {
+        // 使用算子方法
+        return checkForFlipsWithOperator(meshVertices, meshFaces, paramVertices);
+    } else {
+        // 使用原方法（有向面积方法）
+        int numFaces = paramFaces.size() / 3;
+        int flipCount = 0;
+        
+        const float EPSILON = 1e-6f;
+        
+        for (int i = 0; i < numFaces; i++) {
+            unsigned int idx1 = paramFaces[i * 3];
+            unsigned int idx2 = paramFaces[i * 3 + 1];
+            unsigned int idx3 = paramFaces[i * 3 + 2];
+            
+            // 获取参数域顶点（二维）
+            float u1 = paramVertices[idx1 * 3];
+            float v1 = paramVertices[idx1 * 3 + 1];
+            float u2 = paramVertices[idx2 * 3];
+            float v2 = paramVertices[idx2 * 3 + 1];
+            float u3 = paramVertices[idx3 * 3];
+            float v3 = paramVertices[idx3 * 3 + 1];
+            
+            // 获取原始三维顶点
+            float x1 = meshVertices[idx1 * 3];
+            float y1 = meshVertices[idx1 * 3 + 1];
+            float z1 = meshVertices[idx1 * 3 + 2];
+            float x2 = meshVertices[idx2 * 3];
+            float y2 = meshVertices[idx2 * 3 + 1];
+            float z2 = meshVertices[idx2 * 3 + 2];
+            float x3 = meshVertices[idx3 * 3];
+            float y3 = meshVertices[idx3 * 3 + 1];
+            float z3 = meshVertices[idx3 * 3 + 2];
+            
+            // 方法1：比较参数域有向面积和三维投影有向面积
+            float area2D = (u2 - u1) * (v3 - v1) - (u3 - u1) * (v2 - v1);
+            float area3D_xy = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
+            
+            // 如果符号不同，表示翻转
+            if (area2D * area3D_xy < 0.0f) {
+                flipCount++;
+                flippedTriangles.push_back(i);
+            }
+        }
+        
+        qDebug() << "Using area method: found" << flipCount << "flipped triangles out of" << numFaces;
+        return flipCount;
+    }
+}
+
 void SimpleSquareWidget::solveParameterization() {
     if (currentParamMethod == OriginalMethod) {
         solveParameterizationOriginal();
@@ -301,80 +634,6 @@ void SimpleSquareWidget::performParameterization(BoundaryType boundaryType, Para
     
     qDebug() << "Parameterization completed using method:" << method 
              << "Vertices:" << paramVertices.size() / 3 << "Faces:" << paramFaces.size() / 3;
-}
-
-int SimpleSquareWidget::checkForFlips() const {
-    flippedTriangles.clear();
-    
-    if (paramVertices.empty() || meshVertices.empty() || paramFaces.empty()) {
-        return 0;
-    }
-    
-    int numFaces = paramFaces.size() / 3;
-    int flipCount = 0;
-    
-    const float EPSILON = 1e-6f;
-    
-    for (int i = 0; i < numFaces; i++) {
-        unsigned int idx1 = paramFaces[i * 3];
-        unsigned int idx2 = paramFaces[i * 3 + 1];
-        unsigned int idx3 = paramFaces[i * 3 + 2];
-        
-        // 获取参数域顶点（二维）
-        float u1 = paramVertices[idx1 * 3];
-        float v1 = paramVertices[idx1 * 3 + 1];
-        float u2 = paramVertices[idx2 * 3];
-        float v2 = paramVertices[idx2 * 3 + 1];
-        float u3 = paramVertices[idx3 * 3];
-        float v3 = paramVertices[idx3 * 3 + 1];
-        
-        // 获取原始三维顶点
-        float x1 = meshVertices[idx1 * 3];
-        float y1 = meshVertices[idx1 * 3 + 1];
-        float z1 = meshVertices[idx1 * 3 + 2];
-        float x2 = meshVertices[idx2 * 3];
-        float y2 = meshVertices[idx2 * 3 + 1];
-        float z2 = meshVertices[idx2 * 3 + 2];
-        float x3 = meshVertices[idx3 * 3];
-        float y3 = meshVertices[idx3 * 3 + 1];
-        float z3 = meshVertices[idx3 * 3 + 2];
-        
-        // 方法1：比较参数域有向面积和三维投影有向面积
-        float area2D = (u2 - u1) * (v3 - v1) - (u3 - u1) * (v2 - v1);
-        float area3D_xy = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
-        
-        // 如果符号不同，表示翻转
-        if (area2D * area3D_xy < 0.0f) {
-            flipCount++;
-            flippedTriangles.push_back(i);
-            continue; // 找到翻转，继续下一个三角形
-        }else{
-            qDebug() << "Triangle" << i << "is degenerate (3D area:" << area2D << ")";
-        }
-        
-        // 方法2：可选，使用三维法向量点积（如果需要更精确）
-        // 计算三维三角形的两条边
-        // float ax = x2 - x1, ay = y2 - y1, az = z2 - z1;
-        // float bx = x3 - x1, by = y3 - y1, bz = z3 - z1;
-        
-        // // 计算三维法向量（未归一化）
-        // float nx = ay * bz - az * by;
-        // float ny = az * bx - ax * bz;
-        // float nz = ax * by - ay * bx;
-        
-        // // 计算面积（用于检测退化）
-        // float area3D = sqrt(nx*nx + ny*ny + nz*nz);
-        
-        // if (area3D < EPSILON) {
-        //     qDebug() << "Triangle" << i << "is degenerate (3D area:" << area3D << ")";
-        // }
-        // 注意：需要参考法向量来比较方向，这里假设原始网格所有三角形法向量一致
-    }
-    
-    // 调用文件输出方法
-    //outputDebugFiles();
-    std::cout << flipCount << std::endl;
-    return flipCount;
 }
 
 void SimpleSquareWidget::outputDebugFiles() const {

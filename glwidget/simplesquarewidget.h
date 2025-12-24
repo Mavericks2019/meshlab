@@ -12,6 +12,13 @@
 #include <cmath>
 #include <tuple>
 
+// 添加结构体来存储梯度算子结果
+struct DeformationGradientOperator {
+    Eigen::SparseMatrix<double> grad_3d;  // 3D梯度算子
+    Eigen::SparseMatrix<double> grad_2d;  // 2D梯度算子
+    Eigen::VectorXd areas;                // 三角形面积
+};
+
 class SimpleSquareWidget : public BaseGLWidget
 {
     Q_OBJECT
@@ -42,6 +49,20 @@ public:
     // 添加检测翻转的方法
     int checkForFlips() const;
     std::vector<int> getFlippedTriangles() const { return flippedTriangles; }
+    
+    // 计算变形梯度算子
+    DeformationGradientOperator computeDeformationGradientOperator(
+        const std::vector<float>& vertices, 
+        const std::vector<unsigned int>& faces) const;
+    
+    // 构建变形梯度矩阵D
+    Eigen::SparseMatrix<double> buildDeformationMatrix(
+        const DeformationGradientOperator& op) const;
+    
+    // 使用算子方法检测翻转
+    int checkForFlipsWithOperator(const std::vector<float>& vertices,
+                                 const std::vector<unsigned int>& faces,
+                                 const std::vector<float>& uv) const;
 
 protected:
     void initializeGL() override;
@@ -71,6 +92,25 @@ public:
                                                       float ax, float ay,
                                                       float bx, float by,
                                                       float cx, float cy) const;
+    
+    // 辅助函数：向量叉积
+    Eigen::Vector3d cross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const {
+        return Eigen::Vector3d(
+            a.y() * b.z() - a.z() * b.y(),
+            a.z() * b.x() - a.x() * b.z(),
+            a.x() * b.y() - a.y() * b.x()
+        );
+    }
+    
+    // 辅助函数：计算向量范数
+    double norm(const Eigen::Vector3d& v) const {
+        return std::sqrt(v.x()*v.x() + v.y()*v.y() + v.z()*v.z());
+    }
+    
+    // 辅助函数：计算向量点积
+    double dot(const Eigen::Vector3d& a, const Eigen::Vector3d& b) const {
+        return a.x()*b.x() + a.y()*b.y() + a.z()*b.z();
+    }
 
     QOpenGLShaderProgram squareProgram;
     QOpenGLShaderProgram meshProgram;
@@ -103,6 +143,7 @@ public:
     // 存储翻转的三角形索引
     mutable std::vector<int> flippedTriangles;
     void outputDebugFiles() const;
+    
 private:
     // 添加私有辅助方法
     float computeDeterminant2D(float x1, float y1, float x2, float y2, float x3, float y3) const;
