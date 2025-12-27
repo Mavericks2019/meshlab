@@ -4,6 +4,8 @@
 #include <set>
 #include <QFile>
 #include <fstream>
+#include <iostream>
+#include <iomanip>
 
 const float EPSILON = 1e-6f;
 
@@ -385,6 +387,122 @@ DeformationGradientOperator SimpleSquareWidget::computeDeformationGradientOperat
     qDebug() << "  grad_2d: " << result.grad_2d.rows() << "x" << result.grad_2d.cols();
     qDebug() << "  areas: " << result.areas.size();
     
+    // 将grad_2d的所有值输出到文件
+    std::ofstream grad2d_file("grad2d_output.txt");
+    if (grad2d_file.is_open()) {
+        grad2d_file << "========== grad_2d 矩阵所有值 ==========" << std::endl;
+        grad2d_file << "矩阵大小: " << result.grad_2d.rows() << " x " << result.grad_2d.cols() << std::endl;
+        grad2d_file << "非零元素数量: " << result.grad_2d.nonZeros() << std::endl;
+        grad2d_file << "\n打印所有值 (格式: 行, 列, 值):" << std::endl;
+        
+        // 以密集矩阵格式打印所有元素（包括零）
+        Eigen::MatrixXd grad_2d_dense = Eigen::MatrixXd(result.grad_2d);
+        
+        // 输出所有值
+        grad2d_file << "\n完整矩阵:" << std::endl;
+        for (int i = 0; i < grad_2d_dense.rows(); ++i) {
+            grad2d_file << "行 " << i << ": ";
+            for (int j = 0; j < grad_2d_dense.cols(); ++j) {
+                double value = grad_2d_dense(i, j);
+                grad2d_file << std::setw(12) << std::setprecision(6) << std::fixed << value << " ";
+            }
+            grad2d_file << std::endl;
+        }
+        
+        // 输出非零值详细列表
+        grad2d_file << "\n非零值详细列表:" << std::endl;
+        for (int i = 0; i < grad_2d_dense.rows(); ++i) {
+            for (int j = 0; j < grad_2d_dense.cols(); ++j) {
+                double value = grad_2d_dense(i, j);
+                if (std::abs(value) > 1e-12) {  // 只打印非零值（或接近非零的值）
+                    grad2d_file << "  [" << i << ", " << j << "] = " 
+                                << std::setprecision(10) << std::scientific << value << std::endl;
+                }
+            }
+        }
+        
+        // 打印每行的统计信息
+        grad2d_file << "\n每行统计信息:" << std::endl;
+        for (int i = 0; i < grad_2d_dense.rows(); ++i) {
+            int nonZeroInRow = 0;
+            double sumRow = 0.0;
+            double maxAbsInRow = 0.0;
+            for (int j = 0; j < grad_2d_dense.cols(); ++j) {
+                double value = grad_2d_dense(i, j);
+                if (std::abs(value) > 1e-12) {
+                    nonZeroInRow++;
+                    sumRow += value;
+                    if (std::abs(value) > maxAbsInRow) {
+                        maxAbsInRow = std::abs(value);
+                    }
+                }
+            }
+            grad2d_file << "  行 " << std::setw(3) << i << ": " 
+                        << std::setw(3) << nonZeroInRow << " 个非零元素, "
+                        << "总和 = " << std::setw(12) << std::setprecision(6) << std::fixed << sumRow
+                        << ", 最大绝对值 = " << std::setw(12) << std::setprecision(6) << std::fixed << maxAbsInRow << std::endl;
+        }
+        
+        // 打印每列的统计信息
+        grad2d_file << "\n每列统计信息:" << std::endl;
+        for (int j = 0; j < grad_2d_dense.cols(); ++j) {
+            int nonZeroInCol = 0;
+            double sumCol = 0.0;
+            for (int i = 0; i < grad_2d_dense.rows(); ++i) {
+                double value = grad_2d_dense(i, j);
+                if (std::abs(value) > 1e-12) {
+                    nonZeroInCol++;
+                    sumCol += value;
+                }
+            }
+            grad2d_file << "  列 " << std::setw(3) << j << ": " 
+                        << std::setw(3) << nonZeroInCol << " 个非零元素, "
+                        << "总和 = " << std::setw(12) << std::setprecision(6) << std::fixed << sumCol << std::endl;
+        }
+        
+        // 输出MATLAB格式的矩阵（便于与MATLAB结果比较）
+        grad2d_file << "\nMATLAB格式矩阵:" << std::endl;
+        grad2d_file << "G = zeros(" << grad_2d_dense.rows() << ", " << grad_2d_dense.cols() << ");" << std::endl;
+        for (int i = 0; i < grad_2d_dense.rows(); ++i) {
+            for (int j = 0; j < grad_2d_dense.cols(); ++j) {
+                double value = grad_2d_dense(i, j);
+                if (std::abs(value) > 1e-12) {
+                    grad2d_file << "G(" << i+1 << ", " << j+1 << ") = " 
+                                << std::setprecision(15) << std::scientific << value << ";" << std::endl;
+                }
+            }
+        }
+        
+        grad2d_file << "========== grad_2d 输出结束 ==========" << std::endl;
+        grad2d_file.close();
+        
+        qDebug() << "grad_2d 矩阵已输出到文件: grad2d_output.txt";
+    } else {
+        qDebug() << "无法打开文件 grad2d_output.txt 进行写入";
+    }
+    
+    // 同时输出grad_3d和面积信息到文件
+    std::ofstream grad3d_file("grad3d_output.txt");
+    if (grad3d_file.is_open()) {
+        grad3d_file << "========== grad_3d 矩阵信息 ==========" << std::endl;
+        grad3d_file << "矩阵大小: " << result.grad_3d.rows() << " x " << result.grad_3d.cols() << std::endl;
+        grad3d_file << "非零元素数量: " << result.grad_3d.nonZeros() << std::endl;
+        grad3d_file.close();
+        qDebug() << "grad_3d 信息已输出到文件: grad3d_output.txt";
+    }
+    
+    std::ofstream areas_file("areas_output.txt");
+    if (areas_file.is_open()) {
+        areas_file << "========== 三角形面积信息 ==========" << std::endl;
+        areas_file << "三角形数量: " << result.areas.size() << std::endl;
+        for (int i = 0; i < result.areas.size(); ++i) {
+            areas_file << "三角形 " << i << ": 面积 = " 
+                       << std::setprecision(10) << std::scientific << result.areas(i) << std::endl;
+        }
+        areas_file.close();
+        qDebug() << "三角形面积信息已输出到文件: areas_output.txt";
+    }
+    
     return result;
 }
 
@@ -539,10 +657,11 @@ int SimpleSquareWidget::checkForFlips() const {
     }
     
     // 方法选择开关：true使用算子方法，false使用原方法
-    bool useOperatorMethod = false;
+    bool useOperatorMethod = true;
     
     if (useOperatorMethod) {
         // 使用算子方法
+        outputDebugFiles();
         return checkForFlipsWithOperator(meshVertices, meshFaces, paramVertices);
     } else {
         // 使用原方法（有向面积方法）
@@ -587,8 +706,10 @@ int SimpleSquareWidget::checkForFlips() const {
         }
         
         qDebug() << "Using area method: found" << flipCount << "flipped triangles out of" << numFaces;
+        outputDebugFiles();
         return flipCount;
     }
+    
 }
 
 void SimpleSquareWidget::solveParameterization() {
@@ -698,7 +819,7 @@ void SimpleSquareWidget::outputDebugFiles() const {
     }
     
     debug2 << "Parameterized Coordinates (2D)" << std::endl;
-    debug2 << "========================================" << std::endl;
+    debug2 << "=======================================" << std::endl;
     
     for (int i = 0; i < numFaces; i++) {
         unsigned int idx1 = paramFaces[i * 3];
