@@ -706,7 +706,6 @@ int SimpleSquareWidget::checkForFlipsWithOperator(
         
         // 计算Jacobian行列式
         double det = du_dx * dv_dy - du_dy * dv_dx;
-        
         // 如果行列式为负，表示翻转
         if (det < 0.0) {
             flipCount++;
