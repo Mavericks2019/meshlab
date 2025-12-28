@@ -99,6 +99,9 @@ signals:
     // 添加信号，通知参数化完成
     void parameterizationCompleted(const std::vector<QVector2D>& uvCoords,
                                    const std::vector<std::pair<int, int>>& uvEdges);
+    
+    // 添加信号，通知迭代步骤更新
+    void iterationUpdated(int iteration, double energy);
 
 protected:
     // 准备ARAP参数化
@@ -163,10 +166,24 @@ private:
     // 添加辅助函数
     void computeBoundingBox(Point& min, Point& max);
     
+    // 新增函数：将UV坐标映射回3D网格
+    void mapUVTo3DMesh();
+    
+    // 新增函数：居中缩放参数化后的网格
+    void centerAndScaleParameterizedMesh();
+    
+    // 新增函数：在参数化过程中更新显示
+    void updateIterationDisplay(int iteration, double energy);
+    
     // 使用正确的半边描述符类型
     typedef CGAL::SM_Halfedge_index CgalHalfedgeDescriptor;
-    void mapUVTo3DMesh();
-    void centerAndScaleParameterizedMesh();
+    
+    // 定时器用于动画显示
+    QTimer* iterationTimer_;
+    int currentIteration_;
+    
+    // 临时存储参数化过程中的网格状态
+    std::vector<std::pair<int, ARAPKernel::Surface_mesh>> iterationSnapshots_;
 };
 
 #endif // ARAPGLWIDGET_H
