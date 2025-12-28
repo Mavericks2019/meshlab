@@ -20,6 +20,7 @@
 #include "glwidget/shortestpathglwidget.h"
 #include "glwidget/uvparamwidget.h"
 #include "glwidget/simplesquarewidget.h"
+#include "glwidget/arapglwidget.h"  // 新增：ARAPGLWidget前向声明
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -119,7 +120,7 @@ private:
     SimpleSquareWidget* dualViewSimpleRightWidget;
 
     // 新增：新CGAL-UV视图窗口
-    CGALGLWidget* newCGALUVLeftWidget;
+    ARAPGLWidget* newCGALUVLeftWidget;  // 修改为ARAPGLWidget
     UVParamWidget* newCGALUVRightWidget;
 
     // 信息标签

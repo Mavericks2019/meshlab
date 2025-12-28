@@ -655,7 +655,7 @@ void TabManager::createDualViewSimpleTab() {
 
 void TabManager::createNewCGALUVTab() {  // 新增：创建新CGAL-UV视图
     if (!newCGALUVLeftWidget) {
-        newCGALUVLeftWidget = new CGALGLWidget;
+        newCGALUVLeftWidget = new ARAPGLWidget;  // 修改为ARAPGLWidget
     }
     if (!newCGALUVRightWidget) {
         newCGALUVRightWidget = new UVParamWidget;
@@ -851,14 +851,14 @@ void TabManager::createControlPanel(const QString& title) {
         controlPanel = dualViewSimpleControlPanel;
         
     } else if (title == "New CGAL-UV View") {  // 新增：创建新CGAL-UV视图控制面板
-        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new CGALGLWidget;
+        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new ARAPGLWidget;  // 修改为ARAPGLWidget
         if (!newCGALUVRightWidget) newCGALUVRightWidget = new UVParamWidget;
         
         QWidget *newCGALUVControlPanel = new QWidget;
         QVBoxLayout *newCGALUVControlLayout = new QVBoxLayout(newCGALUVControlPanel);
         newCGALUVControlLayout->setAlignment(Qt::AlignTop);
         
-        newCGALUVLeftInfoLabel = new QLabel("No model loaded (CGAL View)");
+        newCGALUVLeftInfoLabel = new QLabel("No model loaded (ARAP View)");
         newCGALUVLeftInfoLabel->setAlignment(Qt::AlignCenter);
         newCGALUVLeftInfoLabel->setFixedHeight(50);
         newCGALUVLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");

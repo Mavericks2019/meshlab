@@ -60,7 +60,8 @@ add_executable(${PROJECT_NAME}
     tabs/dualview_tab.h
     tabs/dualview_extended_tab.h
     tabs/dualview_simple_tab.h
-    
+    glwidget/arapglwidget.cpp
+    glwidget/arapglwidget.h
     menu_utils.cpp
     menu_utils.h
     tab_manager.cpp    # 添加这个
