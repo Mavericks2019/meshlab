@@ -87,6 +87,18 @@ public:
     
     // 重写loadOBJ函数以处理备份 - 设为public
     void loadOBJ(const QString &path);
+    
+    // 获取UV坐标和边信息
+    const std::vector<QVector2D>& getUVCoordinates() const { return uv_coordinates_; }
+    const std::vector<std::pair<int, int>>& getUVEdges() const { return uv_edges_; }
+    
+    // 获取参数化后的网格（用于传递给UV视图）
+    const ARAPKernel::Surface_mesh& getParameterizedMesh() const { return arap_mesh_; }
+
+signals:
+    // 添加信号，通知参数化完成
+    void parameterizationCompleted(const std::vector<QVector2D>& uvCoords,
+                                   const std::vector<std::pair<int, int>>& uvEdges);
 
 protected:
     // 准备ARAP参数化
@@ -153,6 +165,8 @@ private:
     
     // 使用正确的半边描述符类型
     typedef CGAL::SM_Halfedge_index CgalHalfedgeDescriptor;
+    void mapUVTo3DMesh();
+    void centerAndScaleParameterizedMesh();
 };
 
 #endif // ARAPGLWIDGET_H

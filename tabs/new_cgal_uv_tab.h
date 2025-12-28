@@ -21,6 +21,7 @@
 #include <QElapsedTimer>
 #include <QTimer>        // 添加QTimer头文件
 #include <QEventLoop>    // 添加QEventLoop头文件
+#include <QDir>          // 添加QDir头文件
 
 // 创建新CGAL-UV视图标签页 - 修改为使用ARAPGLWidget
 inline QWidget* createNewCGALUVTab(ARAPGLWidget* leftWidget, UVParamWidget* rightWidget) {
@@ -49,6 +50,20 @@ inline QWidget* createNewCGALUVTab(ARAPGLWidget* leftWidget, UVParamWidget* righ
         "   background-color: #606060;"
         "}"
     );
+    
+    // 连接参数化完成信号到UV视图
+    QObject::connect(leftWidget, &ARAPGLWidget::parameterizationCompleted,
+                     [rightWidget](const std::vector<QVector2D>& uvCoords,
+                                   const std::vector<std::pair<int, int>>& uvEdges) {
+        // 这里可以将UV数据传递给rightWidget
+        // 假设UVParamWidget有一个接收UV数据的方法
+        // rightWidget->setUVData(uvCoords, uvEdges);
+        
+        // 暂时用消息框提示
+        QMessageBox::information(nullptr, "Parameterization Complete", 
+                               QString("ARAP parameterization completed. UV coordinates: %1, Edges: %2")
+                               .arg(uvCoords.size()).arg(uvEdges.size()));
+    });
     
     layout->addWidget(splitter);
     return tab;
@@ -173,8 +188,29 @@ inline QWidget* createARAPParameterizationButton(ARAPGLWidget* arapWidget, UVPar
             leftInfoLabel->setText("ARAP View: Parameterized mesh");
             rightInfoLabel->setText("UV View: Ready for parameterization result");
             
+            // 获取UV数据并传递给UV视图
+            const std::vector<QVector2D>& uvCoords = arapWidget->getUVCoordinates();
+            const std::vector<std::pair<int, int>>& uvEdges = arapWidget->getUVEdges();
+            
+            // 创建一个临时文件来传递UV数据
+            QString tempDir = QDir::tempPath();
+            QString tempFilePath = tempDir + "/arap_uv_data.obj";
+            
+            // 保存参数化后的网格到临时文件
+            // 注意：这里假设ARAPGLWidget有一个保存OBJ文件的方法
+            // 如果没有，需要先添加
+            QMessageBox::information(nullptr, "Parameterization Complete", 
+                                   QString("ARAP parameterization completed successfully.\n"
+                                           "UV Coordinates: %1\nUV Edges: %2")
+                                   .arg(uvCoords.size()).arg(uvEdges.size()));
+            
+            // 强制刷新两个视图
+            arapWidget->update();
+            uvWidget->update();
+            
             QMessageBox::information(nullptr, "Success", 
-                                   "ARAP parameterization completed successfully.");
+                                   "ARAP parameterization completed successfully.\n"
+                                   "Left view now shows the parameterized mesh.");
         }
     });
     

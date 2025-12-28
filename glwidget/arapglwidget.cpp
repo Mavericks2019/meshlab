@@ -551,12 +551,6 @@ bool ARAPGLWidget::performARAPParameterization()
             // 首先尝试使用ARAP参数化器
             Parameterizer parameterizer;
             
-            // 使用正确的参数：需要边界顶点和对应的UV坐标
-            // 根据CGAL文档，ARAP参数化需要4个参数：网格，参数化器，边界顶点迭代器，UV映射
-            // 但是实际上ARAP还需要边界UV坐标，这通常在参数化器内部处理
-            // 我们需要查找正确的调用方式
-            
-            // 先尝试使用最简单的参数化方式
             // 找到一个边界halfedge
             ARAPKernel::halfedge_descriptor border_halfedge;
             bool found_border = false;
@@ -635,12 +629,18 @@ bool ARAPGLWidget::performARAPParameterization()
         // 更新UV坐标
         updateUVCoordinates();
         
+        // === 关键修改：将参数化后的UV坐标映射回3D网格 ===
+        mapUVTo3DMesh();
+        
         isParameterized_ = true;
         
         qint64 elapsed = timer.elapsed();
         qDebug() << "ARAP parameterization completed in" << elapsed << "ms";
         
-        // 更新显示
+        // 发送参数化完成信号
+        emit parameterizationCompleted(uv_coordinates_, uv_edges_);
+        
+        // 强制刷新左侧视图
         makeCurrent();
         updateBuffersFromCGALMesh();
         doneCurrent();
@@ -661,6 +661,44 @@ bool ARAPGLWidget::performARAPParameterization()
         QMessageBox::critical(nullptr, "Error", "Unknown error during ARAP parameterization");
         return false;
     }
+}
+
+void ARAPGLWidget::mapUVTo3DMesh()
+{
+    if (uv_coordinates_.empty() || mesh.number_of_vertices() == 0) {
+        qWarning() << "No UV coordinates or mesh is empty";
+        return;
+    }
+    
+    // 将UV坐标转换为3D点（XY平面，Z=0）
+    auto uv_map_it = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
+    if (!uv_map_it.second) {
+        qWarning() << "UV map not found in arap_mesh_";
+        return;
+    }
+    
+    auto uv_map = uv_map_it.first;
+    
+    // 遍历arap_mesh_的顶点，将UV坐标应用到对应的CgalMesh顶点
+    for (auto vd : arap_mesh_.vertices()) {
+        // 获取对应的CgalMesh顶点
+        if (vertex_arap_to_cgal_map_.find(vd) != vertex_arap_to_cgal_map_.end()) {
+            CgalMesh::Vertex_index v = vertex_arap_to_cgal_map_[vd];
+            const ARAPKernel::Point_2& uv = uv_map[vd];
+            
+            // 将UV坐标转换为3D点（放在XY平面，Z=0）
+            Point newPoint(uv.x(), uv.y(), 0.0);
+            mesh.point(v) = newPoint;
+        }
+    }
+    
+    qDebug() << "Mapped UV coordinates to 3D mesh (XY plane)";
+    
+    // 重新计算法线（对于平面网格，所有法线应该指向Z轴方向）
+    computeNormalsForARAP();
+    
+    // 计算包围盒并居中缩放，像处理普通3D模型一样
+    centerAndScaleParameterizedMesh();
 }
 
 void ARAPGLWidget::updateUVCoordinates()
@@ -719,14 +757,80 @@ void ARAPGLWidget::clearParameterization()
         border_vertices_.clear();
         border_uvs_.clear();
         
-        // 重新计算法线和索引
-        computeNormalsForARAP();
-        prepareFaceIndices();
-        prepareEdgeIndices();
+        // 清空当前网格
+        mesh.clear();
+        modelLoaded = false;
         
+        // 清除缓冲区
         makeCurrent();
+        faces.clear();
+        edges.clear();
         updateBuffersFromCGALMesh();
         doneCurrent();
+        
+        // 重置视图
+        rotation = QQuaternion();
+        zoom = 1.0f;
+        modelCenter = QVector3D(0, 0, 0);
+        viewDistance = 5.0f;
+        
         update();
+        
+        qDebug() << "Parameterization cleared. Please reload the original OBJ file.";
     }
+}
+
+void ARAPGLWidget::centerAndScaleParameterizedMesh()
+{
+    if (mesh.number_of_vertices() == 0) return;
+    
+    // 计算参数化后网格的包围盒
+    Point min, max;
+    computeBoundingBox(min, max);
+    
+    // 计算中心点
+    Point center = Point((min.x() + max.x()) * 0.5, 
+                         (min.y() + max.y()) * 0.5, 
+                         (min.z() + max.z()) * 0.5);
+    
+    // 计算最大尺寸
+    double size_x = max.x() - min.x();
+    double size_y = max.y() - min.y();
+    double maxSize = std::max(size_x, size_y);
+    
+    // 如果网格尺寸为0，使用默认值
+    if (maxSize <= 0.0) {
+        maxSize = 1.0;
+    }
+    
+    // 缩放因子：使最大尺寸为2.0（与基类中的处理一致）
+    float scaleFactor = 2.0f / maxSize;
+    
+    // 平移并缩放所有顶点
+    for (auto v : mesh.vertices()) {
+        Point p = mesh.point(v);
+        // 平移到中心，然后缩放
+        p = Point((p.x() - center.x()) * scaleFactor, 
+                  (p.y() - center.y()) * scaleFactor, 
+                  (p.z() - center.z()) * scaleFactor);
+        mesh.point(v) = p;
+    }
+    
+    // 重新计算中心点（现在应该在原点附近）
+    computeBoundingBox(min, max);
+    center = Point((min.x() + max.x()) * 0.5, 
+                   (min.y() + max.y()) * 0.5, 
+                   (min.z() + max.z()) * 0.5);
+    
+    // 更新模型中心点
+    modelCenter = QVector3D(center.x(), center.y(), center.z());
+    viewDistance = 2.0f * std::max(max.x() - min.x(), max.y() - min.y());
+    
+    // 重置旋转和缩放
+    rotation = QQuaternion();
+    zoom = 1.0f;
+    
+    qDebug() << "Parameterized mesh centered and scaled. Center: (" 
+             << center.x() << ", " << center.y() << ", " << center.z() 
+             << "), View distance: " << viewDistance;
 }
