@@ -25,6 +25,8 @@ TabManager::TabManager(QWidget* mainWindow)
     , uvParamWidgetExtended(nullptr)
     , dualViewSimpleLeftWidget(nullptr)
     , dualViewSimpleRightWidget(nullptr)
+    , newCGALUVLeftWidget(nullptr)  // 新增：初始化新CGAL-UV视图窗口
+    , newCGALUVRightWidget(nullptr) // 新增：初始化新CGAL-UV视图窗口
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
     , modelInfoLabel(nullptr)
@@ -35,7 +37,10 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewExtendedLeftInfoLabel(nullptr)
     , dualViewExtendedRightInfoLabel(nullptr)
     , dualViewSimpleLeftInfoLabel(nullptr)
-    , dualViewSimpleRightInfoLabel(nullptr) {
+    , dualViewSimpleRightInfoLabel(nullptr)
+    , newCGALUVLeftInfoLabel(nullptr)  // 新增：初始化新CGAL-UV视图信息标签
+    , newCGALUVRightInfoLabel(nullptr) // 新增：初始化新CGAL-UV视图信息标签
+{
 }
 
 TabManager::~TabManager() {
@@ -43,7 +48,7 @@ TabManager::~TabManager() {
     QStringList tabNames = {
         "OpenMesh", "CGAL", "Model", "Shortest Path", 
         "UV Parameterization", "Dual View", 
-        "Extended Dual View", "Simple Dual View"
+        "Extended Dual View", "Simple Dual View", "New CGAL-UV View"  // 新增：添加新tab
     };
     
     for (const QString& title : tabNames) {
@@ -157,6 +162,8 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
         createDualViewExtendedTab();
     } else if (title == "Simple Dual View") {
         createDualViewSimpleTab();
+    } else if (title == "New CGAL-UV View") {  // 新增：处理新CGAL-UV视图
+        createNewCGALUVTab();
     }
     
     // 标记为已创建
@@ -271,6 +278,23 @@ void TabManager::cleanupTab(const QString& title) {
         if (dualViewSimpleRightInfoLabel) {
             delete dualViewSimpleRightInfoLabel;
             dualViewSimpleRightInfoLabel = nullptr;
+        }
+    } else if (title == "New CGAL-UV View") {  // 新增：清理新CGAL-UV视图资源
+        if (newCGALUVLeftWidget) {
+            delete newCGALUVLeftWidget;
+            newCGALUVLeftWidget = nullptr;
+        }
+        if (newCGALUVRightWidget) {
+            delete newCGALUVRightWidget;
+            newCGALUVRightWidget = nullptr;
+        }
+        if (newCGALUVLeftInfoLabel) {
+            delete newCGALUVLeftInfoLabel;
+            newCGALUVLeftInfoLabel = nullptr;
+        }
+        if (newCGALUVRightInfoLabel) {
+            delete newCGALUVRightInfoLabel;
+            newCGALUVRightInfoLabel = nullptr;
         }
     }
     
@@ -629,6 +653,46 @@ void TabManager::createDualViewSimpleTab() {
     }
 }
 
+void TabManager::createNewCGALUVTab() {  // 新增：创建新CGAL-UV视图
+    if (!newCGALUVLeftWidget) {
+        newCGALUVLeftWidget = new CGALGLWidget;
+    }
+    if (!newCGALUVRightWidget) {
+        newCGALUVRightWidget = new UVParamWidget;
+    }
+    
+    QWidget* newCGALUVTab = ::createNewCGALUVTab(newCGALUVLeftWidget, newCGALUVRightWidget);
+    tabWidget->addTabWithTitle(newCGALUVTab, "New CGAL-UV View");
+    
+    // 创建控制面板（如果不存在）
+    if (!controlPanelMap.contains("New CGAL-UV View")) {
+        createControlPanel("New CGAL-UV View");
+    }
+    
+    // 更新tabInfos
+    UIUtils::TabInfo info;
+    info.name = "New CGAL-UV View";
+    info.title = "New CGAL-UV View";
+    info.widget = newCGALUVTab;
+    info.controlPanel = controlPanelMap["New CGAL-UV View"];
+    info.isVisible = true;
+    info.originalIndex = 8;
+    info.action = tabWidget->getActionForTitle("New CGAL-UV View");
+    
+    // 替换或添加tab信息
+    bool found = false;
+    for (int i = 0; i < tabInfos.size(); ++i) {
+        if (tabInfos[i].title == "New CGAL-UV View") {
+            tabInfos[i] = info;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        tabInfos.append(info);
+    }
+}
+
 void TabManager::createControlPanel(const QString& title) {
     // 如果控制面板已经存在，直接返回
     if (controlPanelMap.contains(title)) {
@@ -785,6 +849,37 @@ void TabManager::createControlPanel(const QString& title) {
         dualViewSimpleControlLayout->addWidget(createDualViewSimpleControlPanel(dualViewSimpleLeftWidget, dualViewSimpleRightWidget, dualViewSimpleLeftInfoLabel, dualViewSimpleRightInfoLabel, mainWindow));
         
         controlPanel = dualViewSimpleControlPanel;
+        
+    } else if (title == "New CGAL-UV View") {  // 新增：创建新CGAL-UV视图控制面板
+        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new CGALGLWidget;
+        if (!newCGALUVRightWidget) newCGALUVRightWidget = new UVParamWidget;
+        
+        QWidget *newCGALUVControlPanel = new QWidget;
+        QVBoxLayout *newCGALUVControlLayout = new QVBoxLayout(newCGALUVControlPanel);
+        newCGALUVControlLayout->setAlignment(Qt::AlignTop);
+        
+        newCGALUVLeftInfoLabel = new QLabel("No model loaded (CGAL View)");
+        newCGALUVLeftInfoLabel->setAlignment(Qt::AlignCenter);
+        newCGALUVLeftInfoLabel->setFixedHeight(50);
+        newCGALUVLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+        newCGALUVLeftInfoLabel->setWordWrap(true);
+        
+        newCGALUVRightInfoLabel = new QLabel("No model loaded (UV View)");
+        newCGALUVRightInfoLabel->setAlignment(Qt::AlignCenter);
+        newCGALUVRightInfoLabel->setFixedHeight(50);
+        newCGALUVRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+        newCGALUVRightInfoLabel->setWordWrap(true);
+        
+        QGroupBox *newCGALUVInfoGroup = new QGroupBox("Model Information");
+        QVBoxLayout *newCGALUVInfoLayout = new QVBoxLayout(newCGALUVInfoGroup);
+        newCGALUVInfoLayout->addWidget(newCGALUVLeftInfoLabel);
+        newCGALUVInfoLayout->addWidget(newCGALUVRightInfoLabel);
+        
+        newCGALUVControlLayout->addWidget(newCGALUVInfoGroup);
+        newCGALUVControlLayout->addWidget(createNewCGALUVControlPanel(newCGALUVLeftWidget, newCGALUVRightWidget, 
+                                                                     newCGALUVLeftInfoLabel, newCGALUVRightInfoLabel, mainWindow));
+        
+        controlPanel = newCGALUVControlPanel;
     }
     
     if (controlPanel) {

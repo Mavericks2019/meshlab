@@ -185,11 +185,11 @@ namespace UIUtils {
         // Parameter 菜单
         QMenu* parameterMenu = menuBar->addMenu("&Parameter");
         
-        // 为每个标签页创建菜单项
+        // 为每个标签页创建菜单项 - 添加新tab "New CGAL-UV View"
         QStringList tabNames = {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
-            "Extended Dual View", "Simple Dual View"
+            "Extended Dual View", "Simple Dual View", "New CGAL-UV View"  // 添加新tab
         };
         
         // 创建动作组，确保只有一个被选中

@@ -30,6 +30,9 @@
 #include "tabs/dualview_simple_tab.h"
 #include "menu_utils.h"
 
+// 新增的头文件
+#include "tabs/new_cgal_uv_tab.h"
+
 // Tab管理器类
 class TabManager : public QObject {
     Q_OBJECT
@@ -69,6 +72,7 @@ private:
     void createDualViewTab();
     void createDualViewExtendedTab();
     void createDualViewSimpleTab();
+    void createNewCGALUVTab(); // 新增：创建新CGAL-UV视图
 
     // 创建控制面板
     void createControlPanel(const QString& title);
@@ -114,6 +118,10 @@ private:
     BaseGLWidget* dualViewSimpleLeftWidget;
     SimpleSquareWidget* dualViewSimpleRightWidget;
 
+    // 新增：新CGAL-UV视图窗口
+    CGALGLWidget* newCGALUVLeftWidget;
+    UVParamWidget* newCGALUVRightWidget;
+
     // 信息标签
     QLabel* basicInfoLabel;
     QLabel* cgalInfoLabel;
@@ -126,6 +134,10 @@ private:
     QLabel* dualViewExtendedRightInfoLabel;
     QLabel* dualViewSimpleLeftInfoLabel;
     QLabel* dualViewSimpleRightInfoLabel;
+    
+    // 新增：新CGAL-UV视图信息标签
+    QLabel* newCGALUVLeftInfoLabel;
+    QLabel* newCGALUVRightInfoLabel;
 };
 
 #endif // TAB_MANAGER_H
