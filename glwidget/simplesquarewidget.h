@@ -143,7 +143,11 @@ public:
     // 存储翻转的三角形索引
     mutable std::vector<int> flippedTriangles;
     void outputDebugFiles() const;
-    
+    void outputGrad2dInfoForTriangle(const Eigen::SparseMatrix<double>& grad_2d, 
+                                 int triangle_idx,
+                                 const std::vector<unsigned int>& faces,
+                                 const std::vector<float>& uv,
+                                 std::ofstream& outFile) const;
 private:
     // 添加私有辅助方法
     float computeDeterminant2D(float x1, float y1, float x2, float y2, float x3, float y3) const;

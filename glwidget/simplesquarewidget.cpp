@@ -264,77 +264,7 @@ void SimpleSquareWidget::paintGL() {
 DeformationGradientOperator SimpleSquareWidget::computeDeformationGradientOperator(
     const std::vector<float>& vertices, 
     const std::vector<unsigned int>& faces) const {
-    
-    // 在 computeDeformationGradientOperator 函数开头添加
-    // std::ofstream vertex_file("vertexdebug.txt");
-    // if (vertex_file.is_open()) {
-    //     int nv = vertices.size() / 3;
-    //     vertex_file << "========== 顶点数据 (三个一组) ==========" << std::endl;
-    //     vertex_file << "顶点数量: " << nv << std::endl;
-    //     vertex_file << "顶点数据 (格式: 索引: x, y, z)" << std::endl;
-    //     vertex_file << "-----------------------------------------" << std::endl;
-        
-    //     for (int i = 0; i < nv; i++) {
-    //         vertex_file << "顶点 " << std::setw(4) << i << ": "
-    //                 << std::setw(12) << std::setprecision(6) << std::fixed << vertices[i * 3] << ", "
-    //                 << std::setw(12) << std::setprecision(6) << std::fixed << vertices[i * 3 + 1] << ", "
-    //                 << std::setw(12) << std::setprecision(6) << std::fixed << vertices[i * 3 + 2] << std::endl;
-    //     }
-        
-    //     // 输出边界顶点（如果适用）
-    //     vertex_file << "\n边界顶点统计:" << std::endl;
-    //     float min_x = std::numeric_limits<float>::max();
-    //     float max_x = std::numeric_limits<float>::lowest();
-    //     float min_y = std::numeric_limits<float>::max();
-    //     float max_y = std::numeric_limits<float>::lowest();
-    //     float min_z = std::numeric_limits<float>::max();
-    //     float max_z = std::numeric_limits<float>::lowest();
-        
-    //     for (int i = 0; i < nv; i++) {
-    //         float x = vertices[i * 3];
-    //         float y = vertices[i * 3 + 1];
-    //         float z = vertices[i * 3 + 2];
-            
-    //         min_x = std::min(min_x, x);
-    //         max_x = std::max(max_x, x);
-    //         min_y = std::min(min_y, y);
-    //         max_y = std::max(max_y, y);
-    //         min_z = std::min(min_z, z);
-    //         max_z = std::max(max_z, z);
-    //     }
-        
-    //     vertex_file << "X范围: [" << min_x << ", " << max_x << "]" << std::endl;
-    //     vertex_file << "Y范围: [" << min_y << ", " << max_y << "]" << std::endl;
-    //     vertex_file << "Z范围: [" << min_z << ", " << max_z << "]" << std::endl;
-        
-    //     vertex_file << "========== 顶点数据输出结束 ==========" << std::endl;
-    //     vertex_file.close();
-    //     qDebug() << "顶点数据已输出到文件: vertexdebug.txt";
-    // } else {
-    //     qDebug() << "无法打开文件 vertexdebug.txt 进行写入";
-    // }
 
-    // 同时输出面信息
-    // std::ofstream face_file("facedebug.txt");
-    // if (face_file.is_open()) {
-    //     int nf = faces.size() / 3;
-    //     face_file << "========== 面数据 ==========" << std::endl;
-    //     face_file << "面数量: " << nf << std::endl;
-    //     face_file << "面数据 (格式: 面索引: 顶点1, 顶点2, 顶点3)" << std::endl;
-    //     face_file << "-----------------------------------------" << std::endl;
-        
-    //     for (int i = 0; i < nf; i++) {
-    //         face_file << "面 " << std::setw(4) << i << ": "
-    //                 << std::setw(4) << faces[i * 3] << ", "
-    //                 << std::setw(4) << faces[i * 3 + 1] << ", "
-    //                 << std::setw(4) << faces[i * 3 + 2] << std::endl;
-    //     }
-        
-    //     face_file << "========== 面数据输出结束 ==========" << std::endl;
-    //     face_file.close();
-    //     qDebug() << "面数据已输出到文件: facedebug.txt";
-    // }
-    
     DeformationGradientOperator result;
     
     int nv = vertices.size() / 3;  // 顶点数量
@@ -452,126 +382,6 @@ DeformationGradientOperator SimpleSquareWidget::computeDeformationGradientOperat
     // 计算grad_2d = P * grad_3d
     result.grad_2d = P * result.grad_3d;
     
-    // qDebug() << "Deformation gradient operator computed:";
-    // qDebug() << "  grad_3d: " << result.grad_3d.rows() << "x" << result.grad_3d.cols();
-    // qDebug() << "  grad_2d: " << result.grad_2d.rows() << "x" << result.grad_2d.cols();
-    // qDebug() << "  areas: " << result.areas.size();
-    
-    // // 将grad_2d的所有值输出到文件
-    // std::ofstream grad2d_file("grad2d_output.txt");
-    // if (grad2d_file.is_open()) {
-    //     grad2d_file << "========== grad_2d 矩阵所有值 ==========" << std::endl;
-    //     grad2d_file << "矩阵大小: " << result.grad_2d.rows() << " x " << result.grad_2d.cols() << std::endl;
-    //     grad2d_file << "非零元素数量: " << result.grad_2d.nonZeros() << std::endl;
-    //     grad2d_file << "\n打印所有值 (格式: 行, 列, 值):" << std::endl;
-        
-    //     // 以密集矩阵格式打印所有元素（包括零）
-    //     Eigen::MatrixXd grad_2d_dense = Eigen::MatrixXd(result.grad_2d);
-        
-    //     // 输出所有值
-    //     grad2d_file << "\n完整矩阵:" << std::endl;
-    //     for (int i = 0; i < grad_2d_dense.rows(); ++i) {
-    //         grad2d_file << "行 " << i << ": ";
-    //         for (int j = 0; j < grad_2d_dense.cols(); ++j) {
-    //             double value = grad_2d_dense(i, j);
-    //             grad2d_file << std::setw(12) << std::setprecision(6) << std::fixed << value << " ";
-    //         }
-    //         grad2d_file << std::endl;
-    //     }
-        
-    //     // 输出非零值详细列表
-    //     grad2d_file << "\n非零值详细列表:" << std::endl;
-    //     for (int i = 0; i < grad_2d_dense.rows(); ++i) {
-    //         for (int j = 0; j < grad_2d_dense.cols(); ++j) {
-    //             double value = grad_2d_dense(i, j);
-    //             if (std::abs(value) > 1e-12) {  // 只打印非零值（或接近非零的值）
-    //                 grad2d_file << "  [" << i << ", " << j << "] = " 
-    //                             << std::setprecision(10) << std::scientific << value << std::endl;
-    //             }
-    //         }
-    //     }
-        
-    //     // 打印每行的统计信息
-    //     grad2d_file << "\n每行统计信息:" << std::endl;
-    //     for (int i = 0; i < grad_2d_dense.rows(); ++i) {
-    //         int nonZeroInRow = 0;
-    //         double sumRow = 0.0;
-    //         double maxAbsInRow = 0.0;
-    //         for (int j = 0; j < grad_2d_dense.cols(); ++j) {
-    //             double value = grad_2d_dense(i, j);
-    //             if (std::abs(value) > 1e-12) {
-    //                 nonZeroInRow++;
-    //                 sumRow += value;
-    //                 if (std::abs(value) > maxAbsInRow) {
-    //                     maxAbsInRow = std::abs(value);
-    //                 }
-    //             }
-    //         }
-    //         grad2d_file << "  行 " << std::setw(3) << i << ": " 
-    //                     << std::setw(3) << nonZeroInRow << " 个非零元素, "
-    //                     << "总和 = " << std::setw(12) << std::setprecision(6) << std::fixed << sumRow
-    //                     << ", 最大绝对值 = " << std::setw(12) << std::setprecision(6) << std::fixed << maxAbsInRow << std::endl;
-    //     }
-        
-    //     // 打印每列的统计信息
-    //     grad2d_file << "\n每列统计信息:" << std::endl;
-    //     for (int j = 0; j < grad_2d_dense.cols(); ++j) {
-    //         int nonZeroInCol = 0;
-    //         double sumCol = 0.0;
-    //         for (int i = 0; i < grad_2d_dense.rows(); ++i) {
-    //             double value = grad_2d_dense(i, j);
-    //             if (std::abs(value) > 1e-12) {
-    //                 nonZeroInCol++;
-    //                 sumCol += value;
-    //             }
-    //         }
-    //         grad2d_file << "  列 " << std::setw(3) << j << ": " 
-    //                     << std::setw(3) << nonZeroInCol << " 个非零元素, "
-    //                     << "总和 = " << std::setw(12) << std::setprecision(6) << std::fixed << sumCol << std::endl;
-    //     }
-        
-    //     // 输出MATLAB格式的矩阵（便于与MATLAB结果比较）
-    //     grad2d_file << "\nMATLAB格式矩阵:" << std::endl;
-    //     grad2d_file << "G = zeros(" << grad_2d_dense.rows() << ", " << grad_2d_dense.cols() << ");" << std::endl;
-    //     for (int i = 0; i < grad_2d_dense.rows(); ++i) {
-    //         for (int j = 0; j < grad_2d_dense.cols(); ++j) {
-    //             double value = grad_2d_dense(i, j);
-    //             if (std::abs(value) > 1e-12) {
-    //                 grad2d_file << "G(" << i+1 << ", " << j+1 << ") = " 
-    //                             << std::setprecision(15) << std::scientific << value << ";" << std::endl;
-    //             }
-    //         }
-    //     }
-        
-    //     grad2d_file << "========== grad_2d 输出结束 ==========" << std::endl;
-    //     grad2d_file.close();
-        
-    //     qDebug() << "grad_2d 矩阵已输出到文件: grad2d_output.txt";
-    // } else {
-    //     qDebug() << "无法打开文件 grad2d_output.txt 进行写入";
-    // }
-    
-    // // 同时输出grad_3d和面积信息到文件
-    // std::ofstream grad3d_file("grad3d_output.txt");
-    // if (grad3d_file.is_open()) {
-    //     grad3d_file << "========== grad_3d 矩阵信息 ==========" << std::endl;
-    //     grad3d_file << "矩阵大小: " << result.grad_3d.rows() << " x " << result.grad_3d.cols() << std::endl;
-    //     grad3d_file << "非零元素数量: " << result.grad_3d.nonZeros() << std::endl;
-    //     grad3d_file.close();
-    //     qDebug() << "grad_3d 信息已输出到文件: grad3d_output.txt";
-    // }
-    
-    std::ofstream areas_file("areas_output.txt");
-    if (areas_file.is_open()) {
-        areas_file << "========== 三角形面积信息 ==========" << std::endl;
-        areas_file << "三角形数量: " << result.areas.size() << std::endl;
-        for (int i = 0; i < result.areas.size(); ++i) {
-            areas_file << "三角形 " << i << ": 面积 = " 
-                       << std::setprecision(10) << std::scientific << result.areas(i) << std::endl;
-        }
-        areas_file.close();
-        qDebug() << "三角形面积信息已输出到文件: areas_output.txt";
-    }
     
     return result;
 }
@@ -664,6 +474,7 @@ Eigen::SparseMatrix<double> SimpleSquareWidget::buildDeformationMatrix(
 }
 
 // 新增函数：使用算子方法检测翻转
+// 修改 checkForFlipsWithOperator 函数，将调试信息输出到文件
 int SimpleSquareWidget::checkForFlipsWithOperator(
     const std::vector<float>& vertices,
     const std::vector<unsigned int>& faces,
@@ -694,8 +505,105 @@ int SimpleSquareWidget::checkForFlipsWithOperator(
     Eigen::VectorXd grad_u_2d = op.grad_2d * u_vec;
     Eigen::VectorXd grad_v_2d = op.grad_2d * v_vec;
     
+    // 打开调试文件
+    std::ofstream detFile("all_triangles_det.txt");
+    std::ofstream gradFile("all_gradients_debug.txt");
+    std::ofstream gradUFile("grad_u_2d_all.txt");
+    std::ofstream gradVFile("grad_v_2d_all.txt");
+    std::ofstream grad2dFile("grad_2d_flipped_triangles.txt");
+    
+    if (!detFile.is_open()) {
+        qDebug() << "Failed to open all_triangles_det.txt";
+    }
+    
+    if (!gradFile.is_open()) {
+        qDebug() << "Failed to open all_gradients_debug.txt";
+    }
+    
+    if (!gradUFile.is_open()) {
+        qDebug() << "Failed to open grad_u_2d_all.txt";
+    }
+    
+    if (!gradVFile.is_open()) {
+        qDebug() << "Failed to open grad_v_2d_all.txt";
+    }
+    
+    if (!grad2dFile.is_open()) {
+        qDebug() << "Failed to open grad_2d_flipped_triangles.txt";
+    }
+    
+    // 写入 grad_2d 翻转三角形的信息
+    if (grad2dFile.is_open()) {
+        grad2dFile << "grad_2d Matrix Information for Flipped Triangles" << std::endl;
+        grad2dFile << "======================================================" << std::endl;
+        grad2dFile << "Note: Each triangle has 2 rows in grad_2d (for ∂/∂x and ∂/∂y)" << std::endl;
+        grad2dFile << "Matrix size: " << op.grad_2d.rows() << " x " << op.grad_2d.cols() << std::endl;
+        grad2dFile << "Total non-zero elements: " << op.grad_2d.nonZeros() << std::endl;
+        grad2dFile << std::endl;
+    }
+    
+    // 写入 grad_u_2d 所有值
+    if (gradUFile.is_open()) {
+        gradUFile << "grad_u_2d - All Values (Size: " << grad_u_2d.size() << ")" << std::endl;
+        gradUFile << "==============================================" << std::endl;
+        gradUFile << "Index\tValue\tTriangle\tComponent" << std::endl;
+        
+        for (int i = 0; i < grad_u_2d.size(); i++) {
+            int triangle_idx = i / 2;
+            std::string component = (i % 2 == 0) ? "du/dx" : "du/dy";
+            gradUFile << i << "\t" 
+                     << std::scientific << std::setprecision(15) << grad_u_2d(i) << "\t"
+                     << triangle_idx << "\t" << component << std::endl;
+        }
+        
+        gradUFile << "\n==============================================" << std::endl;
+        gradUFile << "Statistics for grad_u_2d:" << std::endl;
+        gradUFile << "Min value: " << grad_u_2d.minCoeff() << std::endl;
+        gradUFile << "Max value: " << grad_u_2d.maxCoeff() << std::endl;
+        gradUFile << "Mean value: " << grad_u_2d.mean() << std::endl;
+        gradUFile << "Norm: " << grad_u_2d.norm() << std::endl;
+        gradUFile.close();
+    }
+    
+    // 写入 grad_v_2d 所有值
+    if (gradVFile.is_open()) {
+        gradVFile << "grad_v_2d - All Values (Size: " << grad_v_2d.size() << ")" << std::endl;
+        gradVFile << "==============================================" << std::endl;
+        gradVFile << "Index\tValue\tTriangle\tComponent" << std::endl;
+        
+        for (int i = 0; i < grad_v_2d.size(); i++) {
+            int triangle_idx = i / 2;
+            std::string component = (i % 2 == 0) ? "dv/dx" : "dv/dy";
+            gradVFile << i << "\t" 
+                     << std::scientific << std::setprecision(15) << grad_v_2d(i) << "\t"
+                     << triangle_idx << "\t" << component << std::endl;
+        }
+        
+        gradVFile << "\n==============================================" << std::endl;
+        gradVFile << "Statistics for grad_v_2d:" << std::endl;
+        gradVFile << "Min value: " << grad_v_2d.minCoeff() << std::endl;
+        gradVFile << "Max value: " << grad_v_2d.maxCoeff() << std::endl;
+        gradVFile << "Mean value: " << grad_v_2d.mean() << std::endl;
+        gradVFile << "Norm: " << grad_v_2d.norm() << std::endl;
+        gradVFile.close();
+    }
+    
+    if (detFile.is_open()) {
+        detFile << "All Triangles - Jacobian Determinants" << std::endl;
+        detFile << "==============================================" << std::endl;
+        detFile << "Triangle Index\tJacobian Determinant\tStatus" << std::endl;
+    }
+    
+    if (gradFile.is_open()) {
+        gradFile << "All Triangles - Gradient Values" << std::endl;
+        gradFile << "==========================================" << std::endl;
+        gradFile << "Triangle\tdu/dx\tdu/dy\tdv/dx\tdv/dy" << std::endl;
+    }
+    
     // 计算每个三角形的Jacobian矩阵行列式
     int flipCount = 0;
+    int degenerateCount = 0;
+    int validCount = 0;
     
     for (int t = 0; t < nf; t++) {
         // 提取三角形t的梯度
@@ -705,15 +613,125 @@ int SimpleSquareWidget::checkForFlipsWithOperator(
         double dv_dy = grad_v_2d(2 * t + 1);  // ∂v/∂y
         
         // 计算Jacobian行列式
-        double det = du_dx * dv_dy - du_dy * dv_dx;
-        // 如果行列式为负，表示翻转
-        if (det < 0.0) {
-            flipCount++;
-            flippedTriangles.push_back(t);
+        double det = du_dy * dv_dx - du_dx * dv_dy;
+        
+        // 写入第一个文件：三角形索引、行列式和状态
+        if (detFile.is_open()) {
+            std::string status;
+            if (fabs(det) < 1e-12) {
+                status = "DEGENERATE";
+                degenerateCount++;
+            } else if (det < 0.0) {
+                status = "FLIPPED";
+                flipCount++;
+                flippedTriangles.push_back(t);
+                
+                // 输出翻转三角形的 grad_2d 信息
+                if (grad2dFile.is_open()) {
+                    outputGrad2dInfoForTriangle(op.grad_2d, t, faces, uv, grad2dFile);
+                }
+            } else {
+                status = "VALID";
+                validCount++;
+            }
+            
+            detFile << t << "\t" 
+                   << std::scientific << std::setprecision(15) << det << "\t"
+                   << status << std::endl;
+        }
+        
+        // 写入第二个文件：梯度值
+        if (gradFile.is_open()) {
+            gradFile << t << "\t" 
+                    << std::scientific << std::setprecision(15) << du_dx << "\t"
+                    << std::scientific << std::setprecision(15) << du_dy << "\t"
+                    << std::scientific << std::setprecision(15) << dv_dx << "\t"
+                    << std::scientific << std::setprecision(15) << dv_dy << std::endl;
         }
     }
     
+    // 添加统计信息到文件
+    if (detFile.is_open()) {
+        detFile << "\n==============================================" << std::endl;
+        detFile << "Summary:" << std::endl;
+        detFile << "Total triangles: " << nf << std::endl;
+        detFile << "Valid triangles: " << validCount << " (" << (validCount * 100.0 / nf) << "%)" << std::endl;
+        detFile << "Flipped triangles: " << flipCount << " (" << (flipCount * 100.0 / nf) << "%)" << std::endl;
+        detFile << "Degenerate triangles: " << degenerateCount << " (" << (degenerateCount * 100.0 / nf) << "%)" << std::endl;
+        detFile.close();
+    }
+    
+    if (gradFile.is_open()) {
+        gradFile << "\n==========================================" << std::endl;
+        gradFile << "Summary:" << std::endl;
+        gradFile << "Total triangles analyzed: " << nf << std::endl;
+        gradFile.close();
+    }
+    
+    // 添加翻转三角形统计信息到 grad2dFile
+    if (grad2dFile.is_open()) {
+        grad2dFile << "\n======================================================" << std::endl;
+        grad2dFile << "Summary of Flipped Triangles:" << std::endl;
+        grad2dFile << "Total flipped triangles: " << flipCount << " out of " << nf << std::endl;
+        
+        if (flipCount > 0) {
+            grad2dFile << "Flipped triangle indices: ";
+            for (int i = 0; i < std::min(static_cast<int>(flippedTriangles.size()), 20); i++) {
+                grad2dFile << flippedTriangles[i];
+                if (i < std::min(static_cast<int>(flippedTriangles.size()), 20) - 1) {
+                    grad2dFile << ", ";
+                }
+            }
+            if (flippedTriangles.size() > 20) {
+                grad2dFile << "... (and " << (flippedTriangles.size() - 20) << " more)";
+            }
+            grad2dFile << std::endl;
+        }
+        grad2dFile.close();
+    }
+    
     qDebug() << "Using gradient operator: found" << flipCount << "flipped triangles out of" << nf;
+    qDebug() << "Valid triangles: " << validCount << ", Degenerate triangles: " << degenerateCount;
+    qDebug() << "Debug info written to:";
+    qDebug() << "  - all_triangles_det.txt";
+    qDebug() << "  - all_gradients_debug.txt";
+    qDebug() << "  - grad_u_2d_all.txt";
+    qDebug() << "  - grad_v_2d_all.txt";
+    qDebug() << "  - grad_2d_flipped_triangles.txt";
+    
+    // 可选：输出翻转三角形的详细信息到单独文件
+    if (!flippedTriangles.empty()) {
+        std::ofstream flipFile("flipped_triangles_detail.txt");
+        if (flipFile.is_open()) {
+            flipFile << "Detailed Information for Flipped Triangles" << std::endl;
+            flipFile << "==============================================" << std::endl;
+            flipFile << "Index\tFace Vertices\tJacobian Determinant\tdu/dx\tdu/dy\tdv/dx\tdv/dy" << std::endl;
+            
+            for (int t : flippedTriangles) {
+                // 获取三角形的顶点索引
+                unsigned int v1 = faces[t * 3];
+                unsigned int v2 = faces[t * 3 + 1];
+                unsigned int v3 = faces[t * 3 + 2];
+                
+                // 重新计算梯度值和行列式
+                double du_dx = grad_u_2d(2 * t);
+                double du_dy = grad_u_2d(2 * t + 1);
+                double dv_dx = grad_v_2d(2 * t);
+                double dv_dy = grad_v_2d(2 * t + 1);
+                double det = du_dy * dv_dx - du_dx * dv_dy;
+                
+                flipFile << t << "\t" << v1 << "-" << v2 << "-" << v3 << "\t"
+                        << std::scientific << std::setprecision(15) << det << "\t"
+                        << std::scientific << std::setprecision(15) << du_dx << "\t"
+                        << std::scientific << std::setprecision(15) << du_dy << "\t"
+                        << std::scientific << std::setprecision(15) << dv_dx << "\t"
+                        << std::scientific << std::setprecision(15) << dv_dy << std::endl;
+            }
+            flipFile.close();
+            qDebug() << "Detailed flipped triangle info written to flipped_triangles_detail.txt";
+        }
+    }
+    
     return flipCount;
 }
 
@@ -736,7 +754,7 @@ int SimpleSquareWidget::checkForFlips() const {
     
     if (useOperatorMethod) {
         // 使用算子方法
-        // outputDebugFiles();
+        outputDebugFiles();
         
         // 从original中提取顶点数据
         std::vector<float> originalVertices;
@@ -1009,4 +1027,330 @@ void SimpleSquareWidget::outputDebugFiles() const {
     debug3.close();
     qDebug() << "Calculation results written to debug3.txt";
     qDebug() << "Flip count: " << flipCount << "/" << numFaces;
+}
+
+// 修改 outputGrad2dInfoForTriangle 函数，确保输出所有列的信息
+// 修改 outputGrad2dInfoForTriangle 函数，添加详细的计算过程
+void SimpleSquareWidget::outputGrad2dInfoForTriangle(
+    const Eigen::SparseMatrix<double>& grad_2d, 
+    int triangle_idx,
+    const std::vector<unsigned int>& faces,
+    const std::vector<float>& uv,
+    std::ofstream& outFile) const {
+    
+    int nf = faces.size() / 3;
+    if (triangle_idx >= nf) {
+        return;
+    }
+    
+    // 获取三角形的三个顶点
+    unsigned int v1_idx = faces[triangle_idx * 3];
+    unsigned int v2_idx = faces[triangle_idx * 3 + 1];
+    unsigned int v3_idx = faces[triangle_idx * 3 + 2];
+    
+    // 获取这些顶点的u,v坐标
+    float u1 = uv[v1_idx * 3];
+    float v1 = uv[v1_idx * 3 + 1];
+    float u2 = uv[v2_idx * 3];
+    float v2 = uv[v2_idx * 3 + 1];
+    float u3 = uv[v3_idx * 3];
+    float v3 = uv[v3_idx * 3 + 1];
+    
+    outFile << std::endl;
+    outFile << "Triangle " << triangle_idx << " (FLIPPED)" << std::endl;
+    outFile << "======================================================" << std::endl;
+    outFile << "Face vertices: " << v1_idx << ", " << v2_idx << ", " << v3_idx << std::endl;
+    outFile << "UV coordinates: (" << u1 << ", " << v1 << "), (" << u2 << ", " << v2 << "), (" << u3 << ", " << v3 << ")" << std::endl;
+    outFile << std::endl;
+    
+    // grad_2d 矩阵的行索引
+    int row_x = 2 * triangle_idx;      // ∂/∂x 行
+    int row_y = 2 * triangle_idx + 1;  // ∂/∂y 行
+    
+    // 收集参与 du/dx 计算的所有元素
+    std::vector<std::tuple<int, double, float>> du_dx_elements; // (列索引, grad_2d值, u坐标)
+    
+    outFile << "Row " << row_x << " (∂/∂x):" << std::endl;
+    outFile << "Column\tValue\tVertex\tu-coord\tContribution to du/dx" << std::endl;
+    
+    // 遍历 ∂/∂x 行的所有列（包括零元素）
+    for (int col = 0; col < grad_2d.cols(); ++col) {
+        // 检查这个位置是否有非零元素
+        double value = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_x && it.col() == col) {
+                value = it.value();
+                break;
+            }
+        }
+        
+        if (std::abs(value) > 1e-15) {  // 只输出非零或接近非零的值
+            float u_coord = uv[col * 3];
+            double contribution = value * u_coord;
+            du_dx_elements.push_back(std::make_tuple(col, value, u_coord));
+            
+            outFile << col << "\t" 
+                   << std::scientific << std::setprecision(15) << value << "\t"
+                   << "v" << col << "\t"
+                   << std::fixed << std::setprecision(6) << u_coord << "\t"
+                   << std::scientific << std::setprecision(15) << contribution << std::endl;
+        }
+    }
+    
+    // 收集参与 du/dy 计算的所有元素
+    std::vector<std::tuple<int, double, float>> du_dy_elements; // (列索引, grad_2d值, u坐标)
+    
+    outFile << std::endl;
+    outFile << "Row " << row_y << " (∂/∂y):" << std::endl;
+    outFile << "Column\tValue\tVertex\tu-coord\tContribution to du/dy" << std::endl;
+    
+    // 遍历 ∂/∂y 行的所有列（包括零元素）
+    for (int col = 0; col < grad_2d.cols(); ++col) {
+        // 检查这个位置是否有非零元素
+        double value = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_y && it.col() == col) {
+                value = it.value();
+                break;
+            }
+        }
+        
+        if (std::abs(value) > 1e-15) {  // 只输出非零或接近非零的值
+            float u_coord = uv[col * 3];
+            double contribution = value * u_coord;
+            du_dy_elements.push_back(std::make_tuple(col, value, u_coord));
+            
+            outFile << col << "\t" 
+                   << std::scientific << std::setprecision(15) << value << "\t"
+                   << "v" << col << "\t"
+                   << std::fixed << std::setprecision(6) << u_coord << "\t"
+                   << std::scientific << std::setprecision(15) << contribution << std::endl;
+        }
+    }
+    
+    // 计算并显示这个三角形的 du/dx 和 du/dy
+    double du_dx = 0.0;
+    double du_dy = 0.0;
+    
+    for (int col = 0; col < grad_2d.cols(); ++col) {
+        // 检查 ∂/∂x 行的值
+        double value_x = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_x && it.col() == col) {
+                value_x = it.value();
+                break;
+            }
+        }
+        du_dx += value_x * uv[col * 3];
+        
+        // 检查 ∂/∂y 行的值
+        double value_y = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_y && it.col() == col) {
+                value_y = it.value();
+                break;
+            }
+        }
+        du_dy += value_y * uv[col * 3];
+    }
+    
+    // 计算 dv/dx 和 dv/dy
+    double dv_dx = 0.0;
+    double dv_dy = 0.0;
+    
+    for (int col = 0; col < grad_2d.cols(); ++col) {
+        // 检查 ∂/∂x 行的值
+        double value_x = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_x && it.col() == col) {
+                value_x = it.value();
+                break;
+            }
+        }
+        dv_dx += value_x * uv[col * 3 + 1];
+        
+        // 检查 ∂/∂y 行的值
+        double value_y = 0.0;
+        for (Eigen::SparseMatrix<double>::InnerIterator it(grad_2d, col); it; ++it) {
+            if (it.row() == row_y && it.col() == col) {
+                value_y = it.value();
+                break;
+            }
+        }
+        dv_dy += value_y * uv[col * 3 + 1];
+    }
+    
+    outFile << std::endl;
+    outFile << "======================================================" << std::endl;
+    outFile << "DETAILED CALCULATION PROCESS" << std::endl;
+    outFile << "======================================================" << std::endl;
+    
+    // 详细展示 du/dx 的计算过程
+    outFile << std::endl;
+    outFile << "1. Calculation of du/dx:" << std::endl;
+    outFile << "   du/dx = Σ (grad_2d[" << row_x << ", j] * u[j])" << std::endl;
+    outFile << "         = ";
+    
+    double sum_du_dx = 0.0;
+    for (size_t i = 0; i < du_dx_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dx_elements[i]);
+        double grad_value = std::get<1>(du_dx_elements[i]);
+        float u_value = std::get<2>(du_dx_elements[i]);
+        double contribution = grad_value * u_value;
+        sum_du_dx += contribution;
+        
+        outFile << "(" << std::scientific << std::setprecision(15) << grad_value 
+                << " * " << std::fixed << std::setprecision(6) << u_value << ")";
+        
+        if (i < du_dx_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = ";
+    
+    for (size_t i = 0; i < du_dx_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dx_elements[i]);
+        double grad_value = std::get<1>(du_dx_elements[i]);
+        float u_value = std::get<2>(du_dx_elements[i]);
+        double contribution = grad_value * u_value;
+        
+        outFile << std::scientific << std::setprecision(15) << contribution;
+        
+        if (i < du_dx_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = " << std::scientific << std::setprecision(15) << sum_du_dx << std::endl;
+    
+    // 详细展示 du/dy 的计算过程
+    outFile << std::endl;
+    outFile << "2. Calculation of du/dy:" << std::endl;
+    outFile << "   du/dy = Σ (grad_2d[" << row_y << ", j] * u[j])" << std::endl;
+    outFile << "         = ";
+    
+    double sum_du_dy = 0.0;
+    for (size_t i = 0; i < du_dy_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dy_elements[i]);
+        double grad_value = std::get<1>(du_dy_elements[i]);
+        float u_value = std::get<2>(du_dy_elements[i]);
+        double contribution = grad_value * u_value;
+        sum_du_dy += contribution;
+        
+        outFile << "(" << std::scientific << std::setprecision(15) << grad_value 
+                << " * " << std::fixed << std::setprecision(6) << u_value << ")";
+        
+        if (i < du_dy_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = ";
+    
+    for (size_t i = 0; i < du_dy_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dy_elements[i]);
+        double grad_value = std::get<1>(du_dy_elements[i]);
+        float u_value = std::get<2>(du_dy_elements[i]);
+        double contribution = grad_value * u_value;
+        
+        outFile << std::scientific << std::setprecision(15) << contribution;
+        
+        if (i < du_dy_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = " << std::scientific << std::setprecision(15) << sum_du_dy << std::endl;
+    
+    // 计算 dv/dx 和 dv/dy
+    outFile << std::endl;
+    outFile << "3. Calculation of dv/dx:" << std::endl;
+    outFile << "   dv/dx = Σ (grad_2d[" << row_x << ", j] * v[j])" << std::endl;
+    
+    // 收集参与 dv/dx 计算的所有元素
+    outFile << "         = ";
+    double sum_dv_dx = 0.0;
+    
+    for (size_t i = 0; i < du_dx_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dx_elements[i]);
+        double grad_value = std::get<1>(du_dx_elements[i]);
+        float v_value = uv[col_idx * 3 + 1];
+        double contribution = grad_value * v_value;
+        sum_dv_dx += contribution;
+        
+        outFile << "(" << std::scientific << std::setprecision(15) << grad_value 
+                << " * " << std::fixed << std::setprecision(6) << v_value << ")";
+        
+        if (i < du_dx_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = " << std::scientific << std::setprecision(15) << sum_dv_dx << std::endl;
+    
+    outFile << std::endl;
+    outFile << "4. Calculation of dv/dy:" << std::endl;
+    outFile << "   dv/dy = Σ (grad_2d[" << row_y << ", j] * v[j])" << std::endl;
+    outFile << "         = ";
+    
+    double sum_dv_dy = 0.0;
+    for (size_t i = 0; i < du_dy_elements.size(); ++i) {
+        int col_idx = std::get<0>(du_dy_elements[i]);
+        double grad_value = std::get<1>(du_dy_elements[i]);
+        float v_value = uv[col_idx * 3 + 1];
+        double contribution = grad_value * v_value;
+        sum_dv_dy += contribution;
+        
+        outFile << "(" << std::scientific << std::setprecision(15) << grad_value 
+                << " * " << std::fixed << std::setprecision(6) << v_value << ")";
+        
+        if (i < du_dy_elements.size() - 1) {
+            outFile << " + ";
+        }
+    }
+    
+    outFile << std::endl;
+    outFile << "         = " << std::scientific << std::setprecision(15) << sum_dv_dy << std::endl;
+    
+    // 计算Jacobian行列式
+    double det = sum_du_dy * sum_dv_dx - sum_du_dx * sum_dv_dy;
+    
+    outFile << std::endl;
+    outFile << "5. Calculation of Jacobian determinant:" << std::endl;
+    outFile << "   det = (du/dy)*(dv/dx) - (du/dx)*(dv/dy)" << std::endl;
+    outFile << "       = (" << std::scientific << std::setprecision(15) << sum_du_dy 
+            << ") * (" << std::scientific << std::setprecision(15) << sum_dv_dx 
+            << ") - (" << std::scientific << std::setprecision(15) << sum_du_dx 
+            << ") * (" << std::scientific << std::setprecision(15) << sum_dv_dy << ")" << std::endl;
+    outFile << "       = " << std::scientific << std::setprecision(15) << (sum_du_dy * sum_dv_dx) 
+            << " - " << std::scientific << std::setprecision(15) << (sum_du_dx * sum_dv_dy) << std::endl;
+    outFile << "       = " << std::scientific << std::setprecision(15) << det << std::endl;
+    
+    // 检查计算结果的一致性
+    outFile << std::endl;
+    outFile << "======================================================" << std::endl;
+    outFile << "CALCULATION VERIFICATION" << std::endl;
+    outFile << "======================================================" << std::endl;
+    outFile << "Direct calculation:" << std::endl;
+    outFile << "  du/dx = " << std::scientific << std::setprecision(15) << du_dx << std::endl;
+    outFile << "  du/dy = " << std::scientific << std::setprecision(15) << du_dy << std::endl;
+    outFile << "  dv/dx = " << std::scientific << std::setprecision(15) << dv_dx << std::endl;
+    outFile << "  dv/dy = " << std::scientific << std::setprecision(15) << dv_dy << std::endl;
+    outFile << "  det = " << std::scientific << std::setprecision(15) << (du_dy * dv_dx - du_dx * dv_dy) << std::endl;
+    
+    outFile << std::endl;
+    outFile << "Verification results:" << std::endl;
+    outFile << "  du/dx matches: " << (std::abs(du_dx - sum_du_dx) < 1e-12 ? "YES" : "NO") << std::endl;
+    outFile << "  du/dy matches: " << (std::abs(du_dy - sum_du_dy) < 1e-12 ? "YES" : "NO") << std::endl;
+    outFile << "  dv/dx matches: " << (std::abs(dv_dx - sum_dv_dx) < 1e-12 ? "YES" : "NO") << std::endl;
+    outFile << "  dv/dy matches: " << (std::abs(dv_dy - sum_dv_dy) < 1e-12 ? "YES" : "NO") << std::endl;
+    
+    outFile << "======================================================" << std::endl;
+    outFile << std::endl;
 }
