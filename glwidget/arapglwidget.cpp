@@ -735,7 +735,7 @@ bool ARAPGLWidget::performARAPParameterization()
                 // 由于CGAL的ARAP是一次性求解的，我们模拟迭代过程
                 // 在实际应用中，您可能需要修改CGAL的ARAP实现以支持迭代输出
                 // 这里我们简单模拟：保存几个中间状态
-                for (int i = 1; i <= 10; i++) {
+                for (int i = 1; i <= 100; i++) {
                     // 模拟能量减少
                     double simulated_energy = 10.0 / i;
                     

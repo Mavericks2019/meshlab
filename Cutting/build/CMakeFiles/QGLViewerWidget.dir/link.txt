@@ -1,0 +1,2 @@
+/usr/bin/ar qc libQGLViewerWidget.a CMakeFiles/QGLViewerWidget.dir/QGLViewerWidget_autogen/mocs_compilation.cpp.o CMakeFiles/QGLViewerWidget.dir/QGLViewerWidget.cpp.o
+/usr/bin/ranlib libQGLViewerWidget.a

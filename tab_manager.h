@@ -33,6 +33,8 @@
 
 // 新增的头文件
 #include "tabs/new_cgal_uv_tab.h"
+#include "tabs/openmesh_viewer_tab.h"
+#include "Cutting/QGLViewerWidget.h"
 
 // Tab管理器类
 class TabManager : public QObject {
@@ -74,6 +76,7 @@ private:
     void createDualViewExtendedTab();
     void createDualViewSimpleTab();
     void createNewCGALUVTab(); // 新增：创建新CGAL-UV视图
+    void createOpenMeshViewerTab(); // 新增：创建OpenMesh Viewer
 
     // 创建控制面板
     void createControlPanel(const QString& title);
@@ -123,6 +126,9 @@ private:
     ARAPGLWidget* newCGALUVLeftWidget;  // 修改为ARAPGLWidget
     UVParamWidget* newCGALUVRightWidget;
 
+    // 新增：OpenMesh Viewer窗口
+    QGLViewerWidget* openMeshViewerWidget;
+
     // 信息标签
     QLabel* basicInfoLabel;
     QLabel* cgalInfoLabel;
@@ -139,6 +145,9 @@ private:
     // 新增：新CGAL-UV视图信息标签
     QLabel* newCGALUVLeftInfoLabel;
     QLabel* newCGALUVRightInfoLabel;
+    
+    // 新增：OpenMesh Viewer信息标签
+    QLabel* openMeshViewerInfoLabel;
 };
 
 #endif // TAB_MANAGER_H

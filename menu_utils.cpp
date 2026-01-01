@@ -189,7 +189,7 @@ namespace UIUtils {
         QStringList tabNames = {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
-            "Extended Dual View", "Simple Dual View", "New CGAL-UV View"  // 添加新tab
+            "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"  // 添加新tab
         };
         
         // 创建动作组，确保只有一个被选中

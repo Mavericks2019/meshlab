@@ -27,6 +27,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewSimpleRightWidget(nullptr)
     , newCGALUVLeftWidget(nullptr)  // 新增：初始化新CGAL-UV视图窗口
     , newCGALUVRightWidget(nullptr) // 新增：初始化新CGAL-UV视图窗口
+    , openMeshViewerWidget(nullptr) // 新增：初始化OpenMesh Viewer窗口
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
     , modelInfoLabel(nullptr)
@@ -40,6 +41,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewSimpleRightInfoLabel(nullptr)
     , newCGALUVLeftInfoLabel(nullptr)  // 新增：初始化新CGAL-UV视图信息标签
     , newCGALUVRightInfoLabel(nullptr) // 新增：初始化新CGAL-UV视图信息标签
+    , openMeshViewerInfoLabel(nullptr) // 新增：初始化OpenMesh Viewer信息标签
 {
 }
 
@@ -48,7 +50,7 @@ TabManager::~TabManager() {
     QStringList tabNames = {
         "OpenMesh", "CGAL", "Model", "Shortest Path", 
         "UV Parameterization", "Dual View", 
-        "Extended Dual View", "Simple Dual View", "New CGAL-UV View"  // 新增：添加新tab
+        "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"  // 添加新tab
     };
     
     for (const QString& title : tabNames) {
@@ -103,7 +105,7 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
     // 首先检查tab是否已经存在且显示在tab栏中
     QWidget* existingWidget = tabWidget->getWidgetByTitle(title);
     if (existingWidget && tabWidget->indexOf(existingWidget) >= 0) {
-        // Tab已存在且显示在tab栏中
+        // Tab已存在且在tab栏中显示
         if (switchToTab) {
             // 切换到该tab
             tabWidget->setCurrentWidget(existingWidget);
@@ -164,6 +166,8 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
         createDualViewSimpleTab();
     } else if (title == "New CGAL-UV View") {  // 新增：处理新CGAL-UV视图
         createNewCGALUVTab();
+    } else if (title == "OpenMesh Viewer") {  // 新增：处理OpenMesh Viewer
+        createOpenMeshViewerTab();
     }
     
     // 标记为已创建
@@ -295,6 +299,15 @@ void TabManager::cleanupTab(const QString& title) {
         if (newCGALUVRightInfoLabel) {
             delete newCGALUVRightInfoLabel;
             newCGALUVRightInfoLabel = nullptr;
+        }
+    } else if (title == "OpenMesh Viewer") {  // 新增：清理OpenMesh Viewer资源
+        if (openMeshViewerWidget) {
+            delete openMeshViewerWidget;
+            openMeshViewerWidget = nullptr;
+        }
+        if (openMeshViewerInfoLabel) {
+            delete openMeshViewerInfoLabel;
+            openMeshViewerInfoLabel = nullptr;
         }
     }
     
@@ -693,6 +706,43 @@ void TabManager::createNewCGALUVTab() {  // 新增：创建新CGAL-UV视图
     }
 }
 
+void TabManager::createOpenMeshViewerTab() {  // 新增：创建OpenMesh Viewer
+    if (!openMeshViewerWidget) {
+        openMeshViewerWidget = new QGLViewerWidget;
+    }
+    
+    QWidget* openMeshViewerTab = ::createOpenMeshViewerTab(openMeshViewerWidget);
+    tabWidget->addTabWithTitle(openMeshViewerTab, "OpenMesh Viewer");
+    
+    // 创建控制面板（如果不存在）
+    if (!controlPanelMap.contains("OpenMesh Viewer")) {
+        createControlPanel("OpenMesh Viewer");
+    }
+    
+    // 更新tabInfos
+    UIUtils::TabInfo info;
+    info.name = "OpenMesh Viewer";
+    info.title = "OpenMesh Viewer";
+    info.widget = openMeshViewerTab;
+    info.controlPanel = controlPanelMap["OpenMesh Viewer"];
+    info.isVisible = true;
+    info.originalIndex = 9;
+    info.action = tabWidget->getActionForTitle("OpenMesh Viewer");
+    
+    // 替换或添加tab信息
+    bool found = false;
+    for (int i = 0; i < tabInfos.size(); ++i) {
+        if (tabInfos[i].title == "OpenMesh Viewer") {
+            tabInfos[i] = info;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        tabInfos.append(info);
+    }
+}
+
 void TabManager::createControlPanel(const QString& title) {
     // 如果控制面板已经存在，直接返回
     if (controlPanelMap.contains(title)) {
@@ -880,6 +930,16 @@ void TabManager::createControlPanel(const QString& title) {
                                                                      newCGALUVLeftInfoLabel, newCGALUVRightInfoLabel, mainWindow));
         
         controlPanel = newCGALUVControlPanel;
+    } else if (title == "OpenMesh Viewer") {  // 新增：创建OpenMesh Viewer控制面板
+        if (!openMeshViewerWidget) openMeshViewerWidget = new QGLViewerWidget;
+        
+        QWidget *openMeshViewerControlPanel = new QWidget;
+        QVBoxLayout *openMeshViewerControlLayout = new QVBoxLayout(openMeshViewerControlPanel);
+        openMeshViewerControlLayout->setAlignment(Qt::AlignTop);
+        openMeshViewerControlLayout->addWidget(UIUtils::createModelInfoGroup(&openMeshViewerInfoLabel));
+        openMeshViewerControlLayout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
+        
+        controlPanel = openMeshViewerControlPanel;
     }
     
     if (controlPanel) {

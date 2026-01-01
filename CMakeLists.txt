@@ -66,6 +66,10 @@ add_executable(${PROJECT_NAME}
     menu_utils.h
     tab_manager.cpp    # 添加这个
     tab_manager.h      # 添加这个
+    # 新增文件
+    Cutting/QGLViewerWidget.cpp
+    Cutting/QGLViewerWidget.h
+    tabs/openmesh_viewer_tab.h  # 添加这个
     ${RESOURCE_FILES}
 )
 
@@ -74,6 +78,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::OpenGL
     GL
+    GLU   # 添加GLU库
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen

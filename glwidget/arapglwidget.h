@@ -30,6 +30,9 @@
 #include <algorithm>
 #include <functional>
 
+// 新增：包含Eigen求解器特性
+#include <CGAL/Eigen_solver_traits.h>
+
 namespace SMP = CGAL::Surface_mesh_parameterization;
 namespace PMP = CGAL::Polygon_mesh_processing;
 
