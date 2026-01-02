@@ -13,8 +13,8 @@ set(CMAKE_AUTORCC ON)
 # 查找 Qt5 核心模块
 find_package(Qt5 COMPONENTS Core REQUIRED)
 
-# 创建库
-add_library(CommonLib STATIC
+# 创建动态库 - 将 STATIC 改为 SHARED
+add_library(CommonLib SHARED
     CommonDefinitions.cpp
     CommonDefinitions.h
     CommonFunctions.h
@@ -41,6 +41,12 @@ target_compile_definitions(CommonLib PRIVATE
     # 如果需要启用时间分析，取消下面的注释
     # CALCULATE_TIMING
 )
+
+# 对于动态库，通常需要设置版本信息（可选）
+# set_target_properties(CommonLib PROPERTIES
+#     VERSION 1.0.0
+#     SOVERSION 1
+# )
 
 # 安装规则（可选）
 install(TARGETS CommonLib DESTINATION lib)

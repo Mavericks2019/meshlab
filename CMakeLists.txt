@@ -10,19 +10,19 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
-set(COMMONLIB_INCLUDE_DIR ../lib/include)
-set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
+#set(COMMONLIB_INCLUDE_DIR ../lib/include)
+#set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
 
 # 检查 CommonLib 是否存在
-if(NOT EXISTS ${COMMONLIB_INCLUDE_DIR} OR NOT EXISTS ${COMMONLIB_LIBRARY})
-    message(WARNING "CommonLib not found at expected location. Some features may be disabled.")
-else()
-    # 添加头文件路径
-    include_directories(${COMMONLIB_INCLUDE_DIR})
+#if(NOT EXISTS ${COMMONLIB_INCLUDE_DIR} OR NOT EXISTS ${COMMONLIB_LIBRARY})
+#    message(WARNING "CommonLib not found at expected location. Some features may be disabled.")
+#else()
+#    # 添加头文件路径
+#    include_directories(${COMMONLIB_INCLUDE_DIR})
     
-    # 添加库文件路径
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
-endif()
+#    # 添加库文件路径
+#    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
+#endif()
 
 # 查找Qt5组件
 find_package(Qt5 COMPONENTS Widgets OpenGL REQUIRED)
@@ -52,6 +52,15 @@ if(NOT EXISTS ${MY_TRI})
     message(WARNING "MeshIO library not found at ${MY_TRI}. You may need to build it first.")
 else()
     message(STATUS "Found MY_TRI library: ${MY_TRI}")
+endif()
+
+set(COMMONLIB_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Common/build/libCommonLib.so)
+
+# 检查 COMMONLIB_LIBRARY 库是否存在
+if(NOT EXISTS ${COMMONLIB_LIBRARY})
+    message(WARNING "MeshIO library not found at ${COMMONLIB_LIBRARY}. You may need to build it first.")
+else()
+    message(STATUS "Found COMMONLIB_LIBRARY library: ${COMMONLIB_LIBRARY}")
 endif()
 
 set(CUTBASE ${CMAKE_CURRENT_SOURCE_DIR}/Cutting/build/libQGLViewerWidget.so)
@@ -116,12 +125,13 @@ target_link_libraries(${PROJECT_NAME}
     ${MESHIO_LIBRARY}
     ${MY_TRI}
     ${CUTBASE}
+    ${COMMONLIB_LIBRARY}
 )
 
 # 如果 CommonLib 存在，链接它
-if(EXISTS ${COMMONLIB_LIBRARY})
-    set(COMMONLIB_LIBRARY "../lib/libCommonLib.a")
-endif()
+#if(EXISTS ${COMMONLIB_LIBRARY})
+#    set(COMMONLIB_LIBRARY "../lib/libCommonLib.a")
+#endif()
 
 # 设置安装路径
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

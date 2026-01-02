@@ -3,7 +3,7 @@
 
 #include "uvparamwidget.h"
 #include "../meshutils/my_traits.h"
-#include "../lib/include/CommonFunctions.h"
+#include "../Common/CommonFunctions.h"
 
 class UVParamWidgetExtended : public UVParamWidget
 {
