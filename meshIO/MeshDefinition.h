@@ -1,6 +1,6 @@
 #ifndef MESHDEFINITION_H
 #define MESHDEFINITION_H
-
+#include <Eigen/Dense>
 #include <OpenMesh/Core/Geometry/VectorT.hh>
 //#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
@@ -30,7 +30,7 @@ struct MeshTraits : public OpenMesh::DefaultTraits
 
 	VertexTraits
 	{
-
+        float curvature;
 	};
 
 };

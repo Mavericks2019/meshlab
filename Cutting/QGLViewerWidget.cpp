@@ -187,7 +187,7 @@ void QGLViewerWidget::paintGL()
 	
 	draw_scene(draw_mode_);
 
-	//renderText(1,1,"");
+	renderText(1,1,"");
 }
 
 void QGLViewerWidget::draw_scene(int drawmode)

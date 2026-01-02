@@ -4,14 +4,17 @@ project(MeshIO)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 启用位置无关代码（PIC），这是动态库必需的
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # 查找 OpenMesh 库
 find_package(OpenMesh REQUIRED)
 
 # 查找 Eigen3 库
 find_package(Eigen3 REQUIRED)
 
-# 创建静态库
-add_library(MeshIO STATIC
+# 创建动态库（将 STATIC 改为 SHARED）
+add_library(MeshIO SHARED
     Mesh_doubleIO.cpp
     MeshDefinition.cpp
 )

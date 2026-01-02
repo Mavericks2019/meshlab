@@ -34,6 +34,21 @@ find_package(Eigen3 REQUIRED)
 find_package(CGAL REQUIRED)
 include_directories(${CGAL_INCLUDE_DIRS})
 
+# 添加 MeshIO 库的配置
+# 假设 libMeshIO.so 在你指定的路径
+set(MESHIO_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/meshIO/build/libMeshIO.so)
+
+# 检查 MeshIO 库是否存在
+if(NOT EXISTS ${MESHIO_LIBRARY})
+    message(WARNING "MeshIO library not found at ${MESHIO_LIBRARY}. You may need to build it first.")
+else()
+    message(STATUS "Found MeshIO library: ${MESHIO_LIBRARY}")
+endif()
+
+# 添加 MeshIO 头文件路径（假设头文件在 meshIO 源码目录）
+set(MESHIO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/meshIO)
+include_directories(${MESHIO_INCLUDE_DIR})
+
 # 添加可执行文件
 add_executable(${PROJECT_NAME}
     main.cpp
@@ -64,12 +79,12 @@ add_executable(${PROJECT_NAME}
     glwidget/arapglwidget.h
     menu_utils.cpp
     menu_utils.h
-    tab_manager.cpp    # 添加这个
-    tab_manager.h      # 添加这个
+    tab_manager.cpp
+    tab_manager.h
     # 新增文件
     Cutting/QGLViewerWidget.cpp
     Cutting/QGLViewerWidget.h
-    tabs/openmesh_viewer_tab.h  # 添加这个
+    tabs/openmesh_viewer_tab.h
     ${RESOURCE_FILES}
 )
 
@@ -78,11 +93,13 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::OpenGL
     GL
-    GLU   # 添加GLU库
+    GLU
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
     CGAL::CGAL
+    # 添加 MeshIO 库
+    ${MESHIO_LIBRARY}
 )
 
 # 如果 CommonLib 存在，链接它

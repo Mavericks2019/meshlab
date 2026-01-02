@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-
 #include "menu_utils.h"
 #include "tab_manager.h"
 

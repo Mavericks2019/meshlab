@@ -1,2 +1,1 @@
-/usr/bin/ar qc libMeshIO.a CMakeFiles/MeshIO.dir/Mesh_doubleIO.cpp.o CMakeFiles/MeshIO.dir/MeshDefinition.cpp.o
-/usr/bin/ranlib libMeshIO.a
+/usr/bin/c++ -fPIC -shared -Wl,-soname,libMeshIO.so -o libMeshIO.so CMakeFiles/MeshIO.dir/Mesh_doubleIO.cpp.o CMakeFiles/MeshIO.dir/MeshDefinition.cpp.o 
