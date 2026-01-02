@@ -39,14 +39,20 @@ include_directories(
     ${OPENMESH_INCLUDE_DIRS}
 )
 
-# 添加静态库
-add_library(QGLViewerWidget STATIC
+# 修改此处：将 STATIC 改为 SHARED
+add_library(QGLViewerWidget SHARED
     QGLViewerWidget.cpp
 )
 
 # 设置目标属性
 target_include_directories(QGLViewerWidget PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# 设置动态库的版本信息（可选）
+set_target_properties(QGLViewerWidget PROPERTIES
+    VERSION 1.0.0
+    SOVERSION 1
 )
 
 # 链接库
@@ -56,6 +62,7 @@ target_link_libraries(QGLViewerWidget
     Qt5::Widgets
     Qt5::OpenGL
     Qt5::Gui
+    GLU
     ${OPENMESH_LIBRARIES}
 )
 
@@ -74,18 +81,26 @@ target_compile_definitions(QGLViewerWidget PRIVATE
     -DQT_OPENGL_LIB
 )
 
+# 如果是Windows平台，需要添加导出宏定义
+if(WIN32)
+    target_compile_definitions(QGLViewerWidget PRIVATE
+        -DQGLVIEWERWIDGET_EXPORTS
+    )
+endif()
+
 # 设置编译选项
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(QGLViewerWidget PRIVATE
         -Wall
         -Wextra
         -Wno-deprecated-declarations  # 忽略弃用警告
+        -fPIC  # 位置无关代码，对动态库很重要
     )
 endif()
 
 # 安装目标
 install(TARGETS QGLViewerWidget
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib      # 动态库（Linux/macOS）
+    ARCHIVE DESTINATION lib      # 静态库（Windows的.lib文件）
+    RUNTIME DESTINATION bin      # Windows的.dll文件
 )
