@@ -1,2 +1,0 @@
-/usr/bin/ar qc libCommonLib.a CMakeFiles/CommonLib.dir/CommonLib_autogen/mocs_compilation.cpp.o CMakeFiles/CommonLib.dir/CommonDefinitions.cpp.o CMakeFiles/CommonLib.dir/TimeProfiler.cpp.o CMakeFiles/CommonLib.dir/VKString.cpp.o CMakeFiles/CommonLib.dir/VKStringList.cpp.o
-/usr/bin/ranlib libCommonLib.a
