@@ -45,6 +45,15 @@ else()
     message(STATUS "Found MeshIO library: ${MESHIO_LIBRARY}")
 endif()
 
+set(MY_TRI ${CMAKE_CURRENT_SOURCE_DIR}/meshutils/build/lib/libmymesh.so)
+
+# 检查 MeshIO 库是否存在
+if(NOT EXISTS ${MY_TRI})
+    message(WARNING "MeshIO library not found at ${MY_TRI}. You may need to build it first.")
+else()
+    message(STATUS "Found MY_TRI library: ${MY_TRI}")
+endif()
+
 # 添加 MeshIO 头文件路径（假设头文件在 meshIO 源码目录）
 set(MESHIO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/meshIO)
 include_directories(${MESHIO_INCLUDE_DIR})
@@ -63,7 +72,6 @@ add_executable(${PROJECT_NAME}
     glwidget/uvparamwidget.cpp
     glwidget/simplesquarewidget.cpp
     glwidget/simplesquarewidget.h
-    meshutils/my_traits.cpp
     glwidget/uvparamwidget_extended.cpp
     tabs/dualview_simple_tab.h
     glwidget/simplesquarewidget_parameterization.cpp
@@ -100,6 +108,7 @@ target_link_libraries(${PROJECT_NAME}
     CGAL::CGAL
     # 添加 MeshIO 库
     ${MESHIO_LIBRARY}
+    ${MY_TRI}
 )
 
 # 如果 CommonLib 存在，链接它
