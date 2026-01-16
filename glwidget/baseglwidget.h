@@ -50,9 +50,9 @@ public:
     void setShowWireframeOverlay(bool show);
     void setHideFaces(bool hide);
     void setShowAxis(bool show);
-    void resetView();
-    void centerView();
-    void loadOBJ(const QString &path);
+    virtual void resetView();
+    virtual void centerView();
+    virtual void loadOBJ(const QString &path);
     void clearMeshData();
     void setViewScale(float scale);
     
@@ -104,7 +104,7 @@ protected:
     void prepareFaceIndices();
     void prepareEdgeIndices();
     void saveOriginalMesh();
-    void updateBuffersFromOpenMesh();
+    virtual void updateBuffersFromOpenMesh();
     void initializeShaders();
     void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);

@@ -13,6 +13,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/opt/project/meshlab/glwidget/baseglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/cgalglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/modelglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
+  "/opt/project/meshlab/glwidget/relasticwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/simplesquarewidget.cpp" "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/simplesquarewidget_parameterization.cpp" "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget_parameterization.cpp.o.d"

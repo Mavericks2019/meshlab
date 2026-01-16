@@ -91,6 +91,8 @@ add_executable(${PROJECT_NAME}
     glwidget/simplesquarewidget.cpp
     glwidget/simplesquarewidget.h
     glwidget/uvparamwidget_extended.cpp
+    glwidget/relasticwidget.cpp      # 新增：相对论可视化widget
+    glwidget/relasticwidget.h        # 新增：相对论可视化widget头文件
     tabs/dualview_simple_tab.h
     glwidget/simplesquarewidget_parameterization.cpp
     tabs/model_tab.h
@@ -101,6 +103,7 @@ add_executable(${PROJECT_NAME}
     tabs/dualview_tab.h
     tabs/dualview_extended_tab.h
     tabs/dualview_simple_tab.h
+    tabs/relastic_tab.h              # 新增：相对论可视化tab
     glwidget/arapglwidget.cpp
     glwidget/arapglwidget.h
     menu_utils.cpp
@@ -109,6 +112,7 @@ add_executable(${PROJECT_NAME}
     tab_manager.h
     # 新增文件
     tabs/openmesh_viewer_tab.h
+    tabs/new_cgal_uv_tab.h
     ${RESOURCE_FILES}
 )
 

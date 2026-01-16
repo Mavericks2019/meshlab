@@ -165,6 +165,12 @@
 			null
 		],
 		[
+			"/opt/project/meshlab/glwidget/relasticwidget.h",
+			"Mu",
+			"KTNQVRIVIS/moc_relasticwidget.cpp",
+			null
+		],
+		[
 			"/opt/project/meshlab/glwidget/shortestpathglwidget.h",
 			"Mu",
 			"KTNQVRIVIS/moc_shortestpathglwidget.cpp",
@@ -237,9 +243,21 @@
 			null
 		],
 		[
+			"/opt/project/meshlab/tabs/new_cgal_uv_tab.h",
+			"Mu",
+			"GEPDHEUI4U/moc_new_cgal_uv_tab.cpp",
+			null
+		],
+		[
 			"/opt/project/meshlab/tabs/openmesh_viewer_tab.h",
 			"Mu",
 			"GEPDHEUI4U/moc_openmesh_viewer_tab.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/tabs/relastic_tab.h",
+			"Mu",
+			"GEPDHEUI4U/moc_relastic_tab.cpp",
 			null
 		],
 		[
@@ -321,6 +339,7 @@
 		[ "/opt/project/meshlab/glwidget/baseglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/cgalglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/relasticwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/simplesquarewidget.cpp", "Mu", null ],
 		[

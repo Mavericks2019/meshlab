@@ -20,7 +20,8 @@
 #include "glwidget/shortestpathglwidget.h"
 #include "glwidget/uvparamwidget.h"
 #include "glwidget/simplesquarewidget.h"
-#include "glwidget/arapglwidget.h"  // 新增：ARAPGLWidget前向声明
+#include "glwidget/arapglwidget.h"
+#include "glwidget/relasticwidget.h"  // 新增：RelasticGLWidget前向声明
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -29,6 +30,7 @@
 #include "tabs/dualview_tab.h"
 #include "tabs/dualview_extended_tab.h"
 #include "tabs/dualview_simple_tab.h"
+#include "tabs/relastic_tab.h"        // 新增：Relastic标签页头文件
 #include "menu_utils.h"
 
 // 新增的头文件
@@ -75,8 +77,9 @@ private:
     void createDualViewTab();
     void createDualViewExtendedTab();
     void createDualViewSimpleTab();
-    void createNewCGALUVTab(); // 新增：创建新CGAL-UV视图
-    void createOpenMeshViewerTab(); // 新增：创建OpenMesh Viewer
+    void createNewCGALUVTab();
+    void createOpenMeshViewerTab();
+    void createRelasticTab();  // 新增：创建Relastic标签页
 
     // 创建控制面板
     void createControlPanel(const QString& title);
@@ -122,12 +125,15 @@ private:
     BaseGLWidget* dualViewSimpleLeftWidget;
     SimpleSquareWidget* dualViewSimpleRightWidget;
 
-    // 新增：新CGAL-UV视图窗口
-    ARAPGLWidget* newCGALUVLeftWidget;  // 修改为ARAPGLWidget
+    // 新CGAL-UV视图窗口
+    ARAPGLWidget* newCGALUVLeftWidget;
     UVParamWidget* newCGALUVRightWidget;
 
-    // 新增：OpenMesh Viewer窗口
+    // OpenMesh Viewer窗口
     QGLViewerWidget* openMeshViewerWidget;
+
+    // 新增：Relastic窗口
+    RelasticGLWidget* relasticGlWidget;
 
     // 信息标签
     QLabel* basicInfoLabel;
@@ -142,12 +148,15 @@ private:
     QLabel* dualViewSimpleLeftInfoLabel;
     QLabel* dualViewSimpleRightInfoLabel;
     
-    // 新增：新CGAL-UV视图信息标签
+    // 新CGAL-UV视图信息标签
     QLabel* newCGALUVLeftInfoLabel;
     QLabel* newCGALUVRightInfoLabel;
     
-    // 新增：OpenMesh Viewer信息标签
+    // OpenMesh Viewer信息标签
     QLabel* openMeshViewerInfoLabel;
+    
+    // 新增：Relastic信息标签
+    QLabel* relasticInfoLabel;
 };
 
 #endif // TAB_MANAGER_H

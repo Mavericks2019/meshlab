@@ -21,5 +21,7 @@
     <file>glwidget/shaders/line_fragment.glsl</file>
     <file>glwidget/shaders/square_vertex.glsl</file>
     <file>glwidget/shaders/square_fragment.glsl</file>
+    <file>glwidget/shaders/relastic.frag</file>
+    <file>glwidget/shaders/relastic.vert</file>
 </qresource>
 </RCC>

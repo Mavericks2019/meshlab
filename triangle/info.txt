@@ -1,0 +1,11 @@
+编译选项: -std=c99 -Wall -Wextra -fPIC
+链接选项: -lm
+正在编译动态库...
+正在编译静态库...
+正在编译示例程序...
+编译完成！
+动态库: libtriangle.so
+静态库: libtriangle.a
+示例程序: tricali
+
+运行示例: ./tricali

@@ -185,11 +185,11 @@ namespace UIUtils {
         // Parameter 菜单
         QMenu* parameterMenu = menuBar->addMenu("&Parameter");
         
-        // 为每个标签页创建菜单项 - 添加新tab "New CGAL-UV View"
+        // 为每个标签页创建菜单项
         QStringList tabNames = {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
-            "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"  // 添加新tab
+            "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"
         };
         
         // 创建动作组，确保只有一个被选中
@@ -325,8 +325,19 @@ namespace UIUtils {
         });
         parameterMenu->addAction(exitAction);
 
-        // Render 菜单 (暂时留空，后续可以添加功能)
+        // Render 菜单
         QMenu* renderMenu = menuBar->addMenu("&Render");
+        
+        // 添加Relastic tab选项
+        QAction* relasticTabAction = new QAction("&Relastic", renderMenu);
+        relasticTabAction->setShortcut(QKeySequence("Ctrl+R"));
+        QObject::connect(relasticTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
+            // 创建Relastic tab
+            createTabFunc("Relastic", true);
+        });
+        renderMenu->addAction(relasticTabAction);
+        
+        renderMenu->addSeparator();
         
         // 添加渲染选项
         QAction* wireframeAction = new QAction("Toggle Wireframe", renderMenu);

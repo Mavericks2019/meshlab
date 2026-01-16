@@ -25,9 +25,10 @@ TabManager::TabManager(QWidget* mainWindow)
     , uvParamWidgetExtended(nullptr)
     , dualViewSimpleLeftWidget(nullptr)
     , dualViewSimpleRightWidget(nullptr)
-    , newCGALUVLeftWidget(nullptr)  // 新增：初始化新CGAL-UV视图窗口
-    , newCGALUVRightWidget(nullptr) // 新增：初始化新CGAL-UV视图窗口
-    , openMeshViewerWidget(nullptr) // 新增：初始化OpenMesh Viewer窗口
+    , newCGALUVLeftWidget(nullptr)
+    , newCGALUVRightWidget(nullptr)
+    , openMeshViewerWidget(nullptr)
+    , relasticGlWidget(nullptr)         // 新增：初始化Relastic窗口
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
     , modelInfoLabel(nullptr)
@@ -39,9 +40,10 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewExtendedRightInfoLabel(nullptr)
     , dualViewSimpleLeftInfoLabel(nullptr)
     , dualViewSimpleRightInfoLabel(nullptr)
-    , newCGALUVLeftInfoLabel(nullptr)  // 新增：初始化新CGAL-UV视图信息标签
-    , newCGALUVRightInfoLabel(nullptr) // 新增：初始化新CGAL-UV视图信息标签
-    , openMeshViewerInfoLabel(nullptr) // 新增：初始化OpenMesh Viewer信息标签
+    , newCGALUVLeftInfoLabel(nullptr)
+    , newCGALUVRightInfoLabel(nullptr)
+    , openMeshViewerInfoLabel(nullptr)
+    , relasticInfoLabel(nullptr)        // 新增：初始化Relastic信息标签
 {
 }
 
@@ -50,7 +52,8 @@ TabManager::~TabManager() {
     QStringList tabNames = {
         "OpenMesh", "CGAL", "Model", "Shortest Path", 
         "UV Parameterization", "Dual View", 
-        "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"  // 添加新tab
+        "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
+        "Relastic"  // 添加新tab
     };
     
     for (const QString& title : tabNames) {
@@ -164,10 +167,12 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
         createDualViewExtendedTab();
     } else if (title == "Simple Dual View") {
         createDualViewSimpleTab();
-    } else if (title == "New CGAL-UV View") {  // 新增：处理新CGAL-UV视图
+    } else if (title == "New CGAL-UV View") {
         createNewCGALUVTab();
-    } else if (title == "OpenMesh Viewer") {  // 新增：处理OpenMesh Viewer
+    } else if (title == "OpenMesh Viewer") {
         createOpenMeshViewerTab();
+    } else if (title == "Relastic") {  // 新增：处理Relastic tab
+        createRelasticTab();
     }
     
     // 标记为已创建
@@ -283,7 +288,7 @@ void TabManager::cleanupTab(const QString& title) {
             delete dualViewSimpleRightInfoLabel;
             dualViewSimpleRightInfoLabel = nullptr;
         }
-    } else if (title == "New CGAL-UV View") {  // 新增：清理新CGAL-UV视图资源
+    } else if (title == "New CGAL-UV View") {
         if (newCGALUVLeftWidget) {
             delete newCGALUVLeftWidget;
             newCGALUVLeftWidget = nullptr;
@@ -300,7 +305,7 @@ void TabManager::cleanupTab(const QString& title) {
             delete newCGALUVRightInfoLabel;
             newCGALUVRightInfoLabel = nullptr;
         }
-    } else if (title == "OpenMesh Viewer") {  // 新增：清理OpenMesh Viewer资源
+    } else if (title == "OpenMesh Viewer") {
         if (openMeshViewerWidget) {
             delete openMeshViewerWidget;
             openMeshViewerWidget = nullptr;
@@ -308,6 +313,15 @@ void TabManager::cleanupTab(const QString& title) {
         if (openMeshViewerInfoLabel) {
             delete openMeshViewerInfoLabel;
             openMeshViewerInfoLabel = nullptr;
+        }
+    } else if (title == "Relastic") {  // 新增：清理Relastic资源
+        if (relasticGlWidget) {
+            delete relasticGlWidget;
+            relasticGlWidget = nullptr;
+        }
+        if (relasticInfoLabel) {
+            delete relasticInfoLabel;
+            relasticInfoLabel = nullptr;
         }
     }
     
@@ -666,9 +680,9 @@ void TabManager::createDualViewSimpleTab() {
     }
 }
 
-void TabManager::createNewCGALUVTab() {  // 新增：创建新CGAL-UV视图
+void TabManager::createNewCGALUVTab() {
     if (!newCGALUVLeftWidget) {
-        newCGALUVLeftWidget = new ARAPGLWidget;  // 修改为ARAPGLWidget
+        newCGALUVLeftWidget = new ARAPGLWidget;
     }
     if (!newCGALUVRightWidget) {
         newCGALUVRightWidget = new UVParamWidget;
@@ -706,7 +720,7 @@ void TabManager::createNewCGALUVTab() {  // 新增：创建新CGAL-UV视图
     }
 }
 
-void TabManager::createOpenMeshViewerTab() {  // 新增：创建OpenMesh Viewer
+void TabManager::createOpenMeshViewerTab() {
     if (!openMeshViewerWidget) {
         openMeshViewerWidget = new QGLViewerWidget;
     }
@@ -733,6 +747,43 @@ void TabManager::createOpenMeshViewerTab() {  // 新增：创建OpenMesh Viewer
     bool found = false;
     for (int i = 0; i < tabInfos.size(); ++i) {
         if (tabInfos[i].title == "OpenMesh Viewer") {
+            tabInfos[i] = info;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        tabInfos.append(info);
+    }
+}
+
+void TabManager::createRelasticTab() {  // 新增：创建Relastic标签页
+    if (!relasticGlWidget) {
+        relasticGlWidget = new RelasticGLWidget;
+    }
+    
+    QWidget* relasticTab = ::createRelasticTab(relasticGlWidget);
+    tabWidget->addTabWithTitle(relasticTab, "Relastic");
+    
+    // 创建控制面板（如果不存在）
+    if (!controlPanelMap.contains("Relastic")) {
+        createControlPanel("Relastic");
+    }
+    
+    // 更新tabInfos
+    UIUtils::TabInfo info;
+    info.name = "Relastic";
+    info.title = "Relastic";
+    info.widget = relasticTab;
+    info.controlPanel = controlPanelMap["Relastic"];
+    info.isVisible = true;
+    info.originalIndex = 10;
+    info.action = nullptr; // Relastic没有在Parameter菜单中，所以没有action
+    
+    // 替换或添加tab信息
+    bool found = false;
+    for (int i = 0; i < tabInfos.size(); ++i) {
+        if (tabInfos[i].title == "Relastic") {
             tabInfos[i] = info;
             found = true;
             break;
@@ -900,8 +951,8 @@ void TabManager::createControlPanel(const QString& title) {
         
         controlPanel = dualViewSimpleControlPanel;
         
-    } else if (title == "New CGAL-UV View") {  // 新增：创建新CGAL-UV视图控制面板
-        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new ARAPGLWidget;  // 修改为ARAPGLWidget
+    } else if (title == "New CGAL-UV View") {
+        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new ARAPGLWidget;
         if (!newCGALUVRightWidget) newCGALUVRightWidget = new UVParamWidget;
         
         QWidget *newCGALUVControlPanel = new QWidget;
@@ -930,7 +981,7 @@ void TabManager::createControlPanel(const QString& title) {
                                                                      newCGALUVLeftInfoLabel, newCGALUVRightInfoLabel, mainWindow));
         
         controlPanel = newCGALUVControlPanel;
-    } else if (title == "OpenMesh Viewer") {  // 新增：创建OpenMesh Viewer控制面板
+    } else if (title == "OpenMesh Viewer") {
         if (!openMeshViewerWidget) openMeshViewerWidget = new QGLViewerWidget;
         
         QWidget *openMeshViewerControlPanel = new QWidget;
@@ -940,6 +991,16 @@ void TabManager::createControlPanel(const QString& title) {
         openMeshViewerControlLayout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
         
         controlPanel = openMeshViewerControlPanel;
+    } else if (title == "Relastic") {  // 新增：创建Relastic控制面板
+        if (!relasticGlWidget) relasticGlWidget = new RelasticGLWidget;
+        
+        QWidget *relasticControlPanel = new QWidget;
+        QVBoxLayout *relasticControlLayout = new QVBoxLayout(relasticControlPanel);
+        relasticControlLayout->setAlignment(Qt::AlignTop);
+        relasticControlLayout->addWidget(UIUtils::createModelInfoGroup(&relasticInfoLabel));
+        relasticControlLayout->addWidget(createRelasticControlPanel(relasticGlWidget, relasticInfoLabel, mainWindow));
+        
+        controlPanel = relasticControlPanel;
     }
     
     if (controlPanel) {

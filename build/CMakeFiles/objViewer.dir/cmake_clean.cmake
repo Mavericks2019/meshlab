@@ -10,6 +10,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
+  "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o"
+  "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/shortestpathglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/simplesquarewidget.cpp.o"

@@ -7,6 +7,7 @@
   /opt/project/meshlab/glwidget/baseglwidget.h \
   /opt/project/meshlab/glwidget/cgalglwidget.h \
   /opt/project/meshlab/glwidget/modelglwidget.h \
+  /opt/project/meshlab/glwidget/relasticwidget.h \
   /opt/project/meshlab/glwidget/shortestpathglwidget.h \
   /opt/project/meshlab/glwidget/simplesquarewidget.h \
   /opt/project/meshlab/glwidget/uvparamwidget.h \
@@ -21,6 +22,7 @@
   /opt/project/meshlab/tabs/model_tab.h \
   /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
   /opt/project/meshlab/tabs/openmesh_viewer_tab.h \
+  /opt/project/meshlab/tabs/relastic_tab.h \
   /opt/project/meshlab/tabs/shortestpath_tab.h \
   /opt/project/meshlab/tabs/uvparam_tab.h \
   /usr/include/CGAL/AABB_face_graph_triangle_primitive.h \
@@ -3550,6 +3552,7 @@
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QColorDialog \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDesktopWidget \
+  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDoubleSpinBox \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QGroupBox \

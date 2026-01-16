@@ -3858,6 +3858,7 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/CGAL/Epic_converter.h \
  /usr/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_2.h \
  /usr/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_3.h \
+ /opt/project/meshlab/glwidget/relasticwidget.h \
  /opt/project/meshlab/tabs/model_tab.h \
  /opt/project/meshlab/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -3895,14 +3896,18 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
  /opt/project/meshlab/tabs/dualview_simple_tab.h \
  /opt/project/meshlab/tabs/../glwidget/simplesquarewidget.h \
+ /opt/project/meshlab/tabs/relastic_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/relasticwidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDoubleSpinBox \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qspinbox.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractspinbox.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qvalidator.h \
  /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
  /opt/project/meshlab/tabs/../glwidget/arapglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcombobox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractitemdelegate.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstyleoption.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractspinbox.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qvalidator.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qslider.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstyle.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtabbar.h \
@@ -3932,6 +3937,5 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/GL/glu.h \
  /opt/project/meshlab/tabs/../Cutting/../Common/CommonDefinitions.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSpinBox \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qspinbox.h \
  /opt/project/meshlab/Cutting/QGLViewerWidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QDebug
