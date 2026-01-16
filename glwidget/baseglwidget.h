@@ -106,9 +106,9 @@ protected:
     void saveOriginalMesh();
     virtual void updateBuffersFromOpenMesh();
     void initializeShaders();
-    void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
-    void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
-    void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
+    virtual void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
+    virtual void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
+    virtual void drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection);
     QVector3D projectToTrackball(const QPoint& screenPos);
 
     // 初始视图状态

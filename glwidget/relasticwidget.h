@@ -30,14 +30,11 @@ public:
     void loadOBJ(const QString &path);
     void resetView();
     void centerView();
-    
-    // 洛伦兹变换计算
-    void applyLorentzTransformation();
+    void paintGL();
 
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
-    void paintGL();
     void updateBuffersFromOpenMesh();
 
 private:
@@ -49,7 +46,6 @@ private:
     
     // 原始模型数据
     std::vector<float> originalVertices; // 原始顶点数据
-    std::vector<unsigned int> originalFaces; // 原始面索引
     QVector3D originalMin, originalMax, originalCenter, originalSize;
     float originalMaxSize;
     
@@ -64,6 +60,9 @@ private:
     QOpenGLBuffer transformedVbo;
     QOpenGLBuffer transformedFaceEbo;
     
+    // 变换后的面片索引
+    std::vector<unsigned int> transformedFaces;
+    
     // 计算洛伦兹因子
     void computeGamma();
     
@@ -75,6 +74,9 @@ private:
     
     // 应用拉伸变换
     void applyStretchTransformation();
+    
+    // 准备变换后的面片索引
+    void prepareTransformedFaceIndices();
     
     // 渲染拉伸后的模型
     void renderStretchedModel();
@@ -88,6 +90,7 @@ private:
     // 重置到原始状态
     void resetToOriginal();
     
+    // 重写绘制方法（去掉 override 关键字）
     void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
 };
