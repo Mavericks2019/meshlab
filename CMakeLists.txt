@@ -93,6 +93,7 @@ add_executable(${PROJECT_NAME}
     glwidget/uvparamwidget_extended.cpp
     glwidget/relasticwidget.cpp      # 新增：相对论可视化widget
     glwidget/relasticwidget.h        # 新增：相对论可视化widget头文件
+    glwidget/relativisticwidget.cpp
     tabs/dualview_simple_tab.h
     glwidget/simplesquarewidget_parameterization.cpp
     tabs/model_tab.h

@@ -232,6 +232,87 @@ inline QGroupBox* createRelasticInfoGroup(QLabel** infoLabel) {
     return infoGroup;
 }
 
+// 创建导出变换模型按钮
+inline QPushButton* createExportTransformedButton(RelasticGLWidget* glWidget, QWidget* mainWindow) {
+    QPushButton *exportButton = new QPushButton("Export Transformed OBJ");
+    exportButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #4CAF50;"
+        "   color: white;"
+        "   border: none;"
+        "   padding: 10px 20px;"
+        "   font-size: 16px;"
+        "   border-radius: 5px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover { background-color: #45a049; }"
+        "QPushButton:disabled { background-color: #666666; color: #999999; }"
+    );
+    
+    // 初始状态：如果没有加载模型，禁用按钮
+    exportButton->setEnabled(false);
+    
+    // 当模型加载状态改变时更新按钮状态
+    // 注意：这里需要RelasticGLWidget有modelLoadedChanged信号
+    // 如果基类没有这个信号，我们可以使用其他方式
+    // 这里我们假设RelasticGLWidget有modelLoadedChanged信号
+    QObject::connect(glWidget, &RelasticGLWidget::modelLoadedChanged, exportButton, &QPushButton::setEnabled);
+    
+    QObject::connect(exportButton, &QPushButton::clicked, [glWidget, mainWindow]() {
+        if (!glWidget->modelLoaded) {
+            QMessageBox::warning(mainWindow, "No Model", "Please load a model first!");
+            return;
+        }
+        
+        // 获取当前可视化模式
+        int mode = glWidget->getVisualizationMode();
+        QString modeStr;
+        
+        if (mode == 0) modeStr = "original";
+        else if (mode == 1) modeStr = "measured";
+        else if (mode == 2) modeStr = "visual";
+        
+        // 获取速度信息
+        QVector3D velocity = glWidget->getVelocity();
+        QString velocityStr = QString("_v%1_%2_%3")
+            .arg(velocity.x(), 0, 'f', 2)
+            .arg(velocity.y(), 0, 'f', 2)
+            .arg(velocity.z(), 0, 'f', 2);
+        
+        // 替换特殊字符
+        velocityStr.replace('.', 'p');
+        velocityStr.replace('-', 'm');
+        
+        // 建议文件名
+        QString suggestedName = QString("transformed_%1%2.obj").arg(modeStr).arg(velocityStr);
+        
+        QString filePath = QFileDialog::getSaveFileName(
+            mainWindow, 
+            "Save Transformed OBJ File",
+            suggestedName,
+            "OBJ Files (*.obj)"
+        );
+        
+        if (!filePath.isEmpty()) {
+            bool success = glWidget->exportTransformedOBJ(filePath);
+            if (success) {
+                QMessageBox::information(mainWindow, "Export Successful", 
+                    QString("Transformed model exported to:\n%1\n\nMode: %2\nVelocity: (%3, %4, %5)c")
+                        .arg(filePath)
+                        .arg(modeStr)
+                        .arg(velocity.x(), 0, 'f', 2)
+                        .arg(velocity.y(), 0, 'f', 2)
+                        .arg(velocity.z(), 0, 'f', 2));
+            } else {
+                QMessageBox::critical(mainWindow, "Export Failed", 
+                    "Failed to export transformed model. Please check the file path and permissions.");
+            }
+        }
+    });
+    
+    return exportButton;
+}
+
 // Create Relastic control panel
 inline QWidget* createRelasticControlPanel(RelasticGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
@@ -272,6 +353,9 @@ inline QWidget* createRelasticControlPanel(RelasticGLWidget* glWidget, QLabel* i
     
     layout->addWidget(createVelocityControlGroup(glWidget));
     layout->addWidget(createVisualizationModeGroup(glWidget));
+    
+    // 添加导出变换模型按钮
+    layout->addWidget(createExportTransformedButton(glWidget, mainWindow));
     
     // View control buttons
     QPushButton *resetButton = new QPushButton("Reset View");
@@ -315,9 +399,11 @@ inline QWidget* createRelasticControlPanel(RelasticGLWidget* glWidget, QLabel* i
     
     QLabel *explanationLabel = new QLabel(
         "• Measured Appearance: Calculate object shape measured by stationary observer based on Lorentz transformation\n"
+        "• Visual Appearance: Apply light cone intersection method after Lorentz transformation\n"
         "• Velocity is in units of light speed (c), range [0, 0.99)\n"
         "• When velocity approaches light speed, Lorentz contraction occurs in the direction of motion\n"
-        "• Lorentz factor γ = 1/√(1-v²/c²) indicates the degree of time dilation and length contraction"
+        "• Lorentz factor γ = 1/√(1-v²/c²) indicates the degree of time dilation and length contraction\n"
+        "• Export button saves the transformed vertices according to current visualization mode"
     );
     explanationLabel->setWordWrap(true);
     explanationLabel->setStyleSheet("color: #CCCCCC; font-size: 12px;");

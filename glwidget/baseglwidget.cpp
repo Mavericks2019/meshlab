@@ -575,38 +575,41 @@ bool BaseGLWidget::loadOBJToOpenMesh(const QString &path) {
     return OpenMesh::IO::read_mesh(openMesh, path.toStdString(), opt);
 }
 
-void BaseGLWidget::computeBoundingBox(Mesh::Point& min, Mesh::Point& max) {
-    if (openMesh.n_vertices() > 0) {
-        min = max = openMesh.point(*openMesh.vertices_begin());
-        for (auto vh : openMesh.vertices()) {
-            min.minimize(openMesh.point(vh));
-            max.maximize(openMesh.point(vh));
+// 带Mesh参数的bounding box计算
+void BaseGLWidget::computeBoundingBoxWithMesh(Mesh& mesh, Mesh::Point& min, Mesh::Point& max) {
+    if (mesh.n_vertices() > 0) {
+        min = max = mesh.point(*mesh.vertices_begin());
+        for (auto vh : mesh.vertices()) {
+            min.minimize(mesh.point(vh));
+            max.maximize(mesh.point(vh));
         }
     }
 }
 
-void BaseGLWidget::centerAndScaleMesh(const Mesh::Point& center, float maxSize) {
+// 带Mesh参数的居中缩放函数
+void BaseGLWidget::centerAndScaleMeshWithMesh(Mesh& mesh, const Mesh::Point& center, float maxSize) {
     float scaleFactor = 2.0f / maxSize;
-    for (auto vh : openMesh.vertices()) {
-        Mesh::Point p = openMesh.point(vh);
+    for (auto vh : mesh.vertices()) {
+        Mesh::Point p = mesh.point(vh);
         p = (p - center) * scaleFactor;
-        openMesh.set_point(vh, p);
+        mesh.set_point(vh, p);
     }
 }
 
-void BaseGLWidget::prepareFaceIndices() {
-    faces.clear();
-    for (auto fh : openMesh.faces()) {
-        auto fv_it = openMesh.fv_ccwbegin(fh);
-        auto fv_end = openMesh.fv_ccwend(fh);
-        int vertexCount = openMesh.valence(fh);
+// 带Mesh参数的面索引准备函数
+void BaseGLWidget::prepareFaceIndicesWithMesh(Mesh& mesh, std::vector<unsigned int>& facesOut) {
+    facesOut.clear();
+    for (auto fh : mesh.faces()) {
+        auto fv_it = mesh.fv_ccwbegin(fh);
+        auto fv_end = mesh.fv_ccwend(fh);
+        int vertexCount = mesh.valence(fh);
         
         if (vertexCount < 3) continue;
         
         if (vertexCount == 3) {
-            faces.push_back((*fv_it).idx()); ++fv_it;
-            faces.push_back((*fv_it).idx()); ++fv_it;
-            faces.push_back((*fv_it).idx());
+            facesOut.push_back((*fv_it).idx()); ++fv_it;
+            facesOut.push_back((*fv_it).idx()); ++fv_it;
+            facesOut.push_back((*fv_it).idx());
         } else {
             unsigned int centerIdx = (*fv_it).idx();
             ++fv_it;
@@ -615,9 +618,9 @@ void BaseGLWidget::prepareFaceIndices() {
             
             for (int i = 2; i < vertexCount; i++) {
                 unsigned int currentIdx = (*fv_it).idx();
-                faces.push_back(centerIdx);
-                faces.push_back(prevIdx);
-                faces.push_back(currentIdx);
+                facesOut.push_back(centerIdx);
+                facesOut.push_back(prevIdx);
+                facesOut.push_back(currentIdx);
                 prevIdx = currentIdx;
                 ++fv_it;
             }
@@ -625,13 +628,14 @@ void BaseGLWidget::prepareFaceIndices() {
     }
 }
 
-void BaseGLWidget::prepareEdgeIndices() {
-    edges.clear();
+// 带Mesh参数的边索引准备函数
+void BaseGLWidget::prepareEdgeIndicesWithMesh(Mesh& mesh, std::vector<unsigned int>& edgesOut) {
+    edgesOut.clear();
     std::set<std::pair<unsigned int, unsigned int>> uniqueEdges;
-    for (auto heh : openMesh.halfedges()) {
-        if (openMesh.is_boundary(heh) || heh.idx() < openMesh.opposite_halfedge_handle(heh).idx()) {
-            unsigned int from = openMesh.from_vertex_handle(heh).idx();
-            unsigned int to = openMesh.to_vertex_handle(heh).idx();
+    for (auto heh : mesh.halfedges()) {
+        if (mesh.is_boundary(heh) || heh.idx() < mesh.opposite_halfedge_handle(heh).idx()) {
+            unsigned int from = mesh.from_vertex_handle(heh).idx();
+            unsigned int to = mesh.to_vertex_handle(heh).idx();
             
             if (from > to) std::swap(from, to);
             uniqueEdges.insert({from, to});
@@ -639,9 +643,26 @@ void BaseGLWidget::prepareEdgeIndices() {
     }
     
     for (const auto& edge : uniqueEdges) {
-        edges.push_back(edge.first);
-        edges.push_back(edge.second);
+        edgesOut.push_back(edge.first);
+        edgesOut.push_back(edge.second);
     }
+}
+
+// 原有函数实现，操作openMesh
+void BaseGLWidget::computeBoundingBox(Mesh::Point& min, Mesh::Point& max) {
+    computeBoundingBoxWithMesh(openMesh, min, max);
+}
+
+void BaseGLWidget::centerAndScaleMesh(const Mesh::Point& center, float maxSize) {
+    centerAndScaleMeshWithMesh(openMesh, center, maxSize);
+}
+
+void BaseGLWidget::prepareFaceIndices() {
+    prepareFaceIndicesWithMesh(openMesh, faces);
+}
+
+void BaseGLWidget::prepareEdgeIndices() {
+    prepareEdgeIndicesWithMesh(openMesh, edges);
 }
 
 void BaseGLWidget::saveOriginalMesh() {

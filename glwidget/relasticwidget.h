@@ -7,6 +7,8 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
+#include <vector>
+#include <string>
 
 class RelasticGLWidget : public BaseGLWidget
 {
@@ -26,11 +28,17 @@ public:
     void setStretchFactor(float factor);
     float getStretchFactor() const { return stretchFactor; }
     
+    // 导出变换后的模型
+    bool exportTransformedOBJ(const QString& filePath);
+    
     // 重载基类方法
     void loadOBJ(const QString &path);
     void resetView();
     void centerView();
     void paintGL();
+
+signals:
+    void modelLoadedChanged(bool loaded);  // 添加这个信号
 
 protected:
     void initializeGL();
@@ -39,6 +47,8 @@ protected:
 
 private:
     // 相对论参数
+    Mesh openMesh_measure;
+    Mesh openMesh_look;
     QVector3D velocity;          // 速度 (以光速为单位)
     float gamma;                 // 洛伦兹因子
     int visualizationMode;       // 0:原始模型, 1:测量形象, 2:视觉形象
@@ -49,19 +59,9 @@ private:
     QVector3D originalMin, originalMax, originalCenter, originalSize;
     float originalMaxSize;
     
-    // 拉伸变换后的数据
-    std::vector<float> stretchedVertices; // 拉伸后的顶点数据
-    
-    // 变换后的网格数据
-    Mesh transformedMesh;
-    
-    // 用于绘制变换后网格的缓冲区
-    QOpenGLVertexArrayObject transformedVao;
-    QOpenGLBuffer transformedVbo;
-    QOpenGLBuffer transformedFaceEbo;
-    
-    // 变换后的面片索引
-    std::vector<unsigned int> transformedFaces;
+    // 变换后的数据
+    std::vector<float> transformedVertices; // 变换后的顶点数据
+    std::vector<float> lorentzVertices;     // 洛伦兹变换后的顶点
     
     // 计算洛伦兹因子
     void computeGamma();
@@ -69,26 +69,17 @@ private:
     // 计算原始包围盒
     void computeOriginalBoundingBox();
     
-    // 计算变换后的包围盒
-    void computeTransformedBoundingBox(Mesh::Point& min, Mesh::Point& max);
+    // 应用洛伦兹变换（测量形象）
+    std::vector<float> applyObserverLorentzTransform(const std::vector<float>& vertices);
     
-    // 应用拉伸变换
-    void applyStretchTransformation();
+    // 应用光锥变换（视觉形象）
+    std::vector<float> applyLightConeTransform(const std::vector<float>& vertices);
     
-    // 准备变换后的面片索引
-    void prepareTransformedFaceIndices();
-    
-    // 渲染拉伸后的模型
-    void renderStretchedModel();
+    // 准备当前显示的变换数据
+    void prepareCurrentTransformation();
     
     // 更新变换后的缓冲区
     void updateTransformedBuffers();
-    
-    // 计算包围盒并调整相机
-    void adjustCameraForTransformedMesh();
-    
-    // 重置到原始状态
-    void resetToOriginal();
     
     // 重写绘制方法（去掉 override 关键字）
     void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);

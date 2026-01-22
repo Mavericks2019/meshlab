@@ -3792,6 +3792,8 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/baseglwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_relasticwidget.cpp \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/relasticwidget.h \
+ /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_relativisticwidget.cpp \
+ /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/relativisticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_shortestpathglwidget.cpp \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/shortestpathglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLFramebufferObject \
@@ -3876,6 +3878,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/simplesquarewidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/arapglwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/relasticwidget.h \
+ /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/relativisticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/model_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -3918,6 +3921,8 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qspinbox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractspinbox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qvalidator.h \
+ /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/relativistic_tab.h \
+ /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/relativisticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/new_cgal_uv_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/arapglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \

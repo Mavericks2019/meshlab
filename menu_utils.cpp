@@ -338,6 +338,13 @@ namespace UIUtils {
         renderMenu->addAction(relasticTabAction);
         
         renderMenu->addSeparator();
+        QAction* relativisticTabAction = new QAction("&Relativistic", renderMenu);
+        relativisticTabAction->setShortcut(QKeySequence("Ctrl+L"));
+        QObject::connect(relativisticTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
+            // 创建Relativistic tab
+            createTabFunc("Relativistic", true);
+        });
+        renderMenu->addAction(relativisticTabAction);
         
         // 添加渲染选项
         QAction* wireframeAction = new QAction("Toggle Wireframe", renderMenu);

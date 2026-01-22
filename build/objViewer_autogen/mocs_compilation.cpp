@@ -4,6 +4,7 @@
 #include "KTNQVRIVIS/moc_cgalglwidget.cpp"
 #include "KTNQVRIVIS/moc_modelglwidget.cpp"
 #include "KTNQVRIVIS/moc_relasticwidget.cpp"
+#include "KTNQVRIVIS/moc_relativisticwidget.cpp"
 #include "KTNQVRIVIS/moc_shortestpathglwidget.cpp"
 #include "KTNQVRIVIS/moc_simplesquarewidget.cpp"
 #include "KTNQVRIVIS/moc_uvparamwidget.cpp"

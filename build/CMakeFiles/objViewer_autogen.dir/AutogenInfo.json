@@ -171,6 +171,12 @@
 			null
 		],
 		[
+			"/opt/project/meshlab/glwidget/relativisticwidget.h",
+			"Mu",
+			"KTNQVRIVIS/moc_relativisticwidget.cpp",
+			null
+		],
+		[
 			"/opt/project/meshlab/glwidget/shortestpathglwidget.h",
 			"Mu",
 			"KTNQVRIVIS/moc_shortestpathglwidget.cpp",
@@ -340,6 +346,7 @@
 		[ "/opt/project/meshlab/glwidget/cgalglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/relasticwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/relativisticwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/shortestpathglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/simplesquarewidget.cpp", "Mu", null ],
 		[

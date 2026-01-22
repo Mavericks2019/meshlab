@@ -21,7 +21,8 @@
 #include "glwidget/uvparamwidget.h"
 #include "glwidget/simplesquarewidget.h"
 #include "glwidget/arapglwidget.h"
-#include "glwidget/relasticwidget.h"  // 新增：RelasticGLWidget前向声明
+#include "glwidget/relasticwidget.h"     // RelasticGLWidget前向声明
+#include "glwidget/relativisticwidget.h"  // RelativisticGLWidget前向声明
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -30,7 +31,8 @@
 #include "tabs/dualview_tab.h"
 #include "tabs/dualview_extended_tab.h"
 #include "tabs/dualview_simple_tab.h"
-#include "tabs/relastic_tab.h"        // 新增：Relastic标签页头文件
+#include "tabs/relastic_tab.h"           // Relastic标签页头文件
+#include "tabs/relativistic_tab.h"       // Relativistic标签页头文件
 #include "menu_utils.h"
 
 // 新增的头文件
@@ -79,7 +81,8 @@ private:
     void createDualViewSimpleTab();
     void createNewCGALUVTab();
     void createOpenMeshViewerTab();
-    void createRelasticTab();  // 新增：创建Relastic标签页
+    void createRelasticTab();           // 创建Relastic标签页
+    void createRelativisticTab();       // 创建Relativistic标签页
 
     // 创建控制面板
     void createControlPanel(const QString& title);
@@ -132,8 +135,11 @@ private:
     // OpenMesh Viewer窗口
     QGLViewerWidget* openMeshViewerWidget;
 
-    // 新增：Relastic窗口
+    // Relastic窗口
     RelasticGLWidget* relasticGlWidget;
+
+    // Relativistic窗口
+    RelativisticGLWidget* relativisticGlWidget;
 
     // 信息标签
     QLabel* basicInfoLabel;
@@ -155,8 +161,11 @@ private:
     // OpenMesh Viewer信息标签
     QLabel* openMeshViewerInfoLabel;
     
-    // 新增：Relastic信息标签
+    // Relastic信息标签
     QLabel* relasticInfoLabel;
+    
+    // Relativistic信息标签
+    QLabel* relativisticInfoLabel;
 };
 
 #endif // TAB_MANAGER_H

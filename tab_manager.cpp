@@ -28,7 +28,8 @@ TabManager::TabManager(QWidget* mainWindow)
     , newCGALUVLeftWidget(nullptr)
     , newCGALUVRightWidget(nullptr)
     , openMeshViewerWidget(nullptr)
-    , relasticGlWidget(nullptr)         // 新增：初始化Relastic窗口
+    , relasticGlWidget(nullptr)         // 初始化Relastic窗口
+    , relativisticGlWidget(nullptr)     // 初始化Relativistic窗口
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
     , modelInfoLabel(nullptr)
@@ -43,7 +44,8 @@ TabManager::TabManager(QWidget* mainWindow)
     , newCGALUVLeftInfoLabel(nullptr)
     , newCGALUVRightInfoLabel(nullptr)
     , openMeshViewerInfoLabel(nullptr)
-    , relasticInfoLabel(nullptr)        // 新增：初始化Relastic信息标签
+    , relasticInfoLabel(nullptr)        // 初始化Relastic信息标签
+    , relativisticInfoLabel(nullptr)    // 初始化Relativistic信息标签
 {
 }
 
@@ -53,7 +55,8 @@ TabManager::~TabManager() {
         "OpenMesh", "CGAL", "Model", "Shortest Path", 
         "UV Parameterization", "Dual View", 
         "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
-        "Relastic"  // 添加新tab
+        "Relastic",           // Relastic tab
+        "Relativistic"        // Relativistic tab
     };
     
     for (const QString& title : tabNames) {
@@ -171,8 +174,10 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
         createNewCGALUVTab();
     } else if (title == "OpenMesh Viewer") {
         createOpenMeshViewerTab();
-    } else if (title == "Relastic") {  // 新增：处理Relastic tab
+    } else if (title == "Relastic") {    // 处理Relastic tab
         createRelasticTab();
+    } else if (title == "Relativistic") { // 处理Relativistic tab
+        createRelativisticTab();
     }
     
     // 标记为已创建
@@ -314,7 +319,7 @@ void TabManager::cleanupTab(const QString& title) {
             delete openMeshViewerInfoLabel;
             openMeshViewerInfoLabel = nullptr;
         }
-    } else if (title == "Relastic") {  // 新增：清理Relastic资源
+    } else if (title == "Relastic") {    // 清理Relastic资源
         if (relasticGlWidget) {
             delete relasticGlWidget;
             relasticGlWidget = nullptr;
@@ -322,6 +327,15 @@ void TabManager::cleanupTab(const QString& title) {
         if (relasticInfoLabel) {
             delete relasticInfoLabel;
             relasticInfoLabel = nullptr;
+        }
+    } else if (title == "Relativistic") { // 清理Relativistic资源
+        if (relativisticGlWidget) {
+            delete relativisticGlWidget;
+            relativisticGlWidget = nullptr;
+        }
+        if (relativisticInfoLabel) {
+            delete relativisticInfoLabel;
+            relativisticInfoLabel = nullptr;
         }
     }
     
@@ -757,7 +771,7 @@ void TabManager::createOpenMeshViewerTab() {
     }
 }
 
-void TabManager::createRelasticTab() {  // 新增：创建Relastic标签页
+void TabManager::createRelasticTab() {
     if (!relasticGlWidget) {
         relasticGlWidget = new RelasticGLWidget;
     }
@@ -778,12 +792,49 @@ void TabManager::createRelasticTab() {  // 新增：创建Relastic标签页
     info.controlPanel = controlPanelMap["Relastic"];
     info.isVisible = true;
     info.originalIndex = 10;
-    info.action = nullptr; // Relastic没有在Parameter菜单中，所以没有action
+    info.action = nullptr; // Relastic在Render菜单中，所以没有action
     
     // 替换或添加tab信息
     bool found = false;
     for (int i = 0; i < tabInfos.size(); ++i) {
         if (tabInfos[i].title == "Relastic") {
+            tabInfos[i] = info;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        tabInfos.append(info);
+    }
+}
+
+void TabManager::createRelativisticTab() {
+    if (!relativisticGlWidget) {
+        relativisticGlWidget = new RelativisticGLWidget;
+    }
+    
+    QWidget* relativisticTab = ::createRelativisticTab(relativisticGlWidget);
+    tabWidget->addTabWithTitle(relativisticTab, "Relativistic");
+    
+    // 创建控制面板（如果不存在）
+    if (!controlPanelMap.contains("Relativistic")) {
+        createControlPanel("Relativistic");
+    }
+    
+    // 更新tabInfos
+    UIUtils::TabInfo info;
+    info.name = "Relativistic";
+    info.title = "Relativistic";
+    info.widget = relativisticTab;
+    info.controlPanel = controlPanelMap["Relativistic"];
+    info.isVisible = true;
+    info.originalIndex = 11;
+    info.action = nullptr; // Relativistic在Render菜单中，所以没有action
+    
+    // 替换或添加tab信息
+    bool found = false;
+    for (int i = 0; i < tabInfos.size(); ++i) {
+        if (tabInfos[i].title == "Relativistic") {
             tabInfos[i] = info;
             found = true;
             break;
@@ -991,7 +1042,7 @@ void TabManager::createControlPanel(const QString& title) {
         openMeshViewerControlLayout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
         
         controlPanel = openMeshViewerControlPanel;
-    } else if (title == "Relastic") {  // 新增：创建Relastic控制面板
+    } else if (title == "Relastic") {    // 创建Relastic控制面板
         if (!relasticGlWidget) relasticGlWidget = new RelasticGLWidget;
         
         QWidget *relasticControlPanel = new QWidget;
@@ -1001,6 +1052,16 @@ void TabManager::createControlPanel(const QString& title) {
         relasticControlLayout->addWidget(createRelasticControlPanel(relasticGlWidget, relasticInfoLabel, mainWindow));
         
         controlPanel = relasticControlPanel;
+    } else if (title == "Relativistic") { // 创建Relativistic控制面板
+        if (!relativisticGlWidget) relativisticGlWidget = new RelativisticGLWidget;
+        
+        QWidget *relativisticControlPanel = new QWidget;
+        QVBoxLayout *relativisticControlLayout = new QVBoxLayout(relativisticControlPanel);
+        relativisticControlLayout->setAlignment(Qt::AlignTop);
+        relativisticControlLayout->addWidget(UIUtils::createModelInfoGroup(&relativisticInfoLabel));
+        relativisticControlLayout->addWidget(createRelativisticControlPanel(relativisticGlWidget, relativisticInfoLabel, mainWindow));
+        
+        controlPanel = relativisticControlPanel;
     }
     
     if (controlPanel) {

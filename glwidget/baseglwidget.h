@@ -88,6 +88,12 @@ public:
     float viewScale = 1.5f;
     QVector3D eyePosition;
 
+    // 带Mesh参数的函数 - 用于处理其他Mesh对象
+    void computeBoundingBoxWithMesh(Mesh& mesh, Mesh::Point& min, Mesh::Point& max);
+    void centerAndScaleMeshWithMesh(Mesh& mesh, const Mesh::Point& center, float maxSize);
+    void prepareFaceIndicesWithMesh(Mesh& mesh, std::vector<unsigned int>& facesOut);
+    void prepareEdgeIndicesWithMesh(Mesh& mesh, std::vector<unsigned int>& edgesOut);
+
 protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;

@@ -8,6 +8,7 @@
   /opt/project/meshlab/glwidget/cgalglwidget.h \
   /opt/project/meshlab/glwidget/modelglwidget.h \
   /opt/project/meshlab/glwidget/relasticwidget.h \
+  /opt/project/meshlab/glwidget/relativisticwidget.h \
   /opt/project/meshlab/glwidget/shortestpathglwidget.h \
   /opt/project/meshlab/glwidget/simplesquarewidget.h \
   /opt/project/meshlab/glwidget/uvparamwidget.h \
@@ -23,6 +24,7 @@
   /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
   /opt/project/meshlab/tabs/openmesh_viewer_tab.h \
   /opt/project/meshlab/tabs/relastic_tab.h \
+  /opt/project/meshlab/tabs/relativistic_tab.h \
   /opt/project/meshlab/tabs/shortestpath_tab.h \
   /opt/project/meshlab/tabs/uvparam_tab.h \
   /usr/include/CGAL/AABB_face_graph_triangle_primitive.h \

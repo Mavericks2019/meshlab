@@ -3859,6 +3859,7 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/project/meshlab/main.cpp \
  /usr/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_2.h \
  /usr/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_3.h \
  /opt/project/meshlab/glwidget/relasticwidget.h \
+ /opt/project/meshlab/glwidget/relativisticwidget.h \
  /opt/project/meshlab/tabs/model_tab.h \
  /opt/project/meshlab/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -3902,6 +3903,8 @@ CMakeFiles/objViewer.dir/main.cpp.o: /opt/project/meshlab/main.cpp \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qspinbox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractspinbox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qvalidator.h \
+ /opt/project/meshlab/tabs/relativistic_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/relativisticwidget.h \
  /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
  /opt/project/meshlab/tabs/../glwidget/arapglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
