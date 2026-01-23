@@ -14,6 +14,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , tabWidget(nullptr)
     , menuBar(nullptr)
     , controlContainer(nullptr)
+    // 初始化所有widget指针为nullptr
     , modelGlWidget(nullptr)
     , basicGlWidget(nullptr)
     , cgalGlWidget(nullptr)
@@ -28,8 +29,9 @@ TabManager::TabManager(QWidget* mainWindow)
     , newCGALUVLeftWidget(nullptr)
     , newCGALUVRightWidget(nullptr)
     , openMeshViewerWidget(nullptr)
-    , relasticGlWidget(nullptr)         // 初始化Relastic窗口
-    , relativisticGlWidget(nullptr)     // 初始化Relativistic窗口
+    , relasticGlWidget(nullptr)
+    , relativisticGlWidget(nullptr)
+    // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
     , modelInfoLabel(nullptr)
@@ -44,24 +46,375 @@ TabManager::TabManager(QWidget* mainWindow)
     , newCGALUVLeftInfoLabel(nullptr)
     , newCGALUVRightInfoLabel(nullptr)
     , openMeshViewerInfoLabel(nullptr)
-    , relasticInfoLabel(nullptr)        // 初始化Relastic信息标签
-    , relativisticInfoLabel(nullptr)    // 初始化Relativistic信息标签
+    , relasticInfoLabel(nullptr)
+    , relativisticInfoLabel(nullptr)
 {
+    // 注册标签页配置
+    registerTabConfigs();
 }
 
 TabManager::~TabManager() {
-    // 清理所有已创建的tab
-    QStringList tabNames = {
-        "OpenMesh", "CGAL", "Model", "Shortest Path", 
-        "UV Parameterization", "Dual View", 
-        "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
-        "Relastic",           // Relastic tab
-        "Relativistic"        // Relativistic tab
-    };
-    
-    for (const QString& title : tabNames) {
-        cleanupTab(title);
+    // 清理所有标签页
+    for (const auto& config : tabConfigs) {
+        cleanupTab(config.title);
     }
+}
+
+void TabManager::registerTabConfigs() {
+    tabConfigs = {
+        {"OpenMesh", 
+            [this]() -> QWidget* { 
+                getOrCreateWidget(basicGlWidget);
+                return ::createBasicTab(basicGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(basicGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createColorSettingsGroup(basicGlWidget));
+                layout->addWidget(UIUtils::createModelInfoGroup(&basicInfoLabel));
+                layout->addWidget(createBasicControlPanel(basicGlWidget, basicInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete basicGlWidget; basicGlWidget = nullptr;
+                delete basicInfoLabel; basicInfoLabel = nullptr;
+            },
+            0,
+            "OpenMesh"
+        },
+        {"CGAL",
+            [this]() -> QWidget* {
+                getOrCreateWidget(cgalGlWidget);
+                return ::createCGALTab(cgalGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(cgalGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createColorSettingsGroup(cgalGlWidget));
+                layout->addWidget(UIUtils::createModelInfoGroup(&cgalInfoLabel));
+                layout->addWidget(createCGALControlPanel(cgalGlWidget, cgalInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete cgalGlWidget; cgalGlWidget = nullptr;
+                delete cgalInfoLabel; cgalInfoLabel = nullptr;
+            },
+            1,
+            "CGAL"
+        },
+        {"Model",
+            [this]() -> QWidget* {
+                getOrCreateWidget(modelGlWidget);
+                return ::createModelTab(modelGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(modelGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createColorSettingsGroup(modelGlWidget));
+                layout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
+                layout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete modelGlWidget; modelGlWidget = nullptr;
+                delete modelInfoLabel; modelInfoLabel = nullptr;
+            },
+            2,
+            "Model"
+        },
+        {"Shortest Path",
+            [this]() -> QWidget* {
+                getOrCreateWidget(shortestPathGlWidget);
+                return ::createShortestPathTab(shortestPathGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(shortestPathGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createColorSettingsGroup(shortestPathGlWidget));
+                layout->addWidget(UIUtils::createModelInfoGroup(&shortestPathInfoLabel));
+                layout->addWidget(createShortestPathControlPanel(shortestPathGlWidget, shortestPathInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete shortestPathGlWidget; shortestPathGlWidget = nullptr;
+                delete shortestPathInfoLabel; shortestPathInfoLabel = nullptr;
+            },
+            3,
+            "Shortest Path"
+        },
+        {"UV Parameterization",
+            [this]() -> QWidget* {
+                getOrCreateWidget(uvParamWidget);
+                return ::createUVParamTab(uvParamWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(uvParamWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&uvParamInfoLabel));
+                layout->addWidget(createUVParamControlPanel(uvParamWidget, uvParamInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete uvParamWidget; uvParamWidget = nullptr;
+                delete uvParamInfoLabel; uvParamInfoLabel = nullptr;
+            },
+            4,
+            "UV Parameterization"
+        },
+        {"Dual View",
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewLeftWidget);
+                getOrCreateWidget(dualViewRightWidget);
+                return ::createDualViewTab(dualViewLeftWidget, dualViewRightWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewLeftWidget);
+                getOrCreateWidget(dualViewRightWidget);
+                
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                
+                dualViewLeftInfoLabel = new QLabel("No model loaded (Left View)");
+                dualViewLeftInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewLeftInfoLabel->setFixedHeight(50);
+                dualViewLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewLeftInfoLabel->setWordWrap(true);
+                
+                dualViewRightInfoLabel = new QLabel("No model loaded (Right View)");
+                dualViewRightInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewRightInfoLabel->setFixedHeight(50);
+                dualViewRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewRightInfoLabel->setWordWrap(true);
+                
+                QGroupBox* infoGroup = new QGroupBox("Model Information");
+                QVBoxLayout* infoLayout = new QVBoxLayout(infoGroup);
+                infoLayout->addWidget(dualViewLeftInfoLabel);
+                infoLayout->addWidget(dualViewRightInfoLabel);
+                
+                layout->addWidget(infoGroup);
+                layout->addWidget(createDualViewControlPanel(dualViewLeftWidget, dualViewRightWidget, 
+                    dualViewLeftInfoLabel, dualViewRightInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete dualViewLeftWidget; dualViewLeftWidget = nullptr;
+                delete dualViewRightWidget; dualViewRightWidget = nullptr;
+                delete dualViewLeftInfoLabel; dualViewLeftInfoLabel = nullptr;
+                delete dualViewRightInfoLabel; dualViewRightInfoLabel = nullptr;
+            },
+            5,
+            "Dual View"
+        },
+        {"Extended Dual View",
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewExtendedLeftWidget);
+                getOrCreateWidget(uvParamWidgetExtended);
+                return ::createDualViewExtendedTab(dualViewExtendedLeftWidget, uvParamWidgetExtended);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewExtendedLeftWidget);
+                getOrCreateWidget(uvParamWidgetExtended);
+                
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                
+                dualViewExtendedLeftInfoLabel = new QLabel("No model loaded (Left View)");
+                dualViewExtendedLeftInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewExtendedLeftInfoLabel->setFixedHeight(50);
+                dualViewExtendedLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewExtendedLeftInfoLabel->setWordWrap(true);
+                
+                dualViewExtendedRightInfoLabel = new QLabel("No model loaded (Right View)");
+                dualViewExtendedRightInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewExtendedRightInfoLabel->setFixedHeight(50);
+                dualViewExtendedRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewExtendedRightInfoLabel->setWordWrap(true);
+                
+                QGroupBox* extendedInfoGroup = new QGroupBox("Model Information");
+                QVBoxLayout* extendedInfoLayout = new QVBoxLayout(extendedInfoGroup);
+                extendedInfoLayout->addWidget(dualViewExtendedLeftInfoLabel);
+                extendedInfoLayout->addWidget(dualViewExtendedRightInfoLabel);
+                
+                layout->addWidget(extendedInfoGroup);
+                layout->addWidget(createDualViewExtendedControlPanel(dualViewExtendedLeftWidget, uvParamWidgetExtended, 
+                    dualViewExtendedLeftInfoLabel, dualViewExtendedRightInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete dualViewExtendedLeftWidget; dualViewExtendedLeftWidget = nullptr;
+                delete uvParamWidgetExtended; uvParamWidgetExtended = nullptr;
+                delete dualViewExtendedLeftInfoLabel; dualViewExtendedLeftInfoLabel = nullptr;
+                delete dualViewExtendedRightInfoLabel; dualViewExtendedRightInfoLabel = nullptr;
+            },
+            6,
+            "Extended Dual View"
+        },
+        {"Simple Dual View",
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewSimpleLeftWidget);
+                getOrCreateWidget(dualViewSimpleRightWidget);
+                return ::createDualViewSimpleTab(dualViewSimpleLeftWidget, dualViewSimpleRightWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(dualViewSimpleLeftWidget);
+                getOrCreateWidget(dualViewSimpleRightWidget);
+                
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                
+                dualViewSimpleLeftInfoLabel = new QLabel("No model loaded (Left View)");
+                dualViewSimpleLeftInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewSimpleLeftInfoLabel->setFixedHeight(50);
+                dualViewSimpleLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewSimpleLeftInfoLabel->setWordWrap(true);
+                
+                dualViewSimpleRightInfoLabel = new QLabel("White Square View - Ready for extension");
+                dualViewSimpleRightInfoLabel->setAlignment(Qt::AlignCenter);
+                dualViewSimpleRightInfoLabel->setFixedHeight(50);
+                dualViewSimpleRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                dualViewSimpleRightInfoLabel->setWordWrap(true);
+                
+                QGroupBox* simpleInfoGroup = new QGroupBox("Model Information");
+                QVBoxLayout* simpleInfoLayout = new QVBoxLayout(simpleInfoGroup);
+                simpleInfoLayout->addWidget(dualViewSimpleLeftInfoLabel);
+                simpleInfoLayout->addWidget(dualViewSimpleRightInfoLabel);
+                
+                layout->addWidget(simpleInfoGroup);
+                layout->addWidget(createDualViewSimpleControlPanel(dualViewSimpleLeftWidget, dualViewSimpleRightWidget, 
+                    dualViewSimpleLeftInfoLabel, dualViewSimpleRightInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete dualViewSimpleLeftWidget; dualViewSimpleLeftWidget = nullptr;
+                delete dualViewSimpleRightWidget; dualViewSimpleRightWidget = nullptr;
+                delete dualViewSimpleLeftInfoLabel; dualViewSimpleLeftInfoLabel = nullptr;
+                delete dualViewSimpleRightInfoLabel; dualViewSimpleRightInfoLabel = nullptr;
+            },
+            7,
+            "Simple Dual View"
+        },
+        {"New CGAL-UV View",
+            [this]() -> QWidget* {
+                getOrCreateWidget(newCGALUVLeftWidget);
+                getOrCreateWidget(newCGALUVRightWidget);
+                return ::createNewCGALUVTab(newCGALUVLeftWidget, newCGALUVRightWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(newCGALUVLeftWidget);
+                getOrCreateWidget(newCGALUVRightWidget);
+                
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                
+                newCGALUVLeftInfoLabel = new QLabel("No model loaded (ARAP View)");
+                newCGALUVLeftInfoLabel->setAlignment(Qt::AlignCenter);
+                newCGALUVLeftInfoLabel->setFixedHeight(50);
+                newCGALUVLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                newCGALUVLeftInfoLabel->setWordWrap(true);
+                
+                newCGALUVRightInfoLabel = new QLabel("No model loaded (UV View)");
+                newCGALUVRightInfoLabel->setAlignment(Qt::AlignCenter);
+                newCGALUVRightInfoLabel->setFixedHeight(50);
+                newCGALUVRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
+                newCGALUVRightInfoLabel->setWordWrap(true);
+                
+                QGroupBox* newCGALUVInfoGroup = new QGroupBox("Model Information");
+                QVBoxLayout* newCGALUVInfoLayout = new QVBoxLayout(newCGALUVInfoGroup);
+                newCGALUVInfoLayout->addWidget(newCGALUVLeftInfoLabel);
+                newCGALUVInfoLayout->addWidget(newCGALUVRightInfoLabel);
+                
+                layout->addWidget(newCGALUVInfoGroup);
+                layout->addWidget(createNewCGALUVControlPanel(newCGALUVLeftWidget, newCGALUVRightWidget, 
+                                                             newCGALUVLeftInfoLabel, newCGALUVRightInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete newCGALUVLeftWidget; newCGALUVLeftWidget = nullptr;
+                delete newCGALUVRightWidget; newCGALUVRightWidget = nullptr;
+                delete newCGALUVLeftInfoLabel; newCGALUVLeftInfoLabel = nullptr;
+                delete newCGALUVRightInfoLabel; newCGALUVRightInfoLabel = nullptr;
+            },
+            8,
+            "New CGAL-UV View"
+        },
+        {"OpenMesh Viewer",
+            [this]() -> QWidget* {
+                getOrCreateWidget(openMeshViewerWidget);
+                return ::createOpenMeshViewerTab(openMeshViewerWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(openMeshViewerWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&openMeshViewerInfoLabel));
+                layout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete openMeshViewerWidget; openMeshViewerWidget = nullptr;
+                delete openMeshViewerInfoLabel; openMeshViewerInfoLabel = nullptr;
+            },
+            9,
+            "OpenMesh Viewer"
+        },
+        {"Relastic",
+            [this]() -> QWidget* {
+                getOrCreateWidget(relasticGlWidget);
+                return ::createRelasticTab(relasticGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(relasticGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&relasticInfoLabel));
+                layout->addWidget(createRelasticControlPanel(relasticGlWidget, relasticInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete relasticGlWidget; relasticGlWidget = nullptr;
+                delete relasticInfoLabel; relasticInfoLabel = nullptr;
+            },
+            10,
+            "Relastic"
+        },
+        {"Relativistic",
+            [this]() -> QWidget* {
+                getOrCreateWidget(relativisticGlWidget);
+                return ::createRelativisticTab(relativisticGlWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(relativisticGlWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&relativisticInfoLabel));
+                layout->addWidget(createRelativisticControlPanel(relativisticGlWidget, relativisticInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete relativisticGlWidget; relativisticGlWidget = nullptr;
+                delete relativisticInfoLabel; relativisticInfoLabel = nullptr;
+            },
+            11,
+            "Relativistic"
+        }
+    };
 }
 
 void TabManager::initializeTabs() {
@@ -90,7 +443,6 @@ void TabManager::initializeTabs() {
     createTab("OpenMesh", true);
     
     // 重要：手动触发第一次控制面板显示
-    // 因为连接信号是在创建第一个tab之前，所以需要手动显示控制面板
     if (tabWidget->count() > 0) {
         QString currentTitle = tabWidget->tabText(0);
         
@@ -153,191 +505,56 @@ void TabManager::createTab(const QString& title, bool switchToTab) {
         }
     }
     
-    // 根据标题创建相应的tab
-    if (title == "OpenMesh") {
-        createBasicTab();
-    } else if (title == "CGAL") {
-        createCGALTab();
-    } else if (title == "Model") {
-        createModelTab();
-    } else if (title == "Shortest Path") {
-        createShortestPathTab();
-    } else if (title == "UV Parameterization") {
-        createUVParamTab();
-    } else if (title == "Dual View") {
-        createDualViewTab();
-    } else if (title == "Extended Dual View") {
-        createDualViewExtendedTab();
-    } else if (title == "Simple Dual View") {
-        createDualViewSimpleTab();
-    } else if (title == "New CGAL-UV View") {
-        createNewCGALUVTab();
-    } else if (title == "OpenMesh Viewer") {
-        createOpenMeshViewerTab();
-    } else if (title == "Relastic") {    // 处理Relastic tab
-        createRelasticTab();
-    } else if (title == "Relativistic") { // 处理Relativistic tab
-        createRelativisticTab();
+    // 查找对应的配置
+    const TabConfig* config = nullptr;
+    for (const auto& tabConfig : tabConfigs) {
+        if (tabConfig.title == title) {
+            config = &tabConfig;
+            break;
+        }
     }
     
-    // 标记为已创建
-    tabCreated[title] = true;
+    if (!config) {
+        qDebug() << "Unknown tab title:" << title;
+        return;
+    }
     
-    // 如果switchToTab为true，切换到新创建的tab
-    if (switchToTab) {
-        QWidget* widget = tabWidget->getWidgetByTitle(title);
-        if (widget) {
-            tabWidget->setCurrentWidget(widget);
-            
-            // 更新窗口标题
-            mainWindow->setWindowTitle("OBJ Viewer - " + title);
+    // 创建标签页
+    QWidget* tabWidget = config->createWidgetFunc();
+    if (tabWidget) {
+        this->tabWidget->addTabWithTitle(tabWidget, title);
+        
+        // 创建控制面板（如果不存在）
+        if (!controlPanelMap.contains(title)) {
+            createControlPanelFromConfig(*config);
+        }
+        
+        // 更新tabInfos
+        updateTabInfo(*config, tabWidget);
+        
+        // 标记为已创建
+        tabCreated[title] = true;
+        
+        // 如果switchToTab为true，切换到新创建的tab
+        if (switchToTab) {
+            QWidget* widget = this->tabWidget->getWidgetByTitle(title);
+            if (widget) {
+                this->tabWidget->setCurrentWidget(widget);
+                
+                // 更新窗口标题
+                mainWindow->setWindowTitle("OBJ Viewer - " + title);
+            }
         }
     }
 }
 
+QWidget* TabManager::createTabFromConfig(const TabConfig& config) {
+    return config.createWidgetFunc();
+}
+
 void TabManager::cleanupTab(const QString& title) {
     // 清理tab资源
-    if (title == "OpenMesh") {
-        if (basicGlWidget) {
-            delete basicGlWidget;
-            basicGlWidget = nullptr;
-        }
-        if (basicInfoLabel) {
-            delete basicInfoLabel;
-            basicInfoLabel = nullptr;
-        }
-    } else if (title == "CGAL") {
-        if (cgalGlWidget) {
-            delete cgalGlWidget;
-            cgalGlWidget = nullptr;
-        }
-        if (cgalInfoLabel) {
-            delete cgalInfoLabel;
-            cgalInfoLabel = nullptr;
-        }
-    } else if (title == "Model") {
-        if (modelGlWidget) {
-            delete modelGlWidget;
-            modelGlWidget = nullptr;
-        }
-        if (modelInfoLabel) {
-            delete modelInfoLabel;
-            modelInfoLabel = nullptr;
-        }
-    } else if (title == "Shortest Path") {
-        if (shortestPathGlWidget) {
-            delete shortestPathGlWidget;
-            shortestPathGlWidget = nullptr;
-        }
-        if (shortestPathInfoLabel) {
-            delete shortestPathInfoLabel;
-            shortestPathInfoLabel = nullptr;
-        }
-    } else if (title == "UV Parameterization") {
-        if (uvParamWidget) {
-            delete uvParamWidget;
-            uvParamWidget = nullptr;
-        }
-        if (uvParamInfoLabel) {
-            delete uvParamInfoLabel;
-            uvParamInfoLabel = nullptr;
-        }
-    } else if (title == "Dual View") {
-        if (dualViewLeftWidget) {
-            delete dualViewLeftWidget;
-            dualViewLeftWidget = nullptr;
-        }
-        if (dualViewRightWidget) {
-            delete dualViewRightWidget;
-            dualViewRightWidget = nullptr;
-        }
-        if (dualViewLeftInfoLabel) {
-            delete dualViewLeftInfoLabel;
-            dualViewLeftInfoLabel = nullptr;
-        }
-        if (dualViewRightInfoLabel) {
-            delete dualViewRightInfoLabel;
-            dualViewRightInfoLabel = nullptr;
-        }
-    } else if (title == "Extended Dual View") {
-        if (dualViewExtendedLeftWidget) {
-            delete dualViewExtendedLeftWidget;
-            dualViewExtendedLeftWidget = nullptr;
-        }
-        if (uvParamWidgetExtended) {
-            delete uvParamWidgetExtended;
-            uvParamWidgetExtended = nullptr;
-        }
-        if (dualViewExtendedLeftInfoLabel) {
-            delete dualViewExtendedLeftInfoLabel;
-            dualViewExtendedLeftInfoLabel = nullptr;
-        }
-        if (dualViewExtendedRightInfoLabel) {
-            delete dualViewExtendedRightInfoLabel;
-            dualViewExtendedRightInfoLabel = nullptr;
-        }
-    } else if (title == "Simple Dual View") {
-        if (dualViewSimpleLeftWidget) {
-            delete dualViewSimpleLeftWidget;
-            dualViewSimpleLeftWidget = nullptr;
-        }
-        if (dualViewSimpleRightWidget) {
-            delete dualViewSimpleRightWidget;
-            dualViewSimpleRightWidget = nullptr;
-        }
-        if (dualViewSimpleLeftInfoLabel) {
-            delete dualViewSimpleLeftInfoLabel;
-            dualViewSimpleLeftInfoLabel = nullptr;
-        }
-        if (dualViewSimpleRightInfoLabel) {
-            delete dualViewSimpleRightInfoLabel;
-            dualViewSimpleRightInfoLabel = nullptr;
-        }
-    } else if (title == "New CGAL-UV View") {
-        if (newCGALUVLeftWidget) {
-            delete newCGALUVLeftWidget;
-            newCGALUVLeftWidget = nullptr;
-        }
-        if (newCGALUVRightWidget) {
-            delete newCGALUVRightWidget;
-            newCGALUVRightWidget = nullptr;
-        }
-        if (newCGALUVLeftInfoLabel) {
-            delete newCGALUVLeftInfoLabel;
-            newCGALUVLeftInfoLabel = nullptr;
-        }
-        if (newCGALUVRightInfoLabel) {
-            delete newCGALUVRightInfoLabel;
-            newCGALUVRightInfoLabel = nullptr;
-        }
-    } else if (title == "OpenMesh Viewer") {
-        if (openMeshViewerWidget) {
-            delete openMeshViewerWidget;
-            openMeshViewerWidget = nullptr;
-        }
-        if (openMeshViewerInfoLabel) {
-            delete openMeshViewerInfoLabel;
-            openMeshViewerInfoLabel = nullptr;
-        }
-    } else if (title == "Relastic") {    // 清理Relastic资源
-        if (relasticGlWidget) {
-            delete relasticGlWidget;
-            relasticGlWidget = nullptr;
-        }
-        if (relasticInfoLabel) {
-            delete relasticInfoLabel;
-            relasticInfoLabel = nullptr;
-        }
-    } else if (title == "Relativistic") { // 清理Relativistic资源
-        if (relativisticGlWidget) {
-            delete relativisticGlWidget;
-            relativisticGlWidget = nullptr;
-        }
-        if (relativisticInfoLabel) {
-            delete relativisticInfoLabel;
-            relativisticInfoLabel = nullptr;
-        }
-    }
+    cleanupTabResources(title);
     
     // 清理控制面板
     if (controlPanelMap.contains(title)) {
@@ -360,6 +577,18 @@ void TabManager::cleanupTab(const QString& title) {
     
     // 重置创建标记
     tabCreated[title] = false;
+}
+
+void TabManager::cleanupTabResources(const QString& title) {
+    // 查找对应的配置并执行清理函数
+    for (const auto& config : tabConfigs) {
+        if (config.title == title) {
+            if (config.cleanupFunc) {
+                config.cleanupFunc();
+            }
+            return;
+        }
+    }
 }
 
 void TabManager::deleteTab(const QString& title) {
@@ -389,692 +618,50 @@ void TabManager::deleteTab(const QString& title) {
     }
 }
 
-void TabManager::createBasicTab() {
-    if (!basicGlWidget) {
-        basicGlWidget = new BaseGLWidget;
-    }
-    
-    QWidget* basicTab = ::createBasicTab(basicGlWidget);
-    tabWidget->addTabWithTitle(basicTab, "OpenMesh");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("OpenMesh")) {
-        createControlPanel("OpenMesh");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "OpenMesh";
-    info.title = "OpenMesh";
-    info.widget = basicTab;
-    info.controlPanel = controlPanelMap["OpenMesh"];
-    info.isVisible = true;
-    info.originalIndex = 0;
-    info.action = tabWidget->getActionForTitle("OpenMesh");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "OpenMesh") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createCGALTab() {
-    if (!cgalGlWidget) {
-        cgalGlWidget = new CGALGLWidget;
-    }
-    
-    QWidget* cgalTab = ::createCGALTab(cgalGlWidget);
-    tabWidget->addTabWithTitle(cgalTab, "CGAL");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("CGAL")) {
-        createControlPanel("CGAL");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "CGAL";
-    info.title = "CGAL";
-    info.widget = cgalTab;
-    info.controlPanel = controlPanelMap["CGAL"];
-    info.isVisible = true;
-    info.originalIndex = 1;
-    info.action = tabWidget->getActionForTitle("CGAL");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "CGAL") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createModelTab() {
-    if (!modelGlWidget) {
-        modelGlWidget = new ModelGLWidget;
-    }
-    
-    QWidget* modelTab = ::createModelTab(modelGlWidget);
-    tabWidget->addTabWithTitle(modelTab, "Model");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Model")) {
-        createControlPanel("Model");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Model";
-    info.title = "Model";
-    info.widget = modelTab;
-    info.controlPanel = controlPanelMap["Model"];
-    info.isVisible = true;
-    info.originalIndex = 2;
-    info.action = tabWidget->getActionForTitle("Model");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Model") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createShortestPathTab() {
-    if (!shortestPathGlWidget) {
-        shortestPathGlWidget = new ShortestPathGLWidget;
-    }
-    
-    QWidget* shortestPathTab = ::createShortestPathTab(shortestPathGlWidget);
-    tabWidget->addTabWithTitle(shortestPathTab, "Shortest Path");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Shortest Path")) {
-        createControlPanel("Shortest Path");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Shortest Path";
-    info.title = "Shortest Path";
-    info.widget = shortestPathTab;
-    info.controlPanel = controlPanelMap["Shortest Path"];
-    info.isVisible = true;
-    info.originalIndex = 3;
-    info.action = tabWidget->getActionForTitle("Shortest Path");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Shortest Path") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createUVParamTab() {
-    if (!uvParamWidget) {
-        uvParamWidget = new UVParamWidget;
-    }
-    
-    QWidget* uvParamTab = ::createUVParamTab(uvParamWidget);
-    tabWidget->addTabWithTitle(uvParamTab, "UV Parameterization");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("UV Parameterization")) {
-        createControlPanel("UV Parameterization");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "UV Parameterization";
-    info.title = "UV Parameterization";
-    info.widget = uvParamTab;
-    info.controlPanel = controlPanelMap["UV Parameterization"];
-    info.isVisible = true;
-    info.originalIndex = 4;
-    info.action = tabWidget->getActionForTitle("UV Parameterization");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "UV Parameterization") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createDualViewTab() {
-    if (!dualViewLeftWidget) {
-        dualViewLeftWidget = new BaseGLWidget;
-    }
-    if (!dualViewRightWidget) {
-        dualViewRightWidget = new UVParamWidget;
-    }
-    
-    QWidget* dualViewTab = ::createDualViewTab(dualViewLeftWidget, dualViewRightWidget);
-    tabWidget->addTabWithTitle(dualViewTab, "Dual View");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Dual View")) {
-        createControlPanel("Dual View");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Dual View";
-    info.title = "Dual View";
-    info.widget = dualViewTab;
-    info.controlPanel = controlPanelMap["Dual View"];
-    info.isVisible = true;
-    info.originalIndex = 5;
-    info.action = tabWidget->getActionForTitle("Dual View");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Dual View") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createDualViewExtendedTab() {
-    if (!dualViewExtendedLeftWidget) {
-        dualViewExtendedLeftWidget = new BaseGLWidget;
-    }
-    if (!uvParamWidgetExtended) {
-        uvParamWidgetExtended = new UVParamWidgetExtended;
-    }
-    
-    QWidget* dualViewExtendedTab = ::createDualViewExtendedTab(dualViewExtendedLeftWidget, uvParamWidgetExtended);
-    tabWidget->addTabWithTitle(dualViewExtendedTab, "Extended Dual View");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Extended Dual View")) {
-        createControlPanel("Extended Dual View");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Extended Dual View";
-    info.title = "Extended Dual View";
-    info.widget = dualViewExtendedTab;
-    info.controlPanel = controlPanelMap["Extended Dual View"];
-    info.isVisible = true;
-    info.originalIndex = 6;
-    info.action = tabWidget->getActionForTitle("Extended Dual View");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Extended Dual View") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createDualViewSimpleTab() {
-    if (!dualViewSimpleLeftWidget) {
-        dualViewSimpleLeftWidget = new BaseGLWidget;
-    }
-    if (!dualViewSimpleRightWidget) {
-        dualViewSimpleRightWidget = new SimpleSquareWidget;
-    }
-    
-    QWidget* dualViewSimpleTab = ::createDualViewSimpleTab(dualViewSimpleLeftWidget, dualViewSimpleRightWidget);
-    tabWidget->addTabWithTitle(dualViewSimpleTab, "Simple Dual View");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Simple Dual View")) {
-        createControlPanel("Simple Dual View");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Simple Dual View";
-    info.title = "Simple Dual View";
-    info.widget = dualViewSimpleTab;
-    info.controlPanel = controlPanelMap["Simple Dual View"];
-    info.isVisible = true;
-    info.originalIndex = 7;
-    info.action = tabWidget->getActionForTitle("Simple Dual View");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Simple Dual View") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createNewCGALUVTab() {
-    if (!newCGALUVLeftWidget) {
-        newCGALUVLeftWidget = new ARAPGLWidget;
-    }
-    if (!newCGALUVRightWidget) {
-        newCGALUVRightWidget = new UVParamWidget;
-    }
-    
-    QWidget* newCGALUVTab = ::createNewCGALUVTab(newCGALUVLeftWidget, newCGALUVRightWidget);
-    tabWidget->addTabWithTitle(newCGALUVTab, "New CGAL-UV View");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("New CGAL-UV View")) {
-        createControlPanel("New CGAL-UV View");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "New CGAL-UV View";
-    info.title = "New CGAL-UV View";
-    info.widget = newCGALUVTab;
-    info.controlPanel = controlPanelMap["New CGAL-UV View"];
-    info.isVisible = true;
-    info.originalIndex = 8;
-    info.action = tabWidget->getActionForTitle("New CGAL-UV View");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "New CGAL-UV View") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createOpenMeshViewerTab() {
-    if (!openMeshViewerWidget) {
-        openMeshViewerWidget = new QGLViewerWidget;
-    }
-    
-    QWidget* openMeshViewerTab = ::createOpenMeshViewerTab(openMeshViewerWidget);
-    tabWidget->addTabWithTitle(openMeshViewerTab, "OpenMesh Viewer");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("OpenMesh Viewer")) {
-        createControlPanel("OpenMesh Viewer");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "OpenMesh Viewer";
-    info.title = "OpenMesh Viewer";
-    info.widget = openMeshViewerTab;
-    info.controlPanel = controlPanelMap["OpenMesh Viewer"];
-    info.isVisible = true;
-    info.originalIndex = 9;
-    info.action = tabWidget->getActionForTitle("OpenMesh Viewer");
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "OpenMesh Viewer") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createRelasticTab() {
-    if (!relasticGlWidget) {
-        relasticGlWidget = new RelasticGLWidget;
-    }
-    
-    QWidget* relasticTab = ::createRelasticTab(relasticGlWidget);
-    tabWidget->addTabWithTitle(relasticTab, "Relastic");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Relastic")) {
-        createControlPanel("Relastic");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Relastic";
-    info.title = "Relastic";
-    info.widget = relasticTab;
-    info.controlPanel = controlPanelMap["Relastic"];
-    info.isVisible = true;
-    info.originalIndex = 10;
-    info.action = nullptr; // Relastic在Render菜单中，所以没有action
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Relastic") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createRelativisticTab() {
-    if (!relativisticGlWidget) {
-        relativisticGlWidget = new RelativisticGLWidget;
-    }
-    
-    QWidget* relativisticTab = ::createRelativisticTab(relativisticGlWidget);
-    tabWidget->addTabWithTitle(relativisticTab, "Relativistic");
-    
-    // 创建控制面板（如果不存在）
-    if (!controlPanelMap.contains("Relativistic")) {
-        createControlPanel("Relativistic");
-    }
-    
-    // 更新tabInfos
-    UIUtils::TabInfo info;
-    info.name = "Relativistic";
-    info.title = "Relativistic";
-    info.widget = relativisticTab;
-    info.controlPanel = controlPanelMap["Relativistic"];
-    info.isVisible = true;
-    info.originalIndex = 11;
-    info.action = nullptr; // Relativistic在Render菜单中，所以没有action
-    
-    // 替换或添加tab信息
-    bool found = false;
-    for (int i = 0; i < tabInfos.size(); ++i) {
-        if (tabInfos[i].title == "Relativistic") {
-            tabInfos[i] = info;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        tabInfos.append(info);
-    }
-}
-
-void TabManager::createControlPanel(const QString& title) {
+void TabManager::createControlPanelFromConfig(const TabConfig& config) {
     // 如果控制面板已经存在，直接返回
-    if (controlPanelMap.contains(title)) {
+    if (controlPanelMap.contains(config.title)) {
         return;
     }
     
-    QWidget* controlPanel = nullptr;
-    
-    if (title == "OpenMesh") {
-        if (!basicGlWidget) basicGlWidget = new BaseGLWidget;
-        
-        QWidget *basicControlPanel = new QWidget;
-        QVBoxLayout *basicControlLayout = new QVBoxLayout(basicControlPanel);
-        basicControlLayout->setAlignment(Qt::AlignTop);
-        basicControlLayout->addWidget(UIUtils::createColorSettingsGroup(basicGlWidget));
-        basicControlLayout->addWidget(UIUtils::createModelInfoGroup(&basicInfoLabel));
-        basicControlLayout->addWidget(createBasicControlPanel(basicGlWidget, basicInfoLabel, mainWindow));
-        
-        controlPanel = basicControlPanel;
-        
-    } else if (title == "CGAL") {
-        if (!cgalGlWidget) cgalGlWidget = new CGALGLWidget;
-        
-        QWidget *cgalControlPanel = new QWidget;
-        QVBoxLayout *cgalControlLayout = new QVBoxLayout(cgalControlPanel);
-        cgalControlLayout->setAlignment(Qt::AlignTop);
-        cgalControlLayout->addWidget(UIUtils::createColorSettingsGroup(cgalGlWidget));
-        cgalControlLayout->addWidget(UIUtils::createModelInfoGroup(&cgalInfoLabel));
-        cgalControlLayout->addWidget(createCGALControlPanel(cgalGlWidget, cgalInfoLabel, mainWindow));
-        
-        controlPanel = cgalControlPanel;
-        
-    } else if (title == "Model") {
-        if (!modelGlWidget) modelGlWidget = new ModelGLWidget;
-        
-        QWidget *modelControlPanel = new QWidget;
-        QVBoxLayout *modelControlLayout = new QVBoxLayout(modelControlPanel);
-        modelControlLayout->setAlignment(Qt::AlignTop);
-        modelControlLayout->addWidget(UIUtils::createColorSettingsGroup(modelGlWidget));
-        modelControlLayout->addWidget(UIUtils::createModelInfoGroup(&modelInfoLabel));
-        modelControlLayout->addWidget(createModelControlPanel(modelGlWidget, modelInfoLabel, mainWindow));
-        
-        controlPanel = modelControlPanel;
-        
-    } else if (title == "Shortest Path") {
-        if (!shortestPathGlWidget) shortestPathGlWidget = new ShortestPathGLWidget;
-        
-        QWidget *shortestPathControlPanel = new QWidget;
-        QVBoxLayout *shortestPathControlLayout = new QVBoxLayout(shortestPathControlPanel);
-        shortestPathControlLayout->setAlignment(Qt::AlignTop);
-        shortestPathControlLayout->addWidget(UIUtils::createColorSettingsGroup(shortestPathGlWidget));
-        shortestPathControlLayout->addWidget(UIUtils::createModelInfoGroup(&shortestPathInfoLabel));
-        shortestPathControlLayout->addWidget(createShortestPathControlPanel(shortestPathGlWidget, shortestPathInfoLabel, mainWindow));
-        
-        controlPanel = shortestPathControlPanel;
-        
-    } else if (title == "UV Parameterization") {
-        if (!uvParamWidget) uvParamWidget = new UVParamWidget;
-        
-        QWidget *uvParamControlPanel = new QWidget;
-        QVBoxLayout *uvParamControlLayout = new QVBoxLayout(uvParamControlPanel);
-        uvParamControlLayout->setAlignment(Qt::AlignTop);
-        uvParamControlLayout->addWidget(UIUtils::createModelInfoGroup(&uvParamInfoLabel));
-        uvParamControlLayout->addWidget(createUVParamControlPanel(uvParamWidget, uvParamInfoLabel, mainWindow));
-        
-        controlPanel = uvParamControlPanel;
-        
-    } else if (title == "Dual View") {
-        if (!dualViewLeftWidget) dualViewLeftWidget = new BaseGLWidget;
-        if (!dualViewRightWidget) dualViewRightWidget = new UVParamWidget;
-        
-        QWidget *dualViewControlPanel = new QWidget;
-        QVBoxLayout *dualViewControlLayout = new QVBoxLayout(dualViewControlPanel);
-        dualViewControlLayout->setAlignment(Qt::AlignTop);
-        
-        dualViewLeftInfoLabel = new QLabel("No model loaded (Left View)");
-        dualViewLeftInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewLeftInfoLabel->setFixedHeight(50);
-        dualViewLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewLeftInfoLabel->setWordWrap(true);
-        
-        dualViewRightInfoLabel = new QLabel("No model loaded (Right View)");
-        dualViewRightInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewRightInfoLabel->setFixedHeight(50);
-        dualViewRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewRightInfoLabel->setWordWrap(true);
-        
-        QGroupBox *infoGroup = new QGroupBox("Model Information");
-        QVBoxLayout *infoLayout = new QVBoxLayout(infoGroup);
-        infoLayout->addWidget(dualViewLeftInfoLabel);
-        infoLayout->addWidget(dualViewRightInfoLabel);
-        
-        dualViewControlLayout->addWidget(infoGroup);
-        dualViewControlLayout->addWidget(createDualViewControlPanel(dualViewLeftWidget, dualViewRightWidget, dualViewLeftInfoLabel, dualViewRightInfoLabel, mainWindow));
-        
-        controlPanel = dualViewControlPanel;
-        
-    } else if (title == "Extended Dual View") {
-        if (!dualViewExtendedLeftWidget) dualViewExtendedLeftWidget = new BaseGLWidget;
-        if (!uvParamWidgetExtended) uvParamWidgetExtended = new UVParamWidgetExtended;
-        
-        QWidget *dualViewExtendedControlPanel = new QWidget;
-        QVBoxLayout *dualViewExtendedControlLayout = new QVBoxLayout(dualViewExtendedControlPanel);
-        dualViewExtendedControlLayout->setAlignment(Qt::AlignTop);
-        
-        dualViewExtendedLeftInfoLabel = new QLabel("No model loaded (Left View)");
-        dualViewExtendedLeftInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewExtendedLeftInfoLabel->setFixedHeight(50);
-        dualViewExtendedLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewExtendedLeftInfoLabel->setWordWrap(true);
-        
-        dualViewExtendedRightInfoLabel = new QLabel("No model loaded (Right View)");
-        dualViewExtendedRightInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewExtendedRightInfoLabel->setFixedHeight(50);
-        dualViewExtendedRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewExtendedRightInfoLabel->setWordWrap(true);
-        
-        QGroupBox *extendedInfoGroup = new QGroupBox("Model Information");
-        QVBoxLayout *extendedInfoLayout = new QVBoxLayout(extendedInfoGroup);
-        extendedInfoLayout->addWidget(dualViewExtendedLeftInfoLabel);
-        extendedInfoLayout->addWidget(dualViewExtendedRightInfoLabel);
-        
-        dualViewExtendedControlLayout->addWidget(extendedInfoGroup);
-        dualViewExtendedControlLayout->addWidget(createDualViewExtendedControlPanel(dualViewExtendedLeftWidget, uvParamWidgetExtended, dualViewExtendedLeftInfoLabel, dualViewExtendedRightInfoLabel, mainWindow));
-        
-        controlPanel = dualViewExtendedControlPanel;
-        
-    } else if (title == "Simple Dual View") {
-        if (!dualViewSimpleLeftWidget) dualViewSimpleLeftWidget = new BaseGLWidget;
-        if (!dualViewSimpleRightWidget) dualViewSimpleRightWidget = new SimpleSquareWidget;
-        
-        QWidget *dualViewSimpleControlPanel = new QWidget;
-        QVBoxLayout *dualViewSimpleControlLayout = new QVBoxLayout(dualViewSimpleControlPanel);
-        dualViewSimpleControlLayout->setAlignment(Qt::AlignTop);
-        
-        dualViewSimpleLeftInfoLabel = new QLabel("No model loaded (Left View)");
-        dualViewSimpleLeftInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewSimpleLeftInfoLabel->setFixedHeight(50);
-        dualViewSimpleLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewSimpleLeftInfoLabel->setWordWrap(true);
-        
-        dualViewSimpleRightInfoLabel = new QLabel("White Square View - Ready for extension");
-        dualViewSimpleRightInfoLabel->setAlignment(Qt::AlignCenter);
-        dualViewSimpleRightInfoLabel->setFixedHeight(50);
-        dualViewSimpleRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        dualViewSimpleRightInfoLabel->setWordWrap(true);
-        
-        QGroupBox *simpleInfoGroup = new QGroupBox("Model Information");
-        QVBoxLayout *simpleInfoLayout = new QVBoxLayout(simpleInfoGroup);
-        simpleInfoLayout->addWidget(dualViewSimpleLeftInfoLabel);
-        simpleInfoLayout->addWidget(dualViewSimpleRightInfoLabel);
-        
-        dualViewSimpleControlLayout->addWidget(simpleInfoGroup);
-        dualViewSimpleControlLayout->addWidget(createDualViewSimpleControlPanel(dualViewSimpleLeftWidget, dualViewSimpleRightWidget, dualViewSimpleLeftInfoLabel, dualViewSimpleRightInfoLabel, mainWindow));
-        
-        controlPanel = dualViewSimpleControlPanel;
-        
-    } else if (title == "New CGAL-UV View") {
-        if (!newCGALUVLeftWidget) newCGALUVLeftWidget = new ARAPGLWidget;
-        if (!newCGALUVRightWidget) newCGALUVRightWidget = new UVParamWidget;
-        
-        QWidget *newCGALUVControlPanel = new QWidget;
-        QVBoxLayout *newCGALUVControlLayout = new QVBoxLayout(newCGALUVControlPanel);
-        newCGALUVControlLayout->setAlignment(Qt::AlignTop);
-        
-        newCGALUVLeftInfoLabel = new QLabel("No model loaded (ARAP View)");
-        newCGALUVLeftInfoLabel->setAlignment(Qt::AlignCenter);
-        newCGALUVLeftInfoLabel->setFixedHeight(50);
-        newCGALUVLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        newCGALUVLeftInfoLabel->setWordWrap(true);
-        
-        newCGALUVRightInfoLabel = new QLabel("No model loaded (UV View)");
-        newCGALUVRightInfoLabel->setAlignment(Qt::AlignCenter);
-        newCGALUVRightInfoLabel->setFixedHeight(50);
-        newCGALUVRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
-        newCGALUVRightInfoLabel->setWordWrap(true);
-        
-        QGroupBox *newCGALUVInfoGroup = new QGroupBox("Model Information");
-        QVBoxLayout *newCGALUVInfoLayout = new QVBoxLayout(newCGALUVInfoGroup);
-        newCGALUVInfoLayout->addWidget(newCGALUVLeftInfoLabel);
-        newCGALUVInfoLayout->addWidget(newCGALUVRightInfoLabel);
-        
-        newCGALUVControlLayout->addWidget(newCGALUVInfoGroup);
-        newCGALUVControlLayout->addWidget(createNewCGALUVControlPanel(newCGALUVLeftWidget, newCGALUVRightWidget, 
-                                                                     newCGALUVLeftInfoLabel, newCGALUVRightInfoLabel, mainWindow));
-        
-        controlPanel = newCGALUVControlPanel;
-    } else if (title == "OpenMesh Viewer") {
-        if (!openMeshViewerWidget) openMeshViewerWidget = new QGLViewerWidget;
-        
-        QWidget *openMeshViewerControlPanel = new QWidget;
-        QVBoxLayout *openMeshViewerControlLayout = new QVBoxLayout(openMeshViewerControlPanel);
-        openMeshViewerControlLayout->setAlignment(Qt::AlignTop);
-        openMeshViewerControlLayout->addWidget(UIUtils::createModelInfoGroup(&openMeshViewerInfoLabel));
-        openMeshViewerControlLayout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
-        
-        controlPanel = openMeshViewerControlPanel;
-    } else if (title == "Relastic") {    // 创建Relastic控制面板
-        if (!relasticGlWidget) relasticGlWidget = new RelasticGLWidget;
-        
-        QWidget *relasticControlPanel = new QWidget;
-        QVBoxLayout *relasticControlLayout = new QVBoxLayout(relasticControlPanel);
-        relasticControlLayout->setAlignment(Qt::AlignTop);
-        relasticControlLayout->addWidget(UIUtils::createModelInfoGroup(&relasticInfoLabel));
-        relasticControlLayout->addWidget(createRelasticControlPanel(relasticGlWidget, relasticInfoLabel, mainWindow));
-        
-        controlPanel = relasticControlPanel;
-    } else if (title == "Relativistic") { // 创建Relativistic控制面板
-        if (!relativisticGlWidget) relativisticGlWidget = new RelativisticGLWidget;
-        
-        QWidget *relativisticControlPanel = new QWidget;
-        QVBoxLayout *relativisticControlLayout = new QVBoxLayout(relativisticControlPanel);
-        relativisticControlLayout->setAlignment(Qt::AlignTop);
-        relativisticControlLayout->addWidget(UIUtils::createModelInfoGroup(&relativisticInfoLabel));
-        relativisticControlLayout->addWidget(createRelativisticControlPanel(relativisticGlWidget, relativisticInfoLabel, mainWindow));
-        
-        controlPanel = relativisticControlPanel;
-    }
-    
+    QWidget* controlPanel = config.createControlPanelFunc();
     if (controlPanel) {
         // 添加到控制面板容器
         qobject_cast<QVBoxLayout*>(controlContainer->layout())->addWidget(controlPanel);
         
         // 添加到映射
-        controlPanelMap[title] = controlPanel;
+        controlPanelMap[config.title] = controlPanel;
         
         // 初始隐藏
         controlPanel->setVisible(false);
     }
 }
+
+void TabManager::updateTabInfo(const TabConfig& config, QWidget* widget) {
+    UIUtils::TabInfo info;
+    info.name = config.name;
+    info.title = config.title;
+    info.widget = widget;
+    info.controlPanel = controlPanelMap[config.title];
+    info.isVisible = true;
+    info.originalIndex = config.originalIndex;
+    info.action = tabWidget->getActionForTitle(config.title);
+    
+    // 替换或添加tab信息
+    bool found = false;
+    for (int i = 0; i < tabInfos.size(); ++i) {
+        if (tabInfos[i].title == config.title) {
+            tabInfos[i] = info;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        tabInfos.append(info);
+    }
+}
+
+// 删除原有的各个createXXXTab函数，因为它们已经被TabConfig中的lambda替代
 
 void TabManager::connectSignals() {
     // 连接tab关闭信号

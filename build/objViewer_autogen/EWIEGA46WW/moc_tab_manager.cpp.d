@@ -3283,6 +3283,7 @@
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QStringList \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QTextStream \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QTimer \
+  /usr/include/x86_64-linux-gnu/qt5/QtCore/QVector \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QtCore \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QtCoreDepends \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/qabstractanimation.h \

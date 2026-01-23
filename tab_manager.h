@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QList>
 #include <functional>
+#include <QVector>
 
 #include "menu_utils.h"
 
@@ -39,6 +40,16 @@
 #include "tabs/new_cgal_uv_tab.h"
 #include "tabs/openmesh_viewer_tab.h"
 #include "Cutting/QGLViewerWidget.h"
+
+// 标签页配置结构体
+struct TabConfig {
+    QString title;
+    std::function<QWidget*()> createWidgetFunc;
+    std::function<QWidget*()> createControlPanelFunc;
+    std::function<void()> cleanupFunc;
+    int originalIndex;
+    QString name;
+};
 
 // Tab管理器类
 class TabManager : public QObject {
@@ -70,19 +81,26 @@ private:
     // 清理tab的所有资源
     void cleanupTab(const QString& title);
 
-    // 创建特定的tab页面
-    void createBasicTab();
-    void createCGALTab();
-    void createModelTab();
-    void createShortestPathTab();
-    void createUVParamTab();
-    void createDualViewTab();
-    void createDualViewExtendedTab();
-    void createDualViewSimpleTab();
-    void createNewCGALUVTab();
-    void createOpenMeshViewerTab();
-    void createRelasticTab();           // 创建Relastic标签页
-    void createRelativisticTab();       // 创建Relativistic标签页
+    // 标签页配置表
+    QVector<TabConfig> tabConfigs;
+    
+    // 注册标签页配置
+    void registerTabConfigs();
+    
+    // 通用方法
+    QWidget* createTabFromConfig(const TabConfig& config);
+    void cleanupTabResources(const QString& title);
+    void createControlPanelFromConfig(const TabConfig& config);
+    void updateTabInfo(const TabConfig& config, QWidget* widget);
+    
+    // Widget管理辅助方法
+    template<typename T>
+    T* getOrCreateWidget(T*& widgetPtr) {
+        if (!widgetPtr) {
+            widgetPtr = new T;
+        }
+        return widgetPtr;
+    }
 
     // 创建控制面板
     void createControlPanel(const QString& title);
