@@ -16,9 +16,6 @@ namespace UIUtils {
         setMovable(true);
         
         // 设置TabBar样式
-        // 修改样式表中的关闭按钮部分
-        // 将原来的 #CCCCCC 改为白色（white），并添加悬停效果
-
         setStyleSheet(R"(
             QTabWidget::pane {
                 border: 1px solid #505050;
@@ -67,7 +64,7 @@ namespace UIUtils {
             
             QTabBar::close-button::after {
                 content: "×";
-                color: black;  /* 改为白色 */
+                color: black;
                 font-size: 18px;
                 font-weight: bold;
                 position: absolute;
@@ -77,8 +74,8 @@ namespace UIUtils {
             }
             
             QTabBar::close-button:hover::after {
-                color: #FF6666;  /* 悬停时改为红色，增强可见性 */
-                font-size: 20px; /* 悬停时稍微放大 */
+                color: #FF6666;
+                font-size: 20px;
             }
             
             QTabBar::scroller {
@@ -190,7 +187,7 @@ namespace UIUtils {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
             "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
-            "Black Hole"  // 添加Black Hole标签页
+            "Point Cloud"  // 添加Point Cloud标签页
         };
         
         // 创建动作组，确保只有一个被选中
@@ -211,6 +208,9 @@ namespace UIUtils {
             // 添加快捷键（Ctrl+数字键）
             if (i < 9) { // 只设置前9个快捷键
                 action->setShortcut(QKeySequence(QString("Ctrl+%1").arg(i + 1)));
+            } else if (tabNames[i] == "Point Cloud") {
+                // 为Point Cloud单独设置快捷键
+                action->setShortcut(QKeySequence("Ctrl+P"));
             }
             
             // 添加到动作组
@@ -326,7 +326,60 @@ namespace UIUtils {
         });
         parameterMenu->addAction(exitAction);
 
-        // Render 菜单
+        // Point Cloud 菜单 (新添加)
+        QMenu* pointCloudMenu = menuBar->addMenu("&Point Cloud");
+        
+        // 添加Point Cloud tab选项
+        QAction* pointCloudTabAction = new QAction("&Point Cloud", pointCloudMenu);
+        pointCloudTabAction->setShortcut(QKeySequence("Ctrl+P"));
+        QObject::connect(pointCloudTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
+            // 创建Point Cloud tab
+            createTabFunc("Point Cloud", true);
+        });
+        pointCloudMenu->addAction(pointCloudTabAction);
+        
+        // 添加分隔线
+        pointCloudMenu->addSeparator();
+        
+        // 添加点云加载选项
+        QAction* loadPointCloudAction = new QAction("&Load Point Cloud", pointCloudMenu);
+        loadPointCloudAction->setShortcut(QKeySequence("Ctrl+O"));
+        QObject::connect(loadPointCloudAction, &QAction::triggered, [mainWindow]() {
+            // 这里可以添加加载点云的逻辑
+            QString filePath = QFileDialog::getOpenFileName(
+                mainWindow, "Open Point Cloud File", "", 
+                "Point Cloud Files (*.ply *.pcd *.xyz *.pts *.las *.laz);;All Files (*.*)");
+            
+            if (!filePath.isEmpty()) {
+                QMessageBox::information(mainWindow, "Point Cloud Loaded", 
+                    QString("Point cloud file loaded: %1\n(Feature to be implemented)").arg(QFileInfo(filePath).fileName()));
+            }
+        });
+        pointCloudMenu->addAction(loadPointCloudAction);
+        
+        // 添加点云处理选项
+        QAction* processPointCloudAction = new QAction("&Process Point Cloud", pointCloudMenu);
+        processPointCloudAction->setShortcut(QKeySequence("Ctrl+T"));
+        QObject::connect(processPointCloudAction, &QAction::triggered, [mainWindow]() {
+            QMessageBox::information(mainWindow, "Point Cloud Processing", 
+                "Point cloud processing features to be implemented.\n"
+                "Potential features:\n"
+                "• Downsampling\n"
+                "• Normal estimation\n"
+                "• Segmentation\n"
+                "• Reconstruction\n"
+                "• Visualization");
+        });
+        pointCloudMenu->addAction(processPointCloudAction);
+        
+        // 添加点云可视化选项
+        QAction* visualizePointCloudAction = new QAction("&Visualization Settings", pointCloudMenu);
+        visualizePointCloudAction->setShortcut(QKeySequence("Ctrl+V"));
+        visualizePointCloudAction->setCheckable(true);
+        visualizePointCloudAction->setChecked(true);
+        pointCloudMenu->addAction(visualizePointCloudAction);
+
+        // Render 菜单 (简化版)
         QMenu* renderMenu = menuBar->addMenu("&Render");
         
         // 添加Relastic tab选项
@@ -338,7 +391,7 @@ namespace UIUtils {
         });
         renderMenu->addAction(relasticTabAction);
         
-        renderMenu->addSeparator();
+        // 添加Relativistic tab选项
         QAction* relativisticTabAction = new QAction("&Relativistic", renderMenu);
         relativisticTabAction->setShortcut(QKeySequence("Ctrl+L"));
         QObject::connect(relativisticTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
@@ -347,7 +400,7 @@ namespace UIUtils {
         });
         renderMenu->addAction(relativisticTabAction);
         
-        renderMenu->addSeparator();
+        // 添加Black Hole tab选项
         QAction* blackHoleTabAction = new QAction("&Black Hole", renderMenu);
         blackHoleTabAction->setShortcut(QKeySequence("Ctrl+B"));
         QObject::connect(blackHoleTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
@@ -356,31 +409,8 @@ namespace UIUtils {
         });
         renderMenu->addAction(blackHoleTabAction);
         
-        // 添加渲染选项
-        QAction* wireframeAction = new QAction("Toggle Wireframe", renderMenu);
-        wireframeAction->setShortcut(QKeySequence("Ctrl+W"));
-        wireframeAction->setCheckable(true);
-        wireframeAction->setChecked(true);
-        renderMenu->addAction(wireframeAction);
-        
+        // 添加分隔线
         renderMenu->addSeparator();
-        
-        QAction* flatShadingAction = new QAction("Flat Shading", renderMenu);
-        flatShadingAction->setShortcut(QKeySequence("Ctrl+F"));
-        flatShadingAction->setCheckable(true);
-        renderMenu->addAction(flatShadingAction);
-        
-        QAction* smoothShadingAction = new QAction("Smooth Shading", renderMenu);
-        smoothShadingAction->setShortcut(QKeySequence("Ctrl+S"));
-        smoothShadingAction->setCheckable(true);
-        smoothShadingAction->setChecked(true);
-        renderMenu->addAction(smoothShadingAction);
-        
-        // 创建渲染模式动作组
-        QActionGroup* shadingGroup = new QActionGroup(renderMenu);
-        shadingGroup->addAction(flatShadingAction);
-        shadingGroup->addAction(smoothShadingAction);
-        shadingGroup->setExclusive(true);
         
         return menuBar;
     }
