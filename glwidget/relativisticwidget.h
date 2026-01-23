@@ -15,7 +15,6 @@
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include "../meshutils/my_traits.h"
 
-
 class RelativisticGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -26,6 +25,12 @@ public:
         BlinnPhong,
         WireframeOnly,
         FacesOnly
+    };
+
+    enum TransformMode {
+        NoTransform,      // 不变换
+        LorentzOnly,      // 仅洛伦兹变换
+        LorentzAndLightCone // 洛伦兹+光锥变换
     };
 
     explicit RelativisticGLWidget(QWidget *parent = nullptr);
@@ -42,12 +47,32 @@ public:
     void setShowWireframeOverlay(bool show);
     void setHideFaces(bool hide);
     
+    // 新增：设置变换模式
+    void setTransformMode(TransformMode mode);
+    
+    // 新增：设置速度
+    void setVelocity(float vx, float vy, float vz);
+    void setVx(float vx);
+    
+    // 新增：设置物体X位置
+    void setModelXPosition(float x);
+    
     QColor bgColor = QColor(0, 85, 127);  // 深蓝色背景
     
     // 新增：渲染模式
     RenderMode currentRenderMode = FlatShading;
     bool showWireframeOverlay = true;
     bool hideFaces = false;
+    
+    // 新增：变换模式和速度
+    TransformMode currentTransformMode = NoTransform;
+    float vx = 0.0f;  // X方向速度
+    float vy = 0.0f;  // Y方向速度
+    float vz = 0.0f;  // Z方向速度
+
+signals:
+    void velocityChanged(float vx);  // 新增：速度变化信号
+    void positionChanged(float x);   // 新增：位置变化信号
     
 protected:
     void initializeGL() override;
@@ -67,21 +92,30 @@ private:
     void updateBuffersFromOpenMesh();
     void scaleAndPositionMesh();
     
+    // 新增：相对论变换函数
+    void applyLorentzTransform();
+    void applyLightConeTransform();
+    void resetToOriginalMesh();
+    void updateTransformedMesh();
+    
     QVector3D projectToTrackball(const QPoint& screenPos);
     void drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawFaces(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     void drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection);
     
     Mesh openMesh;
+    Mesh originalMesh;  // 新增：保存原始网格数据
     std::vector<unsigned int> faces;
     std::vector<unsigned int> edges;
     
     bool modelLoaded = false;
+    bool isMeshTransformed = false;  // 新增：标记网格是否已经变换
     
     QQuaternion rotation;
     float zoom = 1.0f;
     
-    QVector3D modelCenter = QVector3D(-20, 0, 0);  // 左侧中心位置
+    // 修改：物体位置调整为可变的
+    float modelXPos = -15.0f;  // X位置，默认-15
     
     // 禁用鼠标拖动旋转
     bool isDragging = false;
@@ -101,6 +135,9 @@ private:
     QOpenGLBuffer vbo;
     QOpenGLBuffer ebo;
     QOpenGLBuffer faceEbo;
+    
+    // 修改：透视投影参数
+    float fov = 45.0f;  // 视野角度
 };
 
 #endif // RELATIVISTICWIDGET_H

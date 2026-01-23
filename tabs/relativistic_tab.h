@@ -14,6 +14,8 @@
 #include <QGroupBox>
 #include <QRadioButton>
 #include <QCheckBox>
+#include <QSlider>
+#include <QDoubleSpinBox>
 
 // 创建Relativistic标签页
 inline QWidget* createRelativisticTab(RelativisticGLWidget* glWidget) {
@@ -112,6 +114,111 @@ inline QGroupBox* createRelativisticDisplayOptionsGroup(RelativisticGLWidget* gl
     return group;
 }
 
+// 创建Relativistic变换模式选择组
+inline QGroupBox* createRelativisticTransformModeGroup(RelativisticGLWidget* glWidget) {
+    QGroupBox *group = new QGroupBox("Transform Mode");
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    
+    QRadioButton *noTransformRadio = new QRadioButton("No Transform");
+    noTransformRadio->setChecked(true); // 默认选中
+    
+    QRadioButton *lorentzOnlyRadio = new QRadioButton("Lorentz Only");
+    
+    QRadioButton *lorentzLightConeRadio = new QRadioButton("Lorentz + Light Cone");
+    
+    layout->addWidget(noTransformRadio);
+    layout->addWidget(lorentzOnlyRadio);
+    layout->addWidget(lorentzLightConeRadio);
+    
+    // 连接变换模式信号
+    QObject::connect(noTransformRadio, &QRadioButton::clicked, [glWidget]() {
+        glWidget->setTransformMode(RelativisticGLWidget::NoTransform);
+    });
+    
+    QObject::connect(lorentzOnlyRadio, &QRadioButton::clicked, [glWidget]() {
+        glWidget->setTransformMode(RelativisticGLWidget::LorentzOnly);
+    });
+    
+    QObject::connect(lorentzLightConeRadio, &QRadioButton::clicked, [glWidget]() {
+        glWidget->setTransformMode(RelativisticGLWidget::LorentzAndLightCone);
+    });
+    
+    return group;
+}
+
+// 创建速度控制组
+inline QGroupBox* createVelocityControlGroup(RelativisticGLWidget* glWidget, QLabel* velocityLabel) {
+    QGroupBox *group = new QGroupBox("Velocity Control (X-direction)");
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    
+    // 速度标签
+    layout->addWidget(velocityLabel);
+    
+    // 滑动条
+    QSlider *velocitySlider = new QSlider(Qt::Horizontal);
+    velocitySlider->setRange(0, 100); // 0-100% 光速
+    velocitySlider->setValue(0);
+    velocitySlider->setTickPosition(QSlider::TicksBelow);
+    velocitySlider->setTickInterval(10);
+    
+    // 数值显示
+    QDoubleSpinBox *velocitySpinBox = new QDoubleSpinBox();
+    velocitySpinBox->setRange(0.0, 1.0);
+    velocitySpinBox->setSingleStep(0.01);
+    velocitySpinBox->setValue(0.0);
+    velocitySpinBox->setDecimals(2);
+    velocitySpinBox->setSuffix(" c");
+    
+    // 水平布局：滑动条和数值框
+    QHBoxLayout *sliderLayout = new QHBoxLayout();
+    sliderLayout->addWidget(velocitySlider);
+    sliderLayout->addWidget(velocitySpinBox);
+    layout->addLayout(sliderLayout);
+    
+    // 标签显示速度信息
+    QLabel *infoLabel = new QLabel("Speed: 0.00 c (0% of light speed)");
+    infoLabel->setStyleSheet("color: #FFA500; font-weight: bold;");
+    layout->addWidget(infoLabel);
+    
+    // 连接信号
+    // 滑动条 -> 数值框
+    QObject::connect(velocitySlider, &QSlider::valueChanged, [velocitySpinBox, infoLabel](int value) {
+        float speed = value / 100.0f;
+        velocitySpinBox->setValue(speed);
+        infoLabel->setText(QString("Speed: %1 c (%2% of light speed)")
+                          .arg(speed, 0, 'f', 2)
+                          .arg(value));
+    });
+    
+    // 数值框 -> 滑动条
+    QObject::connect(velocitySpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [velocitySlider, infoLabel](double value) {
+        int sliderValue = static_cast<int>(value * 100);
+        velocitySlider->setValue(sliderValue);
+        infoLabel->setText(QString("Speed: %1 c (%2% of light speed)")
+                          .arg(value, 0, 'f', 2)
+                          .arg(sliderValue));
+    });
+    
+    // 数值框 -> GLWidget
+    QObject::connect(velocitySpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [glWidget](double value) {
+        glWidget->setVx(static_cast<float>(value));
+    });
+    
+    // GLWidget速度变化 -> 更新UI
+    QObject::connect(glWidget, &RelativisticGLWidget::velocityChanged,
+                     [velocitySpinBox, velocitySlider, infoLabel](float vx) {
+        velocitySpinBox->setValue(vx);
+        velocitySlider->setValue(static_cast<int>(vx * 100));
+        infoLabel->setText(QString("Speed: %1 c (%2% of light speed)")
+                          .arg(vx, 0, 'f', 2)
+                          .arg(static_cast<int>(vx * 100)));
+    });
+    
+    return group;
+}
+
 // 创建Relativistic控制面板
 inline QWidget* createRelativisticControlPanel(RelativisticGLWidget* glWidget, QLabel* infoLabel, QWidget* mainWindow) {
     QWidget *panel = new QWidget;
@@ -125,6 +232,14 @@ inline QWidget* createRelativisticControlPanel(RelativisticGLWidget* glWidget, Q
     
     // 添加显示选项组
     layout->addWidget(createRelativisticDisplayOptionsGroup(glWidget));
+    
+    // 添加变换模式选择组
+    layout->addWidget(createRelativisticTransformModeGroup(glWidget));
+    
+    // 添加速度控制组
+    QLabel *velocityLabel = new QLabel("Adjust X-direction velocity (0 to 1.0 c)");
+    velocityLabel->setStyleSheet("color: white;");
+    layout->addWidget(createVelocityControlGroup(glWidget, velocityLabel));
     
     // 视图重置按钮
     QPushButton *resetButton = new QPushButton("Reset View");
@@ -148,11 +263,16 @@ inline QWidget* createRelativisticControlPanel(RelativisticGLWidget* glWidget, Q
     QLabel *descriptionLabel = new QLabel(
         "<b>Relativistic View</b><br><br>"
         "Camera at (0,0,0) looking forward<br>"
-        "View space: 100×100×100<br>"
-        "Model scaled to fit 20×20×20 box<br>"
-        "Positioned at left center (-20,0,0)<br>"
+        "Perspective projection with adaptive FOV<br>"
+        "Model scaled to fit 15×15×15 box<br>"
+        "Positioned at left center (-15,0,-30)<br>"
         "Mouse dragging disabled for rotation<br>"
-        "Use arrow keys for rotation, +/- for zoom"
+        "Use arrow keys for rotation, +/- for zoom<br><br>"
+        "<b>Relativistic Transformations:</b><br>"
+        "• Lorentz Only: Length contraction along velocity<br>"
+        "• Lorentz + Light Cone: Two-step transformation<br>"
+        "• Light speed c = 1.0 (normalized)<br>"
+        "• Speed automatically clamped to ≤ c"
     );
     descriptionLabel->setStyleSheet("color: white; background-color: #3A3A3A; padding: 10px; border-radius: 5px;");
     descriptionLabel->setWordWrap(true);

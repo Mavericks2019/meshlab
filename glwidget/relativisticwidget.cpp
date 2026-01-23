@@ -11,6 +11,7 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <algorithm>
 #include <set>
+#include <cmath>
 
 RelativisticGLWidget::RelativisticGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
@@ -86,14 +87,29 @@ void RelativisticGLWidget::paintGL() {
     model.rotate(rotation);
     model.scale(zoom);
     
-    // 视图矩阵：相机在(0,0,0)，看向(0,0,-1)，使用正交投影
+    // 视图矩阵：相机在(0,0,0)，看向(0,0,-1)，上方向为(0,1,0)
     view.lookAt(QVector3D(0, 0, 0), QVector3D(0, 0, -1), QVector3D(0, 1, 0));
     
-    // 投影矩阵：正交投影，范围(-50,50)在XY平面，深度(-50,50)
+    // 修改：透视投影，根据窗口比例自适应
     float aspect = width() / float(height());
-    float viewWidth = 100.0f;
-    float viewHeight = viewWidth / aspect;
-    projection.ortho(-viewWidth/2, viewWidth/2, -viewHeight/2, viewHeight/2, 0.1f, 100.0f);
+    
+    // 设置透视投影，小的一方恒定为100的视野
+    float minDimension = qMin(width(), height());
+    float scale = 100.0f / minDimension;
+    float fovX, fovY;
+    
+    if (width() >= height()) {
+        // 横屏：水平视野固定，垂直视野按比例缩小
+        fovX = 2.0f * atan(50.0f / 30.0f) * 180.0f / M_PI;  // 基于z=30的距离计算
+        fovY = 2.0f * atan(50.0f / aspect / 30.0f) * 180.0f / M_PI;
+    } else {
+        // 竖屏：垂直视野固定，水平视野按比例缩小
+        fovY = 2.0f * atan(50.0f / 30.0f) * 180.0f / M_PI;  // 基于z=30的距离计算
+        fovX = 2.0f * atan(50.0f * aspect / 30.0f) * 180.0f / M_PI;
+    }
+    
+    // 使用垂直视野设置透视投影
+    projection.perspective(fovY, aspect, 0.1f, 200.0f);
     
     QMatrix3x3 normalMatrix = model.normalMatrix();
 
@@ -213,41 +229,16 @@ void RelativisticGLWidget::keyPressEvent(QKeyEvent *event) {
 
 void RelativisticGLWidget::mousePressEvent(QMouseEvent *event) {
     // 禁用鼠标拖动旋转
-    // if (event->button() == Qt::LeftButton) {
-    //     isDragging = true;
-    //     lastMousePos = event->pos();
-    //     setCursor(Qt::ClosedHandCursor);
-    // }
     QOpenGLWidget::mousePressEvent(event);
 }
 
 void RelativisticGLWidget::mouseReleaseEvent(QMouseEvent *event) {
     // 禁用鼠标拖动旋转
-    // if (event->button() == Qt::LeftButton) {
-    //     isDragging = false;
-    //     setCursor(Qt::ArrowCursor);
-    // }
     QOpenGLWidget::mouseReleaseEvent(event);
 }
 
 void RelativisticGLWidget::mouseMoveEvent(QMouseEvent *event) {
     // 禁用鼠标拖动旋转
-    // if (isDragging) {
-    //     QPoint currentPos = event->pos();
-    //     
-    //     QVector3D lastPos3D = projectToTrackball(lastMousePos);
-    //     QVector3D currentPos3D = projectToTrackball(currentPos);
-    //     
-    //     QVector3D axis = QVector3D::crossProduct(lastPos3D, currentPos3D).normalized();
-    //     float angle = acos(qMin(1.0f, QVector3D::dotProduct(lastPos3D, currentPos3D))) 
-    //                 * 180.0f / M_PI * rotationSensitivity;
-    //     
-    //     QQuaternion newRot = QQuaternion::fromAxisAndAngle(axis, angle);
-    //     rotation = newRot * rotation;
-    //     
-    //     lastMousePos = currentPos;
-    //     update();
-    // }
     QOpenGLWidget::mouseMoveEvent(event);
 }
 
@@ -285,9 +276,91 @@ void RelativisticGLWidget::setHideFaces(bool hide) {
     update();
 }
 
+// 新增：设置变换模式
+void RelativisticGLWidget::setTransformMode(TransformMode mode) {
+    if (currentTransformMode != mode) {
+        currentTransformMode = mode;
+        
+        if (modelLoaded) {
+            // 重置到原始网格
+            resetToOriginalMesh();
+            
+            // 如果新模式不是"NoTransform"，应用变换
+            if (currentTransformMode != NoTransform) {
+                updateTransformedMesh();
+            }
+            
+            // 更新OpenGL缓冲区
+            makeCurrent();
+            updateBuffersFromOpenMesh();
+            doneCurrent();
+            update();
+        }
+    }
+}
+
+// 新增：设置速度
+void RelativisticGLWidget::setVelocity(float vx, float vy, float vz) {
+    // 验证速度不超过光速 (c = 1.0)
+    float speedSquared = vx*vx + vy*vy + vz*vz;
+    if (speedSquared > 1.0f) {
+        qWarning() << "Speed exceeds light speed! Clamping to maximum.";
+        // 归一化到光速
+        float factor = 1.0f / sqrt(speedSquared);
+        vx *= factor;
+        vy *= factor;
+        vz *= factor;
+    }
+    
+    this->vx = vx;
+    this->vy = vy;
+    this->vz = vz;
+    
+    if (modelLoaded && currentTransformMode != NoTransform) {
+        updateTransformedMesh();
+        makeCurrent();
+        updateBuffersFromOpenMesh();
+        doneCurrent();
+        update();
+    }
+    
+    emit velocityChanged(vx);
+}
+
+// 新增：设置X方向速度
+void RelativisticGLWidget::setVx(float vx) {
+    setVelocity(vx, vy, vz);
+}
+
+// 新增：设置物体X位置
+void RelativisticGLWidget::setModelXPosition(float x) {
+    // 限制位置范围（可以根据需要调整）
+    modelXPos = qBound(-30.0f, x, 30.0f);
+    
+    if (modelLoaded) {
+        // 重新缩放和定位网格
+        makeCurrent();
+        scaleAndPositionMesh();
+        updateBuffersFromOpenMesh();
+        doneCurrent();
+        update();
+    }
+    
+    emit positionChanged(modelXPos);
+}
+
 void RelativisticGLWidget::resetView() {
     rotation = QQuaternion();
     zoom = 1.0f;
+    modelXPos = -15.0f;  // 重置位置到初始值
+    
+    if (modelLoaded) {
+        makeCurrent();
+        scaleAndPositionMesh();
+        updateBuffersFromOpenMesh();
+        doneCurrent();
+    }
+    
     update();
 }
 
@@ -383,16 +456,16 @@ void RelativisticGLWidget::scaleAndPositionMesh() {
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
     
-    // 修改：放大包围盒到20×20×20（原为10×10×10）
-    float scale = 20.0f / maxSize;
+    // 修改：将包围盒改为15×15×15
+    float scale = 15.0f / maxSize;
     
     // 计算物体的中心
     Mesh::Point center = (min + max) * 0.5f;
     
-    // 将物体放置在最左侧的中心位置 (-20, 0, 0)
-    float targetX = -20.0f;
+    // 修改：使用变量位置
+    float targetX = modelXPos;  // 使用变量位置
     float targetY = 0.0f;
-    float targetZ = 0.0f;
+    float targetZ = -30.0f;
     
     for (auto vh : openMesh.vertices()) {
         Mesh::Point p = openMesh.point(vh);
@@ -405,6 +478,184 @@ void RelativisticGLWidget::scaleAndPositionMesh() {
         
         openMesh.set_point(vh, p);
     }
+}
+
+// 新增：应用洛伦兹变换
+void RelativisticGLWidget::applyLorentzTransform() {
+    if (openMesh.n_vertices() == 0) return;
+    
+    float c = 1.0f; // 光速
+    float speed = sqrt(vx*vx + vy*vy + vz*vz);
+    
+    if (speed == 0.0f) {
+        // 速度为0，不需要变换
+        return;
+    }
+    
+    // 洛伦兹因子
+    float beta = speed / c;
+    float gamma = 1.0f / sqrt(1.0f - beta*beta);
+    
+    // 速度方向单位向量
+    float invSpeed = 1.0f / speed;
+    float nx = vx * invSpeed;
+    float ny = vy * invSpeed;
+    float nz = vz * invSpeed;
+    
+    qDebug() << "Applying Lorentz Transform:";
+    qDebug() << "  Velocity: (" << vx << "," << vy << "," << vz << ")";
+    qDebug() << "  Gamma: " << gamma;
+    qDebug() << "  Beta: " << beta;
+    
+    for (auto vh : openMesh.vertices()) {
+        Mesh::Point p = openMesh.point(vh);
+        
+        // 计算平行于速度方向的分量
+        float dot = p[0]*nx + p[1]*ny + p[2]*nz;
+        float px = dot * nx;
+        float py = dot * ny;
+        float pz = dot * nz;
+        
+        // 垂直于速度方向的分量
+        float qx = p[0] - px;
+        float qy = p[1] - py;
+        float qz = p[2] - pz;
+        
+        // 洛伦兹收缩：平行分量收缩 1/gamma
+        float new_px = px / gamma;
+        float new_py = py / gamma;
+        float new_pz = pz / gamma;
+        
+        // 合并分量
+        p[0] = qx + new_px;
+        p[1] = qy + new_py;
+        p[2] = qz + new_pz;
+        
+        openMesh.set_point(vh, p);
+    }
+}
+
+// 新增：应用光锥变换
+void RelativisticGLWidget::applyLightConeTransform() {
+    if (openMesh.n_vertices() == 0) return;
+    
+    float c = 1.0f; // 光速
+    float speed = sqrt(vx*vx + vy*vy + vz*vz);
+    
+    if (speed == 0.0f) {
+        // 速度为0，不需要变换
+        return;
+    }
+    
+    qDebug() << "Applying Light Cone Transform:";
+    qDebug() << "  Velocity: (" << vx << "," << vy << "," << vz << ")";
+    
+    int validSolutions = 0;
+    int invalidSolutions = 0;
+    
+    for (auto vh : openMesh.vertices()) {
+        Mesh::Point p = openMesh.point(vh);
+        
+        // 顶点原始坐标 (x0, y0, z0)
+        float x0 = p[0];
+        float y0 = p[1];
+        float z0 = p[2];
+        float t0 = 0.0f; // 给定 t0 = 0
+        
+        // 世界线参数
+        float Vt = 1.0f; // 给定 vt = 1
+        float Vx = vx;
+        float Vy = vy;
+        float Vz = vz;
+        
+        // 二次方程系数: As² + Bs + C = 0
+        float A = Vt*Vt - Vx*Vx - Vy*Vy - Vz*Vz;
+        float B = 2.0f * (t0*Vt - x0*Vx - y0*Vy - z0*Vz);
+        float C = t0*t0 - x0*x0 - y0*y0 - z0*z0;
+        
+        // 判别式
+        float Delta = B*B - 4.0f*A*C;
+        
+        float s;
+        
+        if (fabs(A) < 1e-10f) {
+            // A = 0 的特殊情况
+            if (fabs(B) > 1e-10f) {
+                s = -C / B;
+            } else {
+                s = 0.0f;
+            }
+            invalidSolutions++;
+        } else if (Delta < 0.0f) {
+            // 没有实数解
+            s = 0.0f;
+            invalidSolutions++;
+        } else {
+            // 两个实数解
+            float sqrtDelta = sqrt(Delta);
+            float s1 = (-B + sqrtDelta) / (2.0f * A);
+            float s2 = (-B - sqrtDelta) / (2.0f * A);
+            
+            // 选择负的 s (过去光锥)
+            if (s1 < 0.0f && s2 < 0.0f) {
+                // 两个都是负的，选择更负的（更过去的）
+                s = (s1 < s2) ? s1 : s2;
+                validSolutions++;
+            } else if (s1 < 0.0f) {
+                s = s1;
+                validSolutions++;
+            } else if (s2 < 0.0f) {
+                s = s2;
+                validSolutions++;
+            } else {
+                // 没有负解
+                s = (s1 < s2) ? s1 : s2;
+                invalidSolutions++;
+            }
+        }
+        
+        // 计算变换后的坐标
+        float t = t0 + s * Vt;
+        float x = x0 + s * Vx;
+        float y = y0 + s * Vy;
+        float z = z0 + s * Vz;
+        
+        // 更新顶点位置（只使用空间坐标）
+        p[0] = x;
+        p[1] = y;
+        p[2] = z;
+        
+        openMesh.set_point(vh, p);
+    }
+    
+    qDebug() << "  Light Cone Solutions: " << validSolutions << " valid, " << invalidSolutions << " invalid";
+}
+
+// 新增：重置到原始网格
+void RelativisticGLWidget::resetToOriginalMesh() {
+    if (!modelLoaded || originalMesh.n_vertices() == 0) return;
+    
+    // 复制原始网格到当前网格
+    openMesh = originalMesh;
+    isMeshTransformed = false;
+}
+
+// 新增：更新变换后的网格
+void RelativisticGLWidget::updateTransformedMesh() {
+    if (!modelLoaded || originalMesh.n_vertices() == 0) return;
+    
+    // 首先重置到原始网格
+    openMesh = originalMesh;
+    
+    // 根据变换模式应用变换
+    if (currentTransformMode == LorentzOnly) {
+        applyLorentzTransform();
+    } else if (currentTransformMode == LorentzAndLightCone) {
+        applyLorentzTransform();
+        applyLightConeTransform();
+    }
+    
+    isMeshTransformed = (currentTransformMode != NoTransform);
 }
 
 void RelativisticGLWidget::updateBuffersFromOpenMesh() {
@@ -484,6 +735,7 @@ void RelativisticGLWidget::updateBuffersFromOpenMesh() {
 
 void RelativisticGLWidget::loadOBJ(const QString &path) {
     openMesh.clear();
+    originalMesh.clear();
     faces.clear();
     edges.clear();
     
@@ -495,11 +747,15 @@ void RelativisticGLWidget::loadOBJ(const QString &path) {
     // 缩放并定位物体
     scaleAndPositionMesh();
     
+    // 保存原始网格
+    originalMesh = openMesh;
+    
     // 准备索引
     prepareFaceIndices();
     prepareEdgeIndices();
     
     modelLoaded = true;
+    isMeshTransformed = false;
     
     makeCurrent();
     updateBuffersFromOpenMesh();
