@@ -6,6 +6,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/objViewer.dir/glwidget/arapglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
+  "CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.o"
+  "CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o"
   "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o"

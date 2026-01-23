@@ -11,6 +11,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "objViewer_autogen/timestamp" "custom" "objViewer_autogen/deps"
   "/opt/project/meshlab/glwidget/arapglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/arapglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/arapglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/baseglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.o.d"
+  "/opt/project/meshlab/glwidget/blackholewidget.cpp" "CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/cgalglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/cgalglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/modelglwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/modelglwidget.cpp.o.d"
   "/opt/project/meshlab/glwidget/relasticwidget.cpp" "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o" "gcc" "CMakeFiles/objViewer.dir/glwidget/relasticwidget.cpp.o.d"

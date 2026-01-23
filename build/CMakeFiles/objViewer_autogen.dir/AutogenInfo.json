@@ -153,6 +153,12 @@
 			null
 		],
 		[
+			"/opt/project/meshlab/glwidget/blackholewidget.h",
+			"Mu",
+			"KTNQVRIVIS/moc_blackholewidget.cpp",
+			null
+		],
+		[
 			"/opt/project/meshlab/glwidget/cgalglwidget.h",
 			"Mu",
 			"KTNQVRIVIS/moc_cgalglwidget.cpp",
@@ -343,6 +349,7 @@
 	[
 		[ "/opt/project/meshlab/glwidget/arapglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/baseglwidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/glwidget/blackholewidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/cgalglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/modelglwidget.cpp", "Mu", null ],
 		[ "/opt/project/meshlab/glwidget/relasticwidget.cpp", "Mu", null ],

@@ -3861,6 +3861,125 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/CGAL/Filtered_kernel/Cartesian_coordinate_iterator_3.h \
  /opt/project/meshlab/glwidget/relasticwidget.h \
  /opt/project/meshlab/glwidget/relativisticwidget.h \
+ /opt/project/meshlab/glwidget/blackholewidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QMouseEvent \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qevent.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qtouchdevice.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QWheelEvent \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/QSurfaceFormat \
+ /usr/include/glm/glm.hpp /usr/include/glm/detail/_fixes.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/simd/platform.h \
+ /usr/include/glm/fwd.hpp /usr/include/glm/detail/qualifier.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/vec2.hpp \
+ /usr/include/glm/ext/vector_bool2.hpp \
+ /usr/include/glm/detail/type_vec2.hpp \
+ /usr/include/glm/detail/type_vec2.inl \
+ /usr/include/glm/detail/compute_vector_relational.hpp \
+ /usr/include/glm/ext/vector_bool2_precision.hpp \
+ /usr/include/glm/ext/vector_float2.hpp \
+ /usr/include/glm/ext/vector_float2_precision.hpp \
+ /usr/include/glm/ext/vector_double2.hpp \
+ /usr/include/glm/ext/vector_double2_precision.hpp \
+ /usr/include/glm/ext/vector_int2.hpp \
+ /usr/include/glm/ext/vector_int2_sized.hpp \
+ /usr/include/glm/ext/scalar_int_sized.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/ext/vector_uint2.hpp \
+ /usr/include/glm/ext/vector_uint2_sized.hpp \
+ /usr/include/glm/ext/scalar_uint_sized.hpp /usr/include/glm/vec3.hpp \
+ /usr/include/glm/ext/vector_bool3.hpp \
+ /usr/include/glm/detail/type_vec3.hpp \
+ /usr/include/glm/detail/type_vec3.inl \
+ /usr/include/glm/ext/vector_bool3_precision.hpp \
+ /usr/include/glm/ext/vector_float3.hpp \
+ /usr/include/glm/ext/vector_float3_precision.hpp \
+ /usr/include/glm/ext/vector_double3.hpp \
+ /usr/include/glm/ext/vector_double3_precision.hpp \
+ /usr/include/glm/ext/vector_int3.hpp \
+ /usr/include/glm/ext/vector_int3_sized.hpp \
+ /usr/include/glm/ext/vector_uint3.hpp \
+ /usr/include/glm/ext/vector_uint3_sized.hpp /usr/include/glm/vec4.hpp \
+ /usr/include/glm/ext/vector_bool4.hpp \
+ /usr/include/glm/detail/type_vec4.hpp \
+ /usr/include/glm/detail/type_vec4.inl \
+ /usr/include/glm/ext/vector_bool4_precision.hpp \
+ /usr/include/glm/ext/vector_float4.hpp \
+ /usr/include/glm/ext/vector_float4_precision.hpp \
+ /usr/include/glm/ext/vector_double4.hpp \
+ /usr/include/glm/ext/vector_double4_precision.hpp \
+ /usr/include/glm/ext/vector_int4.hpp \
+ /usr/include/glm/ext/vector_int4_sized.hpp \
+ /usr/include/glm/ext/vector_uint4.hpp \
+ /usr/include/glm/ext/vector_uint4_sized.hpp /usr/include/glm/mat2x2.hpp \
+ /usr/include/glm/ext/matrix_double2x2.hpp \
+ /usr/include/glm/detail/type_mat2x2.hpp \
+ /usr/include/glm/detail/type_mat2x2.inl /usr/include/glm/matrix.hpp \
+ /usr/include/glm/mat2x3.hpp /usr/include/glm/ext/matrix_double2x3.hpp \
+ /usr/include/glm/detail/type_mat2x3.hpp \
+ /usr/include/glm/detail/type_mat2x3.inl \
+ /usr/include/glm/ext/matrix_double2x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x3.hpp \
+ /usr/include/glm/ext/matrix_float2x3_precision.hpp \
+ /usr/include/glm/mat2x4.hpp /usr/include/glm/ext/matrix_double2x4.hpp \
+ /usr/include/glm/detail/type_mat2x4.hpp \
+ /usr/include/glm/detail/type_mat2x4.inl \
+ /usr/include/glm/ext/matrix_double2x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x4.hpp \
+ /usr/include/glm/ext/matrix_float2x4_precision.hpp \
+ /usr/include/glm/mat3x2.hpp /usr/include/glm/ext/matrix_double3x2.hpp \
+ /usr/include/glm/detail/type_mat3x2.hpp \
+ /usr/include/glm/detail/type_mat3x2.inl \
+ /usr/include/glm/ext/matrix_double3x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x2.hpp \
+ /usr/include/glm/ext/matrix_float3x2_precision.hpp \
+ /usr/include/glm/mat3x3.hpp /usr/include/glm/ext/matrix_double3x3.hpp \
+ /usr/include/glm/detail/type_mat3x3.hpp \
+ /usr/include/glm/detail/type_mat3x3.inl \
+ /usr/include/glm/ext/matrix_double3x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x3.hpp \
+ /usr/include/glm/ext/matrix_float3x3_precision.hpp \
+ /usr/include/glm/mat3x4.hpp /usr/include/glm/ext/matrix_double3x4.hpp \
+ /usr/include/glm/detail/type_mat3x4.hpp \
+ /usr/include/glm/detail/type_mat3x4.inl \
+ /usr/include/glm/ext/matrix_double3x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x4.hpp \
+ /usr/include/glm/ext/matrix_float3x4_precision.hpp \
+ /usr/include/glm/mat4x2.hpp /usr/include/glm/ext/matrix_double4x2.hpp \
+ /usr/include/glm/detail/type_mat4x2.hpp \
+ /usr/include/glm/detail/type_mat4x2.inl \
+ /usr/include/glm/ext/matrix_double4x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x2.hpp \
+ /usr/include/glm/ext/matrix_float4x2_precision.hpp \
+ /usr/include/glm/mat4x3.hpp /usr/include/glm/ext/matrix_double4x3.hpp \
+ /usr/include/glm/detail/type_mat4x3.hpp \
+ /usr/include/glm/detail/type_mat4x3.inl \
+ /usr/include/glm/ext/matrix_double4x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x3.hpp \
+ /usr/include/glm/ext/matrix_float4x3_precision.hpp \
+ /usr/include/glm/mat4x4.hpp /usr/include/glm/ext/matrix_double4x4.hpp \
+ /usr/include/glm/detail/type_mat4x4.hpp \
+ /usr/include/glm/detail/type_mat4x4.inl \
+ /usr/include/glm/ext/matrix_double4x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x4.hpp \
+ /usr/include/glm/ext/matrix_float4x4_precision.hpp \
+ /usr/include/glm/detail/func_matrix.inl /usr/include/glm/geometric.hpp \
+ /usr/include/glm/detail/func_geometric.inl \
+ /usr/include/glm/exponential.hpp /usr/include/glm/detail/type_vec1.hpp \
+ /usr/include/glm/detail/type_vec1.inl \
+ /usr/include/glm/detail/func_exponential.inl \
+ /usr/include/glm/vector_relational.hpp \
+ /usr/include/glm/detail/func_vector_relational.inl \
+ /usr/include/glm/detail/_vectorize.hpp /usr/include/glm/common.hpp \
+ /usr/include/glm/detail/func_common.inl \
+ /usr/include/glm/detail/compute_common.hpp \
+ /usr/include/glm/ext/matrix_double2x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x2.hpp \
+ /usr/include/glm/ext/matrix_float2x2_precision.hpp \
+ /usr/include/glm/trigonometric.hpp \
+ /usr/include/glm/detail/func_trigonometric.inl \
+ /usr/include/glm/packing.hpp /usr/include/glm/detail/func_packing.inl \
+ /usr/include/glm/detail/type_half.hpp \
+ /usr/include/glm/detail/type_half.inl /usr/include/glm/integer.hpp \
+ /usr/include/glm/detail/func_integer.inl \
  /opt/project/meshlab/tabs/model_tab.h \
  /opt/project/meshlab/tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -3906,6 +4025,8 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qvalidator.h \
  /opt/project/meshlab/tabs/relativistic_tab.h \
  /opt/project/meshlab/tabs/../glwidget/relativisticwidget.h \
+ /opt/project/meshlab/tabs/blackhole_tab.h \
+ /opt/project/meshlab/tabs/../glwidget/blackholewidget.h \
  /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
  /opt/project/meshlab/tabs/../glwidget/arapglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
@@ -3930,10 +4051,6 @@ CMakeFiles/objViewer.dir/tab_manager.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpainter.h \
  /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qglcolormap.h \
  /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qtopenglglobal.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/QMouseEvent \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qevent.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qtouchdevice.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/QWheelEvent \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QKeyEvent \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QSize \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDesktopWidget \

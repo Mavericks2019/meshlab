@@ -189,7 +189,8 @@ namespace UIUtils {
         QStringList tabNames = {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
-            "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer"
+            "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
+            "Black Hole"  // 添加Black Hole标签页
         };
         
         // 创建动作组，确保只有一个被选中
@@ -345,6 +346,15 @@ namespace UIUtils {
             createTabFunc("Relativistic", true);
         });
         renderMenu->addAction(relativisticTabAction);
+        
+        renderMenu->addSeparator();
+        QAction* blackHoleTabAction = new QAction("&Black Hole", renderMenu);
+        blackHoleTabAction->setShortcut(QKeySequence("Ctrl+B"));
+        QObject::connect(blackHoleTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
+            // 创建Black Hole tab
+            createTabFunc("Black Hole", true);
+        });
+        renderMenu->addAction(blackHoleTabAction);
         
         // 添加渲染选项
         QAction* wireframeAction = new QAction("Toggle Wireframe", renderMenu);

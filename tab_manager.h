@@ -24,6 +24,7 @@
 #include "glwidget/arapglwidget.h"
 #include "glwidget/relasticwidget.h"     // RelasticGLWidget前向声明
 #include "glwidget/relativisticwidget.h"  // RelativisticGLWidget前向声明
+#include "glwidget/blackholewidget.h"     // 添加BlackHoleWidget前向声明
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -34,6 +35,7 @@
 #include "tabs/dualview_simple_tab.h"
 #include "tabs/relastic_tab.h"           // Relastic标签页头文件
 #include "tabs/relativistic_tab.h"       // Relativistic标签页头文件
+#include "tabs/blackhole_tab.h"          // 添加BlackHole标签页头文件
 #include "menu_utils.h"
 
 // 新增的头文件
@@ -159,6 +161,9 @@ private:
     // Relativistic窗口
     RelativisticGLWidget* relativisticGlWidget;
 
+    // Black Hole窗口
+    BlackHoleWidget* blackHoleWidget;  // 添加BlackHoleWidget成员
+
     // 信息标签
     QLabel* basicInfoLabel;
     QLabel* cgalInfoLabel;
@@ -184,6 +189,9 @@ private:
     
     // Relativistic信息标签
     QLabel* relativisticInfoLabel;
+    
+    // Black Hole信息标签
+    QLabel* blackHoleInfoLabel;  // 添加BlackHole信息标签
 };
 
 #endif // TAB_MANAGER_H

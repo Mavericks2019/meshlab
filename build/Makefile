@@ -248,6 +248,30 @@ glwidget/baseglwidget.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/baseglwidget.cpp.s
 .PHONY : glwidget/baseglwidget.cpp.s
 
+glwidget/blackholewidget.o: glwidget/blackholewidget.cpp.o
+.PHONY : glwidget/blackholewidget.o
+
+# target to build an object file
+glwidget/blackholewidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.o
+.PHONY : glwidget/blackholewidget.cpp.o
+
+glwidget/blackholewidget.i: glwidget/blackholewidget.cpp.i
+.PHONY : glwidget/blackholewidget.i
+
+# target to preprocess a source file
+glwidget/blackholewidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.i
+.PHONY : glwidget/blackholewidget.cpp.i
+
+glwidget/blackholewidget.s: glwidget/blackholewidget.cpp.s
+.PHONY : glwidget/blackholewidget.s
+
+# target to generate assembly for a file
+glwidget/blackholewidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/blackholewidget.cpp.s
+.PHONY : glwidget/blackholewidget.cpp.s
+
 glwidget/cgalglwidget.o: glwidget/cgalglwidget.cpp.o
 .PHONY : glwidget/cgalglwidget.o
 
@@ -605,6 +629,9 @@ help:
 	@echo "... glwidget/baseglwidget.o"
 	@echo "... glwidget/baseglwidget.i"
 	@echo "... glwidget/baseglwidget.s"
+	@echo "... glwidget/blackholewidget.o"
+	@echo "... glwidget/blackholewidget.i"
+	@echo "... glwidget/blackholewidget.s"
 	@echo "... glwidget/cgalglwidget.o"
 	@echo "... glwidget/cgalglwidget.i"
 	@echo "... glwidget/cgalglwidget.s"

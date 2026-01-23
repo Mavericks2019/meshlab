@@ -31,6 +31,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , openMeshViewerWidget(nullptr)
     , relasticGlWidget(nullptr)
     , relativisticGlWidget(nullptr)
+    , blackHoleWidget(nullptr)  // 初始化BlackHoleWidget
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -48,6 +49,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , openMeshViewerInfoLabel(nullptr)
     , relasticInfoLabel(nullptr)
     , relativisticInfoLabel(nullptr)
+    , blackHoleInfoLabel(nullptr)  // 初始化BlackHole信息标签
 {
     // 注册标签页配置
     registerTabConfigs();
@@ -413,6 +415,27 @@ void TabManager::registerTabConfigs() {
             },
             11,
             "Relativistic"
+        },
+        {"Black Hole",  // 添加Black Hole标签页配置
+            [this]() -> QWidget* {
+                getOrCreateWidget(blackHoleWidget);
+                return ::createBlackHoleTab(blackHoleWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(blackHoleWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&blackHoleInfoLabel));
+                layout->addWidget(createBlackHoleControlPanel(blackHoleWidget, blackHoleInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete blackHoleWidget; blackHoleWidget = nullptr;
+                delete blackHoleInfoLabel; blackHoleInfoLabel = nullptr;
+            },
+            12,
+            "Black Hole"
         }
     };
 }
