@@ -10,6 +10,7 @@
 #include <QtMath>
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <algorithm>
+#include <set>
 
 RelativisticGLWidget::RelativisticGLWidget(QWidget *parent) : QOpenGLWidget(parent),
     vbo(QOpenGLBuffer::VertexBuffer),
@@ -18,10 +19,14 @@ RelativisticGLWidget::RelativisticGLWidget(QWidget *parent) : QOpenGLWidget(pare
 {
     QSurfaceFormat format;
     format.setSamples(4);
+    format.setDepthBufferSize(24);  // 确保深度缓冲区大小
     setFormat(format);
     
     setFocusPolicy(Qt::StrongFocus);
     rotation = QQuaternion();
+    
+    // 禁用鼠标拖动旋转
+    rotationSensitivity = 0.0f;
 }
 
 RelativisticGLWidget::~RelativisticGLWidget() {
@@ -36,7 +41,11 @@ RelativisticGLWidget::~RelativisticGLWidget() {
 void RelativisticGLWidget::initializeGL() {
     initializeOpenGLFunctions();
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
+    
+    // 启用深度测试
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    
     glEnable(GL_MULTISAMPLE);
 
     vao.create();
@@ -44,13 +53,20 @@ void RelativisticGLWidget::initializeGL() {
     ebo.create();
     faceEbo.create();
     
+    // 线框着色器
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/wireframe.vert");
     wireframeProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/wireframe.frag");
     wireframeProgram.link();
     
+    // Flat Shading着色器
     faceProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/flat.vert");
     faceProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/flat.frag");
     faceProgram.link();
+    
+    // Blinn-Phong着色器
+    blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/glwidget/shaders/blinnphong.vert");
+    blinnPhongProgram.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/glwidget/shaders/blinnphong.frag");
+    blinnPhongProgram.link();
 }
 
 void RelativisticGLWidget::resizeGL(int w, int h) {
@@ -79,11 +95,91 @@ void RelativisticGLWidget::paintGL() {
     float viewHeight = viewWidth / aspect;
     projection.ortho(-viewWidth/2, viewWidth/2, -viewHeight/2, viewHeight/2, 0.1f, 100.0f);
     
-    // 绘制面
-    drawFaces(model, view, projection);
-    
-    // 绘制线框
-    drawWireframe(model, view, projection);
+    QMatrix3x3 normalMatrix = model.normalMatrix();
+
+    // 定义三个光源的位置和颜色（与BaseGLWidget相同）
+    QVector3D lightPositions[3] = {
+        QVector3D(10.0f, 10.0f, -10.0f),
+        QVector3D(-10.0f, 10.0f, -10.0f),
+        QVector3D(0.0f, 0.0f, 10.0f)
+    };
+    QVector3D lightColors[3] = {
+        QVector3D(1.0f, 1.0f, 1.0f),
+        QVector3D(1.0f, 1.0f, 1.0f),
+        QVector3D(1.0f, 1.0f, 1.0f)
+    };
+
+    if (hideFaces) {
+        // 隐藏面片，只绘制线框
+        drawWireframe(model, view, projection);
+    } else {
+        // 根据渲染模式绘制面片
+        if (currentRenderMode == FlatShading || currentRenderMode == FacesOnly) {
+            // Flat Shading渲染
+            faceProgram.bind();
+            vao.bind();
+            faceEbo.bind();
+            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            faceProgram.setUniformValue("model", model);
+            faceProgram.setUniformValue("view", view);
+            faceProgram.setUniformValue("projection", projection);
+            faceProgram.setUniformValue("normalMatrix", normalMatrix);
+            
+            // 设置三个光源的位置和颜色
+            for (int i = 0; i < 3; i++) {
+                faceProgram.setUniformValue(QString("lightPositions[%1]").arg(i).toStdString().c_str(), lightPositions[i]);
+                faceProgram.setUniformValue(QString("lightColors[%1]").arg(i).toStdString().c_str(), lightColors[i]);
+            }
+            
+            faceProgram.setUniformValue("viewPos", QVector3D(0, 0, 0));
+            faceProgram.setUniformValue("objectColor", surfaceColor);
+            faceProgram.setUniformValue("specularEnabled", specularEnabled);
+
+            glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+
+            faceEbo.release();
+            vao.release();
+            faceProgram.release();
+        } else if (currentRenderMode == BlinnPhong) {
+            // Blinn-Phong渲染
+            blinnPhongProgram.bind();
+            vao.bind();
+            faceEbo.bind();
+            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            blinnPhongProgram.setUniformValue("model", model);
+            blinnPhongProgram.setUniformValue("view", view);
+            blinnPhongProgram.setUniformValue("projection", projection);
+            blinnPhongProgram.setUniformValue("normalMatrix", normalMatrix);
+            
+            // 设置三个光源的位置和颜色
+            for (int i = 0; i < 3; i++) {
+                blinnPhongProgram.setUniformValue(QString("lightPositions[%1]").arg(i).toStdString().c_str(), lightPositions[i]);
+                blinnPhongProgram.setUniformValue(QString("lightColors[%1]").arg(i).toStdString().c_str(), lightColors[i]);
+            }
+            
+            blinnPhongProgram.setUniformValue("viewPos", QVector3D(0, 0, 0));
+            blinnPhongProgram.setUniformValue("objectColor", surfaceColor);
+            blinnPhongProgram.setUniformValue("specularEnabled", specularEnabled);
+
+            glDrawElements(GL_TRIANGLES, faces.size(), GL_UNSIGNED_INT, 0);
+
+            faceEbo.release();
+            vao.release();
+            blinnPhongProgram.release();
+        }
+
+        // 如果显示线框叠加且不是线框模式，绘制线框叠加
+        if (showWireframeOverlay && currentRenderMode != WireframeOnly) {
+            drawWireframeOverlay(model, view, projection);
+        }
+        
+        // 如果当前是线框模式，绘制线框
+        if (currentRenderMode == WireframeOnly) {
+            drawWireframe(model, view, projection);
+        }
+    }
 }
 
 void RelativisticGLWidget::keyPressEvent(QKeyEvent *event) {
@@ -116,37 +212,43 @@ void RelativisticGLWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 void RelativisticGLWidget::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        isDragging = true;
-        lastMousePos = event->pos();
-        setCursor(Qt::ClosedHandCursor);
-    }
+    // 禁用鼠标拖动旋转
+    // if (event->button() == Qt::LeftButton) {
+    //     isDragging = true;
+    //     lastMousePos = event->pos();
+    //     setCursor(Qt::ClosedHandCursor);
+    // }
+    QOpenGLWidget::mousePressEvent(event);
 }
 
 void RelativisticGLWidget::mouseReleaseEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        isDragging = false;
-        setCursor(Qt::ArrowCursor);
-    }
+    // 禁用鼠标拖动旋转
+    // if (event->button() == Qt::LeftButton) {
+    //     isDragging = false;
+    //     setCursor(Qt::ArrowCursor);
+    // }
+    QOpenGLWidget::mouseReleaseEvent(event);
 }
 
 void RelativisticGLWidget::mouseMoveEvent(QMouseEvent *event) {
-    if (isDragging) {
-        QPoint currentPos = event->pos();
-        
-        QVector3D lastPos3D = projectToTrackball(lastMousePos);
-        QVector3D currentPos3D = projectToTrackball(currentPos);
-        
-        QVector3D axis = QVector3D::crossProduct(lastPos3D, currentPos3D).normalized();
-        float angle = acos(qMin(1.0f, QVector3D::dotProduct(lastPos3D, currentPos3D))) 
-                    * 180.0f / M_PI * rotationSensitivity;
-        
-        QQuaternion newRot = QQuaternion::fromAxisAndAngle(axis, angle);
-        rotation = newRot * rotation;
-        
-        lastMousePos = currentPos;
-        update();
-    }
+    // 禁用鼠标拖动旋转
+    // if (isDragging) {
+    //     QPoint currentPos = event->pos();
+    //     
+    //     QVector3D lastPos3D = projectToTrackball(lastMousePos);
+    //     QVector3D currentPos3D = projectToTrackball(currentPos);
+    //     
+    //     QVector3D axis = QVector3D::crossProduct(lastPos3D, currentPos3D).normalized();
+    //     float angle = acos(qMin(1.0f, QVector3D::dotProduct(lastPos3D, currentPos3D))) 
+    //                 * 180.0f / M_PI * rotationSensitivity;
+    //     
+    //     QQuaternion newRot = QQuaternion::fromAxisAndAngle(axis, angle);
+    //     rotation = newRot * rotation;
+    //     
+    //     lastMousePos = currentPos;
+    //     update();
+    // }
+    QOpenGLWidget::mouseMoveEvent(event);
 }
 
 void RelativisticGLWidget::wheelEvent(QWheelEvent *event) {
@@ -165,6 +267,21 @@ void RelativisticGLWidget::setBackgroundColor(const QColor& color) {
     makeCurrent();
     glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
     doneCurrent();
+    update();
+}
+
+void RelativisticGLWidget::setRenderMode(RenderMode mode) {
+    currentRenderMode = mode;
+    update();
+}
+
+void RelativisticGLWidget::setShowWireframeOverlay(bool show) {
+    showWireframeOverlay = show;
+    update();
+}
+
+void RelativisticGLWidget::setHideFaces(bool hide) {
+    hideFaces = hide;
     update();
 }
 
@@ -266,8 +383,8 @@ void RelativisticGLWidget::scaleAndPositionMesh() {
     Mesh::Point size = max - min;
     float maxSize = std::max({size[0], size[1], size[2]});
     
-    // 缩放物体，使其最大边长为10
-    float scale = 10.0f / maxSize;
+    // 修改：放大包围盒到20×20×20（原为10×10×10）
+    float scale = 20.0f / maxSize;
     
     // 计算物体的中心
     Mesh::Point center = (min + max) * 0.5f;
@@ -343,6 +460,19 @@ void RelativisticGLWidget::updateBuffersFromOpenMesh() {
         faceProgram.setAttributeBuffer(normalLoc, GL_FLOAT, vertexSize, 3, 3 * sizeof(float));
     }
     
+    blinnPhongProgram.bind();
+    posLoc = blinnPhongProgram.attributeLocation("aPos");
+    if (posLoc != -1) {
+        blinnPhongProgram.enableAttributeArray(posLoc);
+        blinnPhongProgram.setAttributeBuffer(posLoc, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    }
+    
+    normalLoc = blinnPhongProgram.attributeLocation("aNormal");
+    if (normalLoc != -1) {
+        blinnPhongProgram.enableAttributeArray(normalLoc);
+        blinnPhongProgram.setAttributeBuffer(normalLoc, GL_FLOAT, vertexSize, 3, 3 * sizeof(float));
+    }
+    
     ebo.bind();
     ebo.allocate(edges.data(), edges.size() * sizeof(unsigned int));
     
@@ -390,7 +520,7 @@ void RelativisticGLWidget::drawFaces(const QMatrix4x4& model, const QMatrix4x4& 
     faceProgram.setUniformValue("projection", projection);
     
     // 设置光源和颜色
-    faceProgram.setUniformValue("objectColor", QVector3D(0.88f, 0.84f, 0.76f));  // 米白色
+    faceProgram.setUniformValue("objectColor", surfaceColor);
     faceProgram.setUniformValue("lightPos", QVector3D(0, 0, 10));
     faceProgram.setUniformValue("viewPos", QVector3D(0, 0, 0));
 
@@ -410,11 +540,34 @@ void RelativisticGLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4
     wireframeProgram.setUniformValue("model", model);
     wireframeProgram.setUniformValue("view", view);
     wireframeProgram.setUniformValue("projection", projection);
-    wireframeProgram.setUniformValue("lineColor", QVector4D(1.0f, 0.0f, 0.0f, 1.0f));  // 红色线框
+    wireframeProgram.setUniformValue("lineColor", wireframeColor);
 
     glDrawElements(GL_LINES, edges.size(), GL_UNSIGNED_INT, 0);
     
     ebo.release();
     vao.release();
     wireframeProgram.release();
+}
+
+void RelativisticGLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonOffset(-1.0, -1.0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.5f);
+    
+    wireframeProgram.bind();
+    vao.bind();
+    ebo.bind();
+
+    wireframeProgram.setUniformValue("model", model);
+    wireframeProgram.setUniformValue("view", view);
+    wireframeProgram.setUniformValue("projection", projection);
+    wireframeProgram.setUniformValue("lineColor", wireframeColor);
+
+    glDrawElements(GL_LINES, edges.size(), GL_UNSIGNED_INT, 0);
+    
+    ebo.release();
+    vao.release();
+    wireframeProgram.release();
+    glDisable(GL_POLYGON_OFFSET_LINE);
 }
