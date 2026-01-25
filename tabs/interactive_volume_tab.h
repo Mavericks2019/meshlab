@@ -43,7 +43,7 @@ inline QWidget* createVolumeModelLoadButton(InteractiveWidget* interactiveWidget
     );
     QObject::connect(button, &QPushButton::clicked, [interactiveWidget, infoLabel, mainWindow]() {
         QString filePath = QFileDialog::getOpenFileName(
-            mainWindow, "Open OBJ File", "", "OBJ Files (*.obj)");
+            mainWindow, "Open OVM File", "", "OVM Files (*.ovm)");
         
         if (!filePath.isEmpty()) {
             interactiveWidget->openMesh(filePath.toLocal8Bit());

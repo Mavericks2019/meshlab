@@ -213,7 +213,6 @@ namespace UIUtils {
                 // 为Point Cloud单独设置快捷键
                 action->setShortcut(QKeySequence("Ctrl+P"));
             } else if (tabNames[i] == "Volume Base") {
-                // 为Volume Base设置快捷键
                 action->setShortcut(QKeySequence("Ctrl+V"));
             }
             
@@ -386,11 +385,9 @@ namespace UIUtils {
         // Volume 菜单 (新添加)
         QMenu* volumeMenu = menuBar->addMenu("&Volume");
         
-        // 添加Volume Base tab选项
         QAction* volumeBaseTabAction = new QAction("&Volume Base", volumeMenu);
         volumeBaseTabAction->setShortcut(QKeySequence("Ctrl+V"));
         QObject::connect(volumeBaseTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
-            // 创建Volume Base tab
             createTabFunc("Volume Base", true);
         });
         volumeMenu->addAction(volumeBaseTabAction);
@@ -402,7 +399,6 @@ namespace UIUtils {
         QAction* loadVolumeAction = new QAction("&Load Volume File", volumeMenu);
         loadVolumeAction->setShortcut(QKeySequence("Ctrl+Shift+O"));
         QObject::connect(loadVolumeAction, &QAction::triggered, [mainWindow, tabWidget, createTabFunc]() {
-            // 确保Volume Base标签页已创建
             createTabFunc("Volume Base", true);
             
             // 获取当前widget并加载文件
