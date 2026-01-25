@@ -1,4 +1,4 @@
-// tab_manager.h
+// 在tab_manager.h中添加头文件包含和成员变量
 #pragma once
 #ifndef TAB_MANAGER_H
 #define TAB_MANAGER_H
@@ -22,9 +22,10 @@
 #include "glwidget/uvparamwidget.h"
 #include "glwidget/simplesquarewidget.h"
 #include "glwidget/arapglwidget.h"
-#include "glwidget/relasticwidget.h"     // RelasticGLWidget前向声明
-#include "glwidget/relativisticwidget.h"  // RelativisticGLWidget前向声明
-#include "glwidget/blackholewidget.h"     // 添加BlackHoleWidget前向声明
+#include "glwidget/relasticwidget.h"
+#include "glwidget/relativisticwidget.h"
+#include "glwidget/blackholewidget.h"
+#include "InteractiveWidget.h"
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
 #include "tabs/cgal_tab.h"
@@ -33,15 +34,12 @@
 #include "tabs/dualview_tab.h"
 #include "tabs/dualview_extended_tab.h"
 #include "tabs/dualview_simple_tab.h"
-#include "tabs/relastic_tab.h"           // Relastic标签页头文件
-#include "tabs/relativistic_tab.h"       // Relativistic标签页头文件
-#include "tabs/blackhole_tab.h"          // 添加BlackHole标签页头文件
-#include "menu_utils.h"
-
-// 新增的头文件
+#include "tabs/relastic_tab.h"
+#include "tabs/relativistic_tab.h"
+#include "tabs/blackhole_tab.h"
+#include "tabs/interactive_volume_tab.h"
 #include "tabs/new_cgal_uv_tab.h"
-#include "tabs/openmesh_viewer_tab.h"
-#include "Cutting/QGLViewerWidget.h"
+// #include "Cutting/QGLViewerWidget.h"
 
 // 标签页配置结构体
 struct TabConfig {
@@ -152,8 +150,8 @@ private:
     ARAPGLWidget* newCGALUVLeftWidget;
     UVParamWidget* newCGALUVRightWidget;
 
-    // OpenMesh Viewer窗口
-    QGLViewerWidget* openMeshViewerWidget;
+    // // OpenMesh Viewer窗口
+    // QGLViewerWidget* openMeshViewerWidget;
 
     // Relastic窗口
     RelasticGLWidget* relasticGlWidget;
@@ -162,7 +160,10 @@ private:
     RelativisticGLWidget* relativisticGlWidget;
 
     // Black Hole窗口
-    BlackHoleWidget* blackHoleWidget;  // 添加BlackHoleWidget成员
+    BlackHoleWidget* blackHoleWidget;
+
+    // Interactive Volume窗口 (新增)
+    InteractiveWidget* interactiveVolumeWidget;
 
     // 信息标签
     QLabel* basicInfoLabel;
@@ -191,7 +192,10 @@ private:
     QLabel* relativisticInfoLabel;
     
     // Black Hole信息标签
-    QLabel* blackHoleInfoLabel;  // 添加BlackHole信息标签
+    QLabel* blackHoleInfoLabel;
+    
+    // Interactive Volume信息标签 (新增)
+    QLabel* interactiveVolumeInfoLabel;
 };
 
 #endif // TAB_MANAGER_H

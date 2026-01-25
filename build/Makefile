@@ -488,6 +488,174 @@ glwidget/uvparamwidget_extended.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/glwidget/uvparamwidget_extended.cpp.s
 .PHONY : glwidget/uvparamwidget_extended.cpp.s
 
+include/InteractiveWidget.o: include/InteractiveWidget.cpp.o
+.PHONY : include/InteractiveWidget.o
+
+# target to build an object file
+include/InteractiveWidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/InteractiveWidget.cpp.o
+.PHONY : include/InteractiveWidget.cpp.o
+
+include/InteractiveWidget.i: include/InteractiveWidget.cpp.i
+.PHONY : include/InteractiveWidget.i
+
+# target to preprocess a source file
+include/InteractiveWidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/InteractiveWidget.cpp.i
+.PHONY : include/InteractiveWidget.cpp.i
+
+include/InteractiveWidget.s: include/InteractiveWidget.cpp.s
+.PHONY : include/InteractiveWidget.s
+
+# target to generate assembly for a file
+include/InteractiveWidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/InteractiveWidget.cpp.s
+.PHONY : include/InteractiveWidget.cpp.s
+
+include/MeshDefinition.o: include/MeshDefinition.cpp.o
+.PHONY : include/MeshDefinition.o
+
+# target to build an object file
+include/MeshDefinition.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshDefinition.cpp.o
+.PHONY : include/MeshDefinition.cpp.o
+
+include/MeshDefinition.i: include/MeshDefinition.cpp.i
+.PHONY : include/MeshDefinition.i
+
+# target to preprocess a source file
+include/MeshDefinition.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshDefinition.cpp.i
+.PHONY : include/MeshDefinition.cpp.i
+
+include/MeshDefinition.s: include/MeshDefinition.cpp.s
+.PHONY : include/MeshDefinition.s
+
+# target to generate assembly for a file
+include/MeshDefinition.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshDefinition.cpp.s
+.PHONY : include/MeshDefinition.cpp.s
+
+include/MeshShowSlot.o: include/MeshShowSlot.cpp.o
+.PHONY : include/MeshShowSlot.o
+
+# target to build an object file
+include/MeshShowSlot.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshShowSlot.cpp.o
+.PHONY : include/MeshShowSlot.cpp.o
+
+include/MeshShowSlot.i: include/MeshShowSlot.cpp.i
+.PHONY : include/MeshShowSlot.i
+
+# target to preprocess a source file
+include/MeshShowSlot.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshShowSlot.cpp.i
+.PHONY : include/MeshShowSlot.cpp.i
+
+include/MeshShowSlot.s: include/MeshShowSlot.cpp.s
+.PHONY : include/MeshShowSlot.s
+
+# target to generate assembly for a file
+include/MeshShowSlot.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshShowSlot.cpp.s
+.PHONY : include/MeshShowSlot.cpp.s
+
+include/MeshViewerDraw.o: include/MeshViewerDraw.cpp.o
+.PHONY : include/MeshViewerDraw.o
+
+# target to build an object file
+include/MeshViewerDraw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerDraw.cpp.o
+.PHONY : include/MeshViewerDraw.cpp.o
+
+include/MeshViewerDraw.i: include/MeshViewerDraw.cpp.i
+.PHONY : include/MeshViewerDraw.i
+
+# target to preprocess a source file
+include/MeshViewerDraw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerDraw.cpp.i
+.PHONY : include/MeshViewerDraw.cpp.i
+
+include/MeshViewerDraw.s: include/MeshViewerDraw.cpp.s
+.PHONY : include/MeshViewerDraw.s
+
+# target to generate assembly for a file
+include/MeshViewerDraw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerDraw.cpp.s
+.PHONY : include/MeshViewerDraw.cpp.s
+
+include/MeshViewerWidget.o: include/MeshViewerWidget.cpp.o
+.PHONY : include/MeshViewerWidget.o
+
+# target to build an object file
+include/MeshViewerWidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerWidget.cpp.o
+.PHONY : include/MeshViewerWidget.cpp.o
+
+include/MeshViewerWidget.i: include/MeshViewerWidget.cpp.i
+.PHONY : include/MeshViewerWidget.i
+
+# target to preprocess a source file
+include/MeshViewerWidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerWidget.cpp.i
+.PHONY : include/MeshViewerWidget.cpp.i
+
+include/MeshViewerWidget.s: include/MeshViewerWidget.cpp.s
+.PHONY : include/MeshViewerWidget.s
+
+# target to generate assembly for a file
+include/MeshViewerWidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/MeshViewerWidget.cpp.s
+.PHONY : include/MeshViewerWidget.cpp.s
+
+include/QGLViewerWidget.o: include/QGLViewerWidget.cpp.o
+.PHONY : include/QGLViewerWidget.o
+
+# target to build an object file
+include/QGLViewerWidget.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/QGLViewerWidget.cpp.o
+.PHONY : include/QGLViewerWidget.cpp.o
+
+include/QGLViewerWidget.i: include/QGLViewerWidget.cpp.i
+.PHONY : include/QGLViewerWidget.i
+
+# target to preprocess a source file
+include/QGLViewerWidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/QGLViewerWidget.cpp.i
+.PHONY : include/QGLViewerWidget.cpp.i
+
+include/QGLViewerWidget.s: include/QGLViewerWidget.cpp.s
+.PHONY : include/QGLViewerWidget.s
+
+# target to generate assembly for a file
+include/QGLViewerWidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/QGLViewerWidget.cpp.s
+.PHONY : include/QGLViewerWidget.cpp.s
+
+include/auxiliary_function_mesh.o: include/auxiliary_function_mesh.cpp.o
+.PHONY : include/auxiliary_function_mesh.o
+
+# target to build an object file
+include/auxiliary_function_mesh.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/auxiliary_function_mesh.cpp.o
+.PHONY : include/auxiliary_function_mesh.cpp.o
+
+include/auxiliary_function_mesh.i: include/auxiliary_function_mesh.cpp.i
+.PHONY : include/auxiliary_function_mesh.i
+
+# target to preprocess a source file
+include/auxiliary_function_mesh.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/auxiliary_function_mesh.cpp.i
+.PHONY : include/auxiliary_function_mesh.cpp.i
+
+include/auxiliary_function_mesh.s: include/auxiliary_function_mesh.cpp.s
+.PHONY : include/auxiliary_function_mesh.s
+
+# target to generate assembly for a file
+include/auxiliary_function_mesh.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/objViewer.dir/build.make CMakeFiles/objViewer.dir/include/auxiliary_function_mesh.cpp.s
+.PHONY : include/auxiliary_function_mesh.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -659,6 +827,27 @@ help:
 	@echo "... glwidget/uvparamwidget_extended.o"
 	@echo "... glwidget/uvparamwidget_extended.i"
 	@echo "... glwidget/uvparamwidget_extended.s"
+	@echo "... include/InteractiveWidget.o"
+	@echo "... include/InteractiveWidget.i"
+	@echo "... include/InteractiveWidget.s"
+	@echo "... include/MeshDefinition.o"
+	@echo "... include/MeshDefinition.i"
+	@echo "... include/MeshDefinition.s"
+	@echo "... include/MeshShowSlot.o"
+	@echo "... include/MeshShowSlot.i"
+	@echo "... include/MeshShowSlot.s"
+	@echo "... include/MeshViewerDraw.o"
+	@echo "... include/MeshViewerDraw.i"
+	@echo "... include/MeshViewerDraw.s"
+	@echo "... include/MeshViewerWidget.o"
+	@echo "... include/MeshViewerWidget.i"
+	@echo "... include/MeshViewerWidget.s"
+	@echo "... include/QGLViewerWidget.o"
+	@echo "... include/QGLViewerWidget.i"
+	@echo "... include/QGLViewerWidget.s"
+	@echo "... include/auxiliary_function_mesh.o"
+	@echo "... include/auxiliary_function_mesh.i"
+	@echo "... include/auxiliary_function_mesh.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

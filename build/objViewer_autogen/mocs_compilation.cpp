@@ -10,4 +10,7 @@
 #include "KTNQVRIVIS/moc_simplesquarewidget.cpp"
 #include "KTNQVRIVIS/moc_uvparamwidget.cpp"
 #include "KTNQVRIVIS/moc_uvparamwidget_extended.cpp"
+#include "6YEA5652QU/moc_InteractiveWidget.cpp"
+#include "6YEA5652QU/moc_MeshViewerWidget.cpp"
+#include "6YEA5652QU/moc_QGLViewerWidget.cpp"
 #include "EWIEGA46WW/moc_tab_manager.cpp"

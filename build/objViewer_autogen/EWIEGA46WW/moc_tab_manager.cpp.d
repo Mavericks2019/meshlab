@@ -1,8 +1,7 @@
 /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/moc_tab_manager.cpp: /opt/project/meshlab/tab_manager.h \
   /opt/project/meshlab/build/objViewer_autogen/moc_predefs.h \
-  /opt/project/meshlab/Common/CommonDefinitions.h \
+  /opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN/ANN.h \
   /opt/project/meshlab/Common/CommonFunctions.h \
-  /opt/project/meshlab/Cutting/QGLViewerWidget.h \
   /opt/project/meshlab/glwidget/arapglwidget.h \
   /opt/project/meshlab/glwidget/baseglwidget.h \
   /opt/project/meshlab/glwidget/blackholewidget.h \
@@ -14,6 +13,11 @@
   /opt/project/meshlab/glwidget/simplesquarewidget.h \
   /opt/project/meshlab/glwidget/uvparamwidget.h \
   /opt/project/meshlab/glwidget/uvparamwidget_extended.h \
+  /opt/project/meshlab/include/InteractiveWidget.h \
+  /opt/project/meshlab/include/MeshDefinition.h \
+  /opt/project/meshlab/include/MeshViewerWidget.h \
+  /opt/project/meshlab/include/OpenGLHeaders.h \
+  /opt/project/meshlab/include/QGLViewerWidget.h \
   /opt/project/meshlab/menu_utils.h \
   /opt/project/meshlab/meshutils/my_traits.h \
   /opt/project/meshlab/tabs/basic_tab.h \
@@ -22,9 +26,9 @@
   /opt/project/meshlab/tabs/dualview_extended_tab.h \
   /opt/project/meshlab/tabs/dualview_simple_tab.h \
   /opt/project/meshlab/tabs/dualview_tab.h \
+  /opt/project/meshlab/tabs/interactive_volume_tab.h \
   /opt/project/meshlab/tabs/model_tab.h \
   /opt/project/meshlab/tabs/new_cgal_uv_tab.h \
-  /opt/project/meshlab/tabs/openmesh_viewer_tab.h \
   /opt/project/meshlab/tabs/relastic_tab.h \
   /opt/project/meshlab/tabs/relativistic_tab.h \
   /opt/project/meshlab/tabs/shortestpath_tab.h \
@@ -3401,6 +3405,7 @@
   /usr/include/x86_64-linux-gnu/qt5/QtConcurrent/qtconcurrentstoredfunctioncall.h \
   /usr/include/x86_64-linux-gnu/qt5/QtConcurrent/qtconcurrentthreadengine.h \
   /usr/include/x86_64-linux-gnu/qt5/QtConcurrent/qtconcurrentversion.h \
+  /usr/include/x86_64-linux-gnu/qt5/QtCore/QByteArray \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QDateTime \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QDeadlineTimer \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QDir \
@@ -3414,7 +3419,7 @@
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QMap \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QObject \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QScopedPointer \
-  /usr/include/x86_64-linux-gnu/qt5/QtCore/QSize \
+  /usr/include/x86_64-linux-gnu/qt5/QtCore/QString \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QStringList \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QTextStream \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/QTimer \
@@ -3614,7 +3619,6 @@
   /usr/include/x86_64-linux-gnu/qt5/QtCore/qwineventnotifier.h \
   /usr/include/x86_64-linux-gnu/qt5/QtCore/qxmlstream.h \
   /usr/include/x86_64-linux-gnu/qt5/QtGui/QColor \
-  /usr/include/x86_64-linux-gnu/qt5/QtGui/QKeyEvent \
   /usr/include/x86_64-linux-gnu/qt5/QtGui/QMatrix4x4 \
   /usr/include/x86_64-linux-gnu/qt5/QtGui/QMouseEvent \
   /usr/include/x86_64-linux-gnu/qt5/QtGui/QOpenGLBuffer \
@@ -3689,7 +3693,6 @@
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QCheckBox \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QColorDialog \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
-  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDesktopWidget \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDoubleSpinBox \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -3705,7 +3708,6 @@
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QPushButton \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QRadioButton \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSlider \
-  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSpinBox \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSplitter \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStackedWidget \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStyle \
@@ -3728,7 +3730,6 @@
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcheckbox.h \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcolordialog.h \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcombobox.h \
-  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qdesktopwidget.h \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qdialog.h \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qfiledialog.h \
   /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qformlayout.h \
@@ -3838,4 +3839,70 @@
   /usr/local/include/OpenMesh/Core/Utils/color_cast.hh \
   /usr/local/include/OpenMesh/Core/Utils/typename.hh \
   /usr/local/include/OpenMesh/Core/Utils/vector_cast.hh \
-  /usr/local/include/OpenMesh/Core/Utils/vector_traits.hh
+  /usr/local/include/OpenMesh/Core/Utils/vector_traits.hh \
+  /usr/local/include/OpenVolumeMesh/Config/Export.hh \
+  /usr/local/include/OpenVolumeMesh/Core/BaseEntities.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Entities.hh \
+  /usr/local/include/OpenVolumeMesh/Core/EntityUtils.hh \
+  /usr/local/include/OpenVolumeMesh/Core/ForwardDeclarations.hh \
+  /usr/local/include/OpenVolumeMesh/Core/GeometryKernel.hh \
+  /usr/local/include/OpenVolumeMesh/Core/HandleIndexing.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Handles.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/BaseCirculator.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/BaseIterator.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/BoundaryHalfFaceHalfFaceIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/BoundaryItemIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/CellCellIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/CellIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/CellVertexIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/EdgeIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/FaceIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/GenericCirculator.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeCellIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeHalfFaceIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfFaceIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfFaceVertexIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexCellIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexFaceIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexOHalfEdgeIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexVertexIter.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellHalfEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellHalfFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeCellIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeHalfFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceHalfEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceVertexIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfEdgeFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfFaceEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfFaceHalfEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexHalfFaceIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexIHalfEdgeIterImpl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyIterator.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyPtr.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStorageBase.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStoragePtr.hh \
+  /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStorageT.hh \
+  /usr/local/include/OpenVolumeMesh/Core/ResourceManager.hh \
+  /usr/local/include/OpenVolumeMesh/Core/ResourceManagerT_impl.hh \
+  /usr/local/include/OpenVolumeMesh/Core/TopologyKernel.hh \
+  /usr/local/include/OpenVolumeMesh/Core/detail/Tracking.hh \
+  /usr/local/include/OpenVolumeMesh/Core/detail/internal_type_name.hh \
+  /usr/local/include/OpenVolumeMesh/FileManager/FileManager.hh \
+  /usr/local/include/OpenVolumeMesh/FileManager/FileManagerT_impl.hh \
+  /usr/local/include/OpenVolumeMesh/FileManager/Serializers.hh \
+  /usr/local/include/OpenVolumeMesh/FileManager/SerializersT_impl.hh \
+  /usr/local/include/OpenVolumeMesh/FileManager/TypeNames.hh \
+  /usr/local/include/OpenVolumeMesh/Geometry/Vector11T.hh \
+  /usr/local/include/OpenVolumeMesh/Geometry/VectorT.hh \
+  /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMesh.hh \
+  /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMeshIterators.hh \
+  /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh \
+  /usr/local/include/OpenVolumeMesh/Mesh/PolyhedralMesh.hh

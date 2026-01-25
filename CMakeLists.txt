@@ -32,7 +32,15 @@ qt5_add_resources(RESOURCE_FILES shaders.qrc)
 find_package(OpenMesh REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(CGAL REQUIRED)
+find_package(OpenVolumeMesh REQUIRED)
 include_directories(${CGAL_INCLUDE_DIRS})
+find_package(OpenGL REQUIRED)
+
+set(ANN_INCLUDE_DIR "/opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN")
+set(ANN_LIBRARY "/opt/project/meshlab/lib/libANN.so")
+
+set(VWGT_INCLUDE_DIR "/opt/project/meshlab/include")
+# set(WGT_LIBRARY "/opt/project/meshlab/lib/libVolumeMeshViewer.so")
 
 # 添加 MeshIO 库的配置
 # 假设 libMeshIO.so 在你指定的路径
@@ -115,7 +123,25 @@ add_executable(${PROJECT_NAME}
     # 新增文件
     tabs/openmesh_viewer_tab.h
     tabs/new_cgal_uv_tab.h
+
+    include/auxiliary_function_mesh.cpp
+    include/InteractiveWidget.cpp
+    include/InteractiveWidget.h
+    include/MeshDefinition.cpp
+    include/MeshDefinition.h
+    include/MeshShowSlot.cpp
+    include/MeshViewerDraw.cpp
+    include/MeshViewerWidget.cpp
+    include/MeshViewerWidget.h
+    include/OpenGLHeaders.h
+    include/QGLViewerWidget.cpp
+    include/QGLViewerWidget.h
     ${RESOURCE_FILES}
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${VWGT_INCLUDE_DIR}
+    ${ANN_INCLUDE_DIR}
 )
 
 # 链接库
@@ -123,15 +149,21 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::OpenGL
     GL
+    OpenGL::GL
+    OpenGL::GLU
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
     CGAL::CGAL
+    ${ANN_LIBRARY}
     # 添加 MeshIO 库
     ${MESHIO_LIBRARY}
     ${MY_TRI}
     ${CUTBASE}
     ${COMMONLIB_LIBRARY}
+    OpenVolumeMesh::OpenVolumeMesh  # 使用导入的目标
+    ${ANN_LIBRARY}
+    ${WGT_LIBRARY}
 )
 
 # 如果 CommonLib 存在，链接它

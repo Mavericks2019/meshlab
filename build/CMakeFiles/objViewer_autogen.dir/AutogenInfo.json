@@ -133,6 +133,13 @@
 		"/usr/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake",
 		"/usr/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake",
 		"/usr/share/cmake-3.28/Modules/FindPackageHandleStandardArgs.cmake",
+		"/usr/share/cmake-3.28/Modules/FindPackageMessage.cmake",
+		"/usr/local/lib/cmake/OpenVolumeMesh/OpenVolumeMeshConfigVersion.cmake",
+		"/usr/local/lib/cmake/OpenVolumeMesh/OpenVolumeMeshConfig.cmake",
+		"/usr/local/lib/cmake/OpenVolumeMesh/OpenVolumeMeshTargets.cmake",
+		"/usr/local/lib/cmake/OpenVolumeMesh/OpenVolumeMeshTargets-noconfig.cmake",
+		"/usr/share/cmake-3.28/Modules/FindOpenGL.cmake",
+		"/usr/share/cmake-3.28/Modules/FindPackageHandleStandardArgs.cmake",
 		"/usr/share/cmake-3.28/Modules/FindPackageMessage.cmake"
 	],
 	"CMAKE_SOURCE_DIR" : "/opt/project/meshlab",
@@ -204,6 +211,36 @@
 			"/opt/project/meshlab/glwidget/uvparamwidget_extended.h",
 			"Mu",
 			"KTNQVRIVIS/moc_uvparamwidget_extended.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/include/InteractiveWidget.h",
+			"Mu",
+			"6YEA5652QU/moc_InteractiveWidget.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/include/MeshDefinition.h",
+			"Mu",
+			"6YEA5652QU/moc_MeshDefinition.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/include/MeshViewerWidget.h",
+			"Mu",
+			"6YEA5652QU/moc_MeshViewerWidget.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/include/OpenGLHeaders.h",
+			"Mu",
+			"6YEA5652QU/moc_OpenGLHeaders.cpp",
+			null
+		],
+		[
+			"/opt/project/meshlab/include/QGLViewerWidget.h",
+			"Mu",
+			"6YEA5652QU/moc_QGLViewerWidget.cpp",
 			null
 		],
 		[
@@ -307,6 +344,8 @@
 	"MOC_INCLUDES" : 
 	[
 		"/opt/project/meshlab/meshIO",
+		"/opt/project/meshlab/include",
+		"/opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN",
 		"/usr/include/x86_64-linux-gnu/qt5",
 		"/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
 		"/usr/include/x86_64-linux-gnu/qt5/QtGui",
@@ -364,6 +403,17 @@
 		[ "/opt/project/meshlab/glwidget/uvparamwidget.cpp", "Mu", null ],
 		[
 			"/opt/project/meshlab/glwidget/uvparamwidget_extended.cpp",
+			"Mu",
+			null
+		],
+		[ "/opt/project/meshlab/include/InteractiveWidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/include/MeshDefinition.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/include/MeshShowSlot.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/include/MeshViewerDraw.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/include/MeshViewerWidget.cpp", "Mu", null ],
+		[ "/opt/project/meshlab/include/QGLViewerWidget.cpp", "Mu", null ],
+		[
+			"/opt/project/meshlab/include/auxiliary_function_mesh.cpp",
 			"Mu",
 			null
 		],

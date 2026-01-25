@@ -54,7 +54,7 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
      NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/objViewer")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/objViewer"
-         OLD_RPATH "/usr/local/lib:/opt/project/meshlab/meshIO/build:/opt/project/meshlab/meshutils/build/lib:/opt/project/meshlab/Cutting/build:/opt/project/meshlab/Common/build:"
+         OLD_RPATH "/usr/local/lib:/opt/project/meshlab/lib:/opt/project/meshlab/meshIO/build:/opt/project/meshlab/meshutils/build/lib:/opt/project/meshlab/Cutting/build:/opt/project/meshlab/Common/build:"
          NEW_RPATH "")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/objViewer")

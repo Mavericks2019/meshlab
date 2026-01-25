@@ -187,7 +187,8 @@ namespace UIUtils {
             "OpenMesh", "CGAL", "Model", "Shortest Path", 
             "UV Parameterization", "Dual View", 
             "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
-            "Point Cloud"  // 添加Point Cloud标签页
+            "Point Cloud",
+            "Volume Base"  // 添加Volume Base标签页
         };
         
         // 创建动作组，确保只有一个被选中
@@ -211,6 +212,9 @@ namespace UIUtils {
             } else if (tabNames[i] == "Point Cloud") {
                 // 为Point Cloud单独设置快捷键
                 action->setShortcut(QKeySequence("Ctrl+P"));
+            } else if (tabNames[i] == "Volume Base") {
+                // 为Volume Base设置快捷键
+                action->setShortcut(QKeySequence("Ctrl+V"));
             }
             
             // 添加到动作组
@@ -378,6 +382,68 @@ namespace UIUtils {
         visualizePointCloudAction->setCheckable(true);
         visualizePointCloudAction->setChecked(true);
         pointCloudMenu->addAction(visualizePointCloudAction);
+
+        // Volume 菜单 (新添加)
+        QMenu* volumeMenu = menuBar->addMenu("&Volume");
+        
+        // 添加Volume Base tab选项
+        QAction* volumeBaseTabAction = new QAction("&Volume Base", volumeMenu);
+        volumeBaseTabAction->setShortcut(QKeySequence("Ctrl+V"));
+        QObject::connect(volumeBaseTabAction, &QAction::triggered, [tabWidget, mainWindow, &tabInfos, &controlPanelMap, createTabFunc]() {
+            // 创建Volume Base tab
+            createTabFunc("Volume Base", true);
+        });
+        volumeMenu->addAction(volumeBaseTabAction);
+        
+        // 添加分隔线
+        volumeMenu->addSeparator();
+        
+        // 添加体积加载选项
+        QAction* loadVolumeAction = new QAction("&Load Volume File", volumeMenu);
+        loadVolumeAction->setShortcut(QKeySequence("Ctrl+Shift+O"));
+        QObject::connect(loadVolumeAction, &QAction::triggered, [mainWindow, tabWidget, createTabFunc]() {
+            // 确保Volume Base标签页已创建
+            createTabFunc("Volume Base", true);
+            
+            // 获取当前widget并加载文件
+            QWidget* volumeWidget = tabWidget->getWidgetByTitle("Volume Base");
+            if (volumeWidget) {
+                QString filePath = QFileDialog::getOpenFileName(
+                    mainWindow, "Open Volume File", "", 
+                    "Volume Files (*.ovm *.voxel *.vol *.raw);;All Files (*.*)");
+                
+                if (!filePath.isEmpty()) {
+                    // 这里需要调用VolumeBaseWidget的加载函数
+                    // 实际应用中，需要通过适当的接口访问widget
+                    QMessageBox::information(mainWindow, "Volume File", 
+                        QString("Volume file selected: %1\n(Will be loaded in Volume Base tab)")
+                        .arg(QFileInfo(filePath).fileName()));
+                }
+            }
+        });
+        volumeMenu->addAction(loadVolumeAction);
+        
+        // 添加体积处理选项
+        QAction* processVolumeAction = new QAction("&Process Volume", volumeMenu);
+        processVolumeAction->setShortcut(QKeySequence("Ctrl+Shift+P"));
+        QObject::connect(processVolumeAction, &QAction::triggered, [mainWindow]() {
+            QMessageBox::information(mainWindow, "Volume Processing", 
+                "Volume processing features:\n"
+                "• Isosurface extraction\n"
+                "• Volume rendering\n"
+                "• Slice visualization\n"
+                "• Segmentation\n"
+                "• Filtering\n"
+                "(Feature to be implemented)");
+        });
+        volumeMenu->addAction(processVolumeAction);
+        
+        // 添加体积可视化选项
+        QAction* visualizeVolumeAction = new QAction("&Visualization Settings", volumeMenu);
+        visualizeVolumeAction->setShortcut(QKeySequence("Ctrl+Shift+V"));
+        visualizeVolumeAction->setCheckable(true);
+        visualizeVolumeAction->setChecked(true);
+        volumeMenu->addAction(visualizeVolumeAction);
 
         // Render 菜单 (简化版)
         QMenu* renderMenu = menuBar->addMenu("&Render");

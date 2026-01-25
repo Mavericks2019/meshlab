@@ -28,10 +28,11 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewSimpleRightWidget(nullptr)
     , newCGALUVLeftWidget(nullptr)
     , newCGALUVRightWidget(nullptr)
-    , openMeshViewerWidget(nullptr)
+//    , openMeshViewerWidget(nullptr)
     , relasticGlWidget(nullptr)
     , relativisticGlWidget(nullptr)
     , blackHoleWidget(nullptr)  // 初始化BlackHoleWidget
+    , interactiveVolumeWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -46,10 +47,11 @@ TabManager::TabManager(QWidget* mainWindow)
     , dualViewSimpleRightInfoLabel(nullptr)
     , newCGALUVLeftInfoLabel(nullptr)
     , newCGALUVRightInfoLabel(nullptr)
-    , openMeshViewerInfoLabel(nullptr)
+//    , openMeshViewerInfoLabel(nullptr)
     , relasticInfoLabel(nullptr)
     , relativisticInfoLabel(nullptr)
     , blackHoleInfoLabel(nullptr)  // 初始化BlackHole信息标签
+    , interactiveVolumeInfoLabel(nullptr)
 {
     // 注册标签页配置
     registerTabConfigs();
@@ -353,27 +355,27 @@ void TabManager::registerTabConfigs() {
             8,
             "New CGAL-UV View"
         },
-        {"OpenMesh Viewer",
-            [this]() -> QWidget* {
-                getOrCreateWidget(openMeshViewerWidget);
-                return ::createOpenMeshViewerTab(openMeshViewerWidget);
-            },
-            [this]() -> QWidget* {
-                getOrCreateWidget(openMeshViewerWidget);
-                QWidget* controlPanel = new QWidget;
-                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
-                layout->setAlignment(Qt::AlignTop);
-                layout->addWidget(UIUtils::createModelInfoGroup(&openMeshViewerInfoLabel));
-                layout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
-                return controlPanel;
-            },
-            [this]() {
-                delete openMeshViewerWidget; openMeshViewerWidget = nullptr;
-                delete openMeshViewerInfoLabel; openMeshViewerInfoLabel = nullptr;
-            },
-            9,
-            "OpenMesh Viewer"
-        },
+        // {"OpenMesh Viewer",
+        //     [this]() -> QWidget* {
+        //         getOrCreateWidget(openMeshViewerWidget);
+        //         return ::createOpenMeshViewerTab(openMeshViewerWidget);
+        //     },
+        //     [this]() -> QWidget* {
+        //         getOrCreateWidget(openMeshViewerWidget);
+        //         QWidget* controlPanel = new QWidget;
+        //         QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+        //         layout->setAlignment(Qt::AlignTop);
+        //         layout->addWidget(UIUtils::createModelInfoGroup(&openMeshViewerInfoLabel));
+        //         layout->addWidget(createOpenMeshViewerControlPanel(openMeshViewerWidget, openMeshViewerInfoLabel, mainWindow));
+        //         return controlPanel;
+        //     },
+        //     [this]() {
+        //         delete openMeshViewerWidget; openMeshViewerWidget = nullptr;
+        //         delete openMeshViewerInfoLabel; openMeshViewerInfoLabel = nullptr;
+        //     },
+        //     9,
+        //     "OpenMesh Viewer"
+        // },
         {"Relastic",
             [this]() -> QWidget* {
                 getOrCreateWidget(relasticGlWidget);
@@ -436,6 +438,27 @@ void TabManager::registerTabConfigs() {
             },
             12,
             "Black Hole"
+        },
+        {"Volume Base",
+            [this]() -> QWidget* { 
+                getOrCreateWidget(interactiveVolumeWidget);
+                return ::createInteractiveVolumeTab(interactiveVolumeWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(interactiveVolumeWidget);
+                QWidget* controlPanel = new QWidget;
+                QVBoxLayout* layout = new QVBoxLayout(controlPanel);
+                layout->setAlignment(Qt::AlignTop);
+                layout->addWidget(UIUtils::createModelInfoGroup(&interactiveVolumeInfoLabel));
+                layout->addWidget(::createInteractiveVolumeControlPanel(interactiveVolumeWidget, interactiveVolumeInfoLabel, mainWindow));
+                return controlPanel;
+            },
+            [this]() {
+                delete interactiveVolumeWidget; interactiveVolumeWidget = nullptr;
+                delete interactiveVolumeInfoLabel; interactiveVolumeInfoLabel = nullptr;
+            },
+            13,  // 根据实际标签页数量调整索引
+            "Volume Base"
         }
     };
 }

@@ -3930,13 +3930,105 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/moc_uvparamwidget_extended.cpp \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/uvparamwidget_extended.h \
  /opt/project/meshlab/build/objViewer_autogen/KTNQVRIVIS/../../../glwidget/../Common/CommonFunctions.h \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/moc_InteractiveWidget.cpp \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/InteractiveWidget.h \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/MeshViewerWidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtCore/QString \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QMessageBox \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qmessagebox.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qdialog.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qwidget.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
+ /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qfiledialog.h \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/QGLViewerWidget.h \
+ /usr/local/include/OpenVolumeMesh/Geometry/VectorT.hh \
+ /usr/local/include/OpenVolumeMesh/Geometry/Vector11T.hh \
+ /usr/local/include/OpenVolumeMesh/Config/Export.hh \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/MeshDefinition.h \
+ /usr/local/include/OpenVolumeMesh/Mesh/PolyhedralMesh.hh \
+ /usr/local/include/OpenVolumeMesh/Core/GeometryKernel.hh \
+ /usr/local/include/OpenVolumeMesh/Core/TopologyKernel.hh \
+ /usr/local/include/OpenVolumeMesh/Core/HandleIndexing.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Entities.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Handles.hh \
+ /usr/local/include/OpenVolumeMesh/Core/BaseEntities.hh \
+ /usr/local/include/OpenVolumeMesh/Core/ResourceManager.hh \
+ /usr/local/include/OpenVolumeMesh/Core/EntityUtils.hh \
+ /usr/local/include/OpenVolumeMesh/Core/ForwardDeclarations.hh \
+ /usr/local/include/OpenVolumeMesh/Core/detail/Tracking.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyIterator.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStorageBase.hh \
+ /usr/local/include/OpenVolumeMesh/Core/detail/internal_type_name.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyPtr.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStorageT.hh \
+ /usr/local/include/OpenVolumeMesh/FileManager/TypeNames.hh \
+ /usr/local/include/OpenVolumeMesh/FileManager/Serializers.hh \
+ /usr/local/include/OpenVolumeMesh/FileManager/SerializersT_impl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Properties/PropertyStoragePtr.hh \
+ /usr/local/include/OpenVolumeMesh/Core/ResourceManagerT_impl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/BaseIterator.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/BaseCirculator.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/GenericCirculator.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellHalfEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/CellHalfFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeCellIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeCellIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfEdgeFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/EdgeHalfFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceHalfEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/FaceVertexIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfFaceVertexIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfFaceEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/HalfFaceHalfEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexOHalfEdgeIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexHalfFaceIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/detail/VertexIHalfEdgeIterImpl.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/BoundaryHalfFaceHalfFaceIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/BoundaryItemIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/EdgeIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/FaceIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfFaceIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/CellIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/CellCellIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/CellVertexIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/HalfEdgeHalfFaceIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexCellIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexFaceIter.hh \
+ /usr/local/include/OpenVolumeMesh/Core/Iterators/VertexVertexIter.hh \
+ /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMesh.hh \
+ /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh \
+ /usr/local/include/OpenVolumeMesh/Mesh/HexahedralMeshIterators.hh \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/OpenGLHeaders.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/QGLWidget \
+ /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qgl.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qpaintengine.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qpainter.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextoption.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qglcolormap.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qtopenglglobal.h \
+ /usr/include/GL/glu.h \
+ /usr/local/include/OpenVolumeMesh/FileManager/FileManager.hh \
+ /usr/local/include/OpenVolumeMesh/FileManager/FileManagerT_impl.hh \
+ /opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN/ANN.h \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/moc_MeshViewerWidget.cpp \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/MeshViewerWidget.h \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/moc_QGLViewerWidget.cpp \
+ /opt/project/meshlab/build/objViewer_autogen/6YEA5652QU/../../../include/QGLViewerWidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/moc_tab_manager.cpp \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tab_manager.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QObject \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QTabWidget \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtabwidget.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qicon.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QMenuBar \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qmenubar.h \
@@ -3965,7 +4057,6 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstylefactory.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QColorDialog \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qcolordialog.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qdialog.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/QPalette \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qpalette.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStackedWidget \
@@ -3983,14 +4074,10 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractbutton.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QStyle \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qstyle.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QMessageBox \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qmessagebox.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QPushButton \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qpushbutton.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QGroupBox \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qgroupbox.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFileDialog \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qfiledialog.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QFileInfo \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/modelglwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/baseglwidget.h \
@@ -4001,6 +4088,7 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/relasticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/relativisticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../glwidget/blackholewidget.h \
+ /opt/project/meshlab/include/InteractiveWidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/model_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/modelglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QFormLayout \
@@ -4031,10 +4119,8 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qtextedit.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qabstractscrollarea.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextdocument.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextoption.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextcursor.h \
  /usr/include/x86_64-linux-gnu/qt5/QtGui/qtextformat.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qpen.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/dualview_simple_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/simplesquarewidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/relastic_tab.h \
@@ -4047,6 +4133,8 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/relativisticwidget.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/blackhole_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/blackholewidget.h \
+ /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/interactive_volume_tab.h \
+ /usr/include/x86_64-linux-gnu/qt5/QtCore/QByteArray \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/new_cgal_uv_tab.h \
  /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../glwidget/arapglwidget.h \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QComboBox \
@@ -4062,20 +4150,4 @@ CMakeFiles/objViewer.dir/objViewer_autogen/mocs_compilation.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qprogressdialog.h \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QElapsedTimer \
  /usr/include/x86_64-linux-gnu/qt5/QtCore/QEventLoop \
- /usr/include/x86_64-linux-gnu/qt5/QtCore/QDir \
- /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/openmesh_viewer_tab.h \
- /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../Cutting/QGLViewerWidget.h \
- /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/QGLWidget \
- /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qgl.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qpaintengine.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/qpainter.h \
- /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qglcolormap.h \
- /usr/include/x86_64-linux-gnu/qt5/QtOpenGL/qtopenglglobal.h \
- /usr/include/x86_64-linux-gnu/qt5/QtGui/QKeyEvent \
- /usr/include/x86_64-linux-gnu/qt5/QtCore/QSize \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QDesktopWidget \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/qdesktopwidget.h \
- /usr/include/GL/glu.h \
- /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../tabs/../Cutting/../Common/CommonDefinitions.h \
- /usr/include/x86_64-linux-gnu/qt5/QtWidgets/QSpinBox \
- /opt/project/meshlab/build/objViewer_autogen/EWIEGA46WW/../../../Cutting/QGLViewerWidget.h
+ /usr/include/x86_64-linux-gnu/qt5/QtCore/QDir
