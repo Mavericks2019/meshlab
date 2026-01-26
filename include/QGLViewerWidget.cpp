@@ -102,7 +102,8 @@ void QGLViewerWidget::setDefaultLight(void)
 void QGLViewerWidget::initializeGL()
 {  
 	// OpenGL state
-	glClearColor(1.0, 1.0, 1.0, 0.0);
+	// 修改背景颜色为深蓝色 (0, 85, 127) -> 转换为OpenGL的0-1范围
+	glClearColor(0.0f, 85.0f/255.0f, 127.0f/255.0f, 0.0f);
 	glDisable( GL_DITHER );
 	glEnable( GL_DEPTH_TEST );
 	glEnable(GL_MULTISAMPLE);

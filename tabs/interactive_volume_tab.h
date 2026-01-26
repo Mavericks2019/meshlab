@@ -6,6 +6,7 @@
 // InteractiveWidget的前向声明，假设已经在其他地方定义
 class InteractiveWidget;
 #include "InteractiveWidget.h"
+#
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -17,6 +18,7 @@ class InteractiveWidget;
 #include <QFileInfo>
 #include <QString>
 #include <QByteArray>
+#include <QSlider>
 
 // 创建Interactive Volume标签页
 inline QWidget* createInteractiveVolumeTab(InteractiveWidget* interactiveWidget) {
@@ -61,6 +63,42 @@ inline QWidget* createInteractiveVolumeControlPanel(InteractiveWidget* interacti
     
     // 添加控件组
     layout->addWidget(createVolumeModelLoadButton(interactiveWidget, infoLabel, mainWindow));
+    
+    // 添加X轴滑块
+    QLabel *xSliderLabel = new QLabel("X : ");
+    QSlider *XSlider = new QSlider(Qt::Horizontal);
+    XSlider->setMinimum(0);
+    XSlider->setMaximum(100);
+    XSlider->setValue(0);
+    xSliderLabel->setBuddy(XSlider);
+    layout->addWidget(xSliderLabel);
+    layout->addWidget(XSlider);
+    
+    // 添加Y轴滑块
+    QLabel *ySliderLabel = new QLabel("Y : ");
+    QSlider *YSlider = new QSlider(Qt::Horizontal);
+    YSlider->setMinimum(0);
+    YSlider->setMaximum(100);
+    YSlider->setValue(0);
+    ySliderLabel->setBuddy(YSlider);
+    layout->addWidget(ySliderLabel);
+    layout->addWidget(YSlider);
+    
+    // 添加Z轴滑块
+    QLabel *zSliderLabel = new QLabel("Z : ");
+    QSlider *ZSlider = new QSlider(Qt::Horizontal);
+    ZSlider->setMinimum(0);
+    ZSlider->setMaximum(100);
+    ZSlider->setValue(0);
+    zSliderLabel->setBuddy(ZSlider);
+    layout->addWidget(zSliderLabel);
+    layout->addWidget(ZSlider);
+    
+    // 连接滑块信号
+    QObject::connect(XSlider, SIGNAL(valueChanged(int)), interactiveWidget, SLOT(xSliderShow(int)));
+    QObject::connect(YSlider, SIGNAL(valueChanged(int)), interactiveWidget, SLOT(ySliderShow(int)));
+    QObject::connect(ZSlider, SIGNAL(valueChanged(int)), interactiveWidget, SLOT(zSliderShow(int)));
+    
     layout->addStretch();
     return panel;
 }
