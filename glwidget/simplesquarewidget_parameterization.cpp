@@ -758,9 +758,9 @@ void SimpleSquareWidget::solveParameterizationOriginal() {
                 auto p3 = openMesh.point(openMesh.to_vertex_handle(next));
                 auto p4 = openMesh.point(openMesh.to_vertex_handle(opp_next));
                 
-                Eigen::Vector3f v1 = {p1[0]-p2[0], p1[1]-p2[1], p1[2]-p2[2]};
-                Eigen::Vector3f v2 = {p3[0]-p2[0], p3[1]-p2[1], p3[2]-p2[2]};
-                Eigen::Vector3f v3 = {p4[0]-p2[0], p4[1]-p2[1], p4[2]-p2[2]};
+                Eigen::Vector3f v1(static_cast<float>(p1[0]-p2[0]), static_cast<float>(p1[1]-p2[1]), static_cast<float>(p1[2]-p2[2]));
+                Eigen::Vector3f v2(static_cast<float>(p3[0]-p2[0]), static_cast<float>(p3[1]-p2[1]), static_cast<float>(p3[2]-p2[2]));
+                Eigen::Vector3f v3(static_cast<float>(p4[0]-p2[0]), static_cast<float>(p4[1]-p2[1]), static_cast<float>(p4[2]-p2[2]));
                 
                 float angle1 = acos(v1.dot(v2) / (v1.norm() * v2.norm()));
                 float angle2 = acos(v1.dot(v3) / (v1.norm() * v3.norm()));

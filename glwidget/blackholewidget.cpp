@@ -30,9 +30,9 @@ void geodesicRHS(const BlackHoleWidget::Ray& ray, double rhs[4], double rs) {
     rhs[0] = dr;
     rhs[1] = dphi;
 
-    double dt_dλ = E / f;
+    double dt_dlambda = E / f;
     rhs[2] = 
-        - (rs/(2*r*r)) * f * (dt_dλ*dt_dλ)
+        - (rs/(2*r*r)) * f * (dt_dlambda*dt_dlambda)
         + (rs/(2*r*r*f)) * (dr*dr)
         + (r - rs) * (dphi*dphi);
 
@@ -44,30 +44,30 @@ void addState(const double a[4], const double b[4], double factor, double out[4]
         out[i] = a[i] + b[i] * factor;
 }
 
-void rk4Step(BlackHoleWidget::Ray& ray, double dλ, double rs) {
+void rk4Step(BlackHoleWidget::Ray& ray, double dlambda, double rs) {
     double y0[4] = { ray.r, ray.phi, ray.dr, ray.dphi };
     double k1[4], k2[4], k3[4], k4[4], temp[4];
 
     geodesicRHS(ray, k1, rs);
-    addState(y0, k1, dλ/2.0, temp);
+    addState(y0, k1, dlambda/2.0, temp);
     BlackHoleWidget::Ray r2 = ray; 
     r2.r = temp[0]; r2.phi = temp[1]; r2.dr = temp[2]; r2.dphi = temp[3];
     geodesicRHS(r2, k2, rs);
 
-    addState(y0, k2, dλ/2.0, temp);
+    addState(y0, k2, dlambda/2.0, temp);
     BlackHoleWidget::Ray r3 = ray; 
     r3.r = temp[0]; r3.phi = temp[1]; r3.dr = temp[2]; r3.dphi = temp[3];
     geodesicRHS(r3, k3, rs);
 
-    addState(y0, k3, dλ, temp);
+    addState(y0, k3, dlambda, temp);
     BlackHoleWidget::Ray r4 = ray; 
     r4.r = temp[0]; r4.phi = temp[1]; r4.dr = temp[2]; r4.dphi = temp[3];
     geodesicRHS(r4, k4, rs);
 
-    ray.r    += (dλ/6.0)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
-    ray.phi  += (dλ/6.0)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
-    ray.dr   += (dλ/6.0)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2]);
-    ray.dphi += (dλ/6.0)*(k1[3] + 2*k2[3] + 2*k3[3] + k4[3]);
+    ray.r    += (dlambda/6.0)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
+    ray.phi  += (dlambda/6.0)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
+    ray.dr   += (dlambda/6.0)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2]);
+    ray.dphi += (dlambda/6.0)*(k1[3] + 2*k2[3] + 2*k3[3] + k4[3]);
 }
 
 // BlackHole implementation
@@ -115,8 +115,8 @@ BlackHoleWidget::Ray::Ray(vec2 pos, vec2 dir, double blackHoleMass) :
     L = r*r * dphi;
     double rs = 2.0 * G * blackHoleMass / (c*c);
     double f = 1.0 - rs/r;  
-    double dt_dλ = sqrt( (dr*dr)/(f*f) + (r*r*dphi*dphi)/f );
-    E = f * dt_dλ;
+    double dt_dlambda = sqrt( (dr*dr)/(f*f) + (r*r*dphi*dphi)/f );
+    E = f * dt_dlambda;
     
     trail.push_back({x, y});
 }
@@ -174,11 +174,11 @@ void BlackHoleWidget::Ray::draw(const std::vector<Ray>& rays, const QVector3D& r
     }
 }
 
-void BlackHoleWidget::Ray::step(double dλ, double rs) {
+void BlackHoleWidget::Ray::step(double dlambda, double rs) {
     if(r <= rs) return; // 如果进入事件视界则停止
     
     // 调用RK4步进算法
-    rk4Step(*this, dλ, rs);
+    rk4Step(*this, dlambda, rs);
     
     // 更新笛卡尔坐标
     x = r * cos(phi);

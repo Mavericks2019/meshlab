@@ -17,7 +17,7 @@
 
 // 前向声明
 struct Ray;
-void rk4Step(Ray& ray, double dλ, double rs);
+void rk4Step(Ray& ray, double dlambda, double rs);
 
 class BlackHoleWidget : public QOpenGLWidget {
     Q_OBJECT
@@ -56,7 +56,7 @@ public:
 
         Ray(glm::vec2 pos, glm::vec2 dir, double blackHoleMass);
         void draw(const std::vector<Ray>& rays, const QVector3D& rayColor, const QVector3D& trailColor);
-        void step(double dλ, double rs);
+        void step(double dlambda, double rs);
     };
 
 protected:

@@ -14,7 +14,7 @@ find_package(OpenMesh REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # 包含目录
-include_directories(${OPENMESH_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
+include_directories(${OpenMesh_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 
 # 源文件
 set(SOURCES
@@ -29,8 +29,19 @@ set(HEADERS
 # 创建动态链接库
 add_library(mymesh SHARED ${SOURCES} ${HEADERS})
 
+if(WIN32)
+    set_target_properties(mymesh PROPERTIES
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+    )
+endif()
+
 # 链接库
-target_link_libraries(mymesh ${OPENMESH_LIBRARIES})
+target_link_libraries(mymesh OpenMeshCore OpenMeshTools Eigen3::Eigen)
+
+# MSVC编译选项
+if(MSVC)
+    target_compile_definitions(mymesh PRIVATE _USE_MATH_DEFINES NOMINMAX)
+endif()
 
 # 设置属性（可选）
 set_target_properties(mymesh PROPERTIES

@@ -10,83 +10,87 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
-#set(COMMONLIB_INCLUDE_DIR ../lib/include)
-#set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
+# ===================== Windows 路径配置 =====================
+set(VCPKG_ROOT "C:/Users/Administrator/vcpkg/installed/x64-windows")
+set(QT5_ROOT "D:/Qt/5.11.1/msvc2017_64")
 
-# 检查 CommonLib 是否存在
-#if(NOT EXISTS ${COMMONLIB_INCLUDE_DIR} OR NOT EXISTS ${COMMONLIB_LIBRARY})
-#    message(WARNING "CommonLib not found at expected location. Some features may be disabled.")
-#else()
-#    # 添加头文件路径
-#    include_directories(${COMMONLIB_INCLUDE_DIR})
-    
-#    # 添加库文件路径
-#    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
-#endif()
+# 设置 Qt5 搜索路径
+set(CMAKE_PREFIX_PATH "${QT5_ROOT};${CMAKE_PREFIX_PATH}")
 
-# 查找Qt5组件
+# ===================== 查找依赖包 =====================
 find_package(Qt5 COMPONENTS Widgets OpenGL REQUIRED)
+
 # 添加着色器资源文件
 qt5_add_resources(RESOURCE_FILES shaders.qrc)
 
 find_package(OpenMesh REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(CGAL REQUIRED)
-find_package(OpenVolumeMesh REQUIRED)
+find_package(CGAL REQUIRED COMPONENTS Core)
 include_directories(${CGAL_INCLUDE_DIRS})
+
+# CGAL_USE_FILE 兼容性
+if(DEFINED CGAL_USE_FILE)
+  include(${CGAL_USE_FILE})
+endif()
+
 find_package(OpenGL REQUIRED)
 
-set(ANN_INCLUDE_DIR "/opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN")
-set(ANN_LIBRARY "/opt/project/meshlab/lib/libANN.so")
-
-set(VWGT_INCLUDE_DIR "/opt/project/meshlab/include")
-# set(WGT_LIBRARY "/opt/project/meshlab/lib/libVolumeMeshViewer.so")
-
-# 添加 MeshIO 库的配置
-# 假设 libMeshIO.so 在你指定的路径
-set(MESHIO_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/meshIO/build/libMeshIO.so)
-
-# 检查 MeshIO 库是否存在
-if(NOT EXISTS ${MESHIO_LIBRARY})
-    message(WARNING "MeshIO library not found at ${MESHIO_LIBRARY}. You may need to build it first.")
-else()
-    message(STATUS "Found MeshIO library: ${MESHIO_LIBRARY}")
+# GLM (header-only)
+find_path(GLM_INCLUDE_DIR glm/glm.hpp PATHS "${VCPKG_ROOT}/include")
+if(GLM_INCLUDE_DIR)
+    message(STATUS "Found GLM: ${GLM_INCLUDE_DIR}")
 endif()
 
-set(MY_TRI ${CMAKE_CURRENT_SOURCE_DIR}/meshutils/build/lib/libmymesh.so)
+# ===================== 手动构建的库路径 =====================
+# ANN 库
+set(ANN_INCLUDE_DIR "D:/ann_lib/src")
+set(ANN_LIBRARY "D:/ann_lib/build/Release/ANN.lib")
 
-# 检查 MY_TRI 库是否存在
-if(NOT EXISTS ${MY_TRI})
-    message(WARNING "MeshIO library not found at ${MY_TRI}. You may need to build it first.")
-else()
-    message(STATUS "Found MY_TRI library: ${MY_TRI}")
-endif()
+# OpenVolumeMesh 库 (手动构建)
+set(OVM_INCLUDE_DIR "D:/OpenVolumeMesh/src")
+set(OVM_BUILD_INCLUDE_DIR "D:/OpenVolumeMesh/build/src")  # 生成的头文件
+set(OVM_LIBRARY "D:/OpenVolumeMesh/build/Build/lib/Release/OpenVolumeMesh.lib")
 
-set(COMMONLIB_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Common/build/libCommonLib.so)
+# VolumeMeshViewer include (项目内的include/目录)
+set(VWGT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-# 检查 COMMONLIB_LIBRARY 库是否存在
-if(NOT EXISTS ${COMMONLIB_LIBRARY})
-    message(WARNING "MeshIO library not found at ${COMMONLIB_LIBRARY}. You may need to build it first.")
-else()
-    message(STATUS "Found COMMONLIB_LIBRARY library: ${COMMONLIB_LIBRARY}")
-endif()
+# ===================== 子项目库路径 (Windows .lib) =====================
+set(COMMONLIB_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/Common/build/Release/CommonLib.lib")
+set(MESHIO_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/meshIO/build/Release/MeshIO.lib")
+set(MYMESH_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/meshutils/build/Release/mymesh.lib")
+set(CUTBASE_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/Cutting/build/Release/QGLViewerWidget.lib")
 
-set(CUTBASE ${CMAKE_CURRENT_SOURCE_DIR}/Cutting/build/libQGLViewerWidget.so)
+# 检查子项目库
+foreach(LIB_PATH IN ITEMS COMMONLIB_LIBRARY MESHIO_LIBRARY MYMESH_LIBRARY CUTBASE_LIBRARY)
+    if(EXISTS ${${LIB_PATH}})
+        message(STATUS "Found ${LIB_PATH}: ${${LIB_PATH}}")
+    else()
+        message(WARNING "${LIB_PATH} not found at ${${LIB_PATH}}")
+    endif()
+endforeach()
 
-# 检查 CUTBASE 库是否存在
-if(NOT EXISTS ${CUTBASE})
-    message(WARNING "MeshIO library not found at ${CUTBASE}. You may need to build it first.")
-else()
-    message(STATUS "Found CUTBASE library: ${CUTBASE}")
-endif()
+# ===================== 包含目录 =====================
+include_directories(
+    ${VWGT_INCLUDE_DIR}
+    ${ANN_INCLUDE_DIR}
+    ${OVM_INCLUDE_DIR}
+    ${OVM_BUILD_INCLUDE_DIR}
+    ${GLM_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshIO
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshutils
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cutting
+)
 
-# 添加 MeshIO 头文件路径（假设头文件在 meshIO 源码目录）
-set(MESHIO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/meshIO)
-include_directories(${MESHIO_INCLUDE_DIR})
-
-# 添加可执行文件
+# ===================== 可执行文件 =====================
 add_executable(${PROJECT_NAME}
     main.cpp
+    menu_utils.cpp
+    menu_utils.h
+    tab_manager.cpp
+    tab_manager.h
+
+    # glwidget 文件
     glwidget/baseglwidget.h
     glwidget/baseglwidget.cpp
     glwidget/modelglwidget.cpp
@@ -96,15 +100,22 @@ add_executable(${PROJECT_NAME}
     glwidget/shortestpathglwidget.h
     glwidget/shortestpathglwidget.cpp
     glwidget/uvparamwidget.cpp
+    glwidget/uvparamwidget.h
     glwidget/simplesquarewidget.cpp
     glwidget/simplesquarewidget.h
     glwidget/uvparamwidget_extended.cpp
-    glwidget/relasticwidget.cpp      # 新增：相对论可视化widget
-    glwidget/relasticwidget.h        # 新增：相对论可视化widget头文件
+    glwidget/uvparamwidget_extended.h
+    glwidget/relasticwidget.cpp
+    glwidget/relasticwidget.h
     glwidget/blackholewidget.cpp
+    glwidget/blackholewidget.h
     glwidget/relativisticwidget.cpp
-    tabs/dualview_simple_tab.h
+    glwidget/relativisticwidget.h
     glwidget/simplesquarewidget_parameterization.cpp
+    glwidget/arapglwidget.cpp
+    glwidget/arapglwidget.h
+
+    # tabs (header-only)
     tabs/model_tab.h
     tabs/basic_tab.h
     tabs/cgal_tab.h
@@ -113,17 +124,14 @@ add_executable(${PROJECT_NAME}
     tabs/dualview_tab.h
     tabs/dualview_extended_tab.h
     tabs/dualview_simple_tab.h
-    tabs/relastic_tab.h              # 新增：相对论可视化tab
-    glwidget/arapglwidget.cpp
-    glwidget/arapglwidget.h
-    menu_utils.cpp
-    menu_utils.h
-    tab_manager.cpp
-    tab_manager.h
-    # 新增文件
+    tabs/relastic_tab.h
+    tabs/relativistic_tab.h
+    tabs/blackhole_tab.h
     tabs/openmesh_viewer_tab.h
     tabs/new_cgal_uv_tab.h
+    tabs/interactive_volume_tab.h
 
+    # include/ 源文件
     include/auxiliary_function_mesh.cpp
     include/InteractiveWidget.cpp
     include/InteractiveWidget.h
@@ -136,40 +144,103 @@ add_executable(${PROJECT_NAME}
     include/OpenGLHeaders.h
     include/QGLViewerWidget.cpp
     include/QGLViewerWidget.h
+
     ${RESOURCE_FILES}
 )
 
+# ===================== 目标包含目录 =====================
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${VWGT_INCLUDE_DIR}
     ${ANN_INCLUDE_DIR}
+    ${OVM_INCLUDE_DIR}
+    ${OVM_BUILD_INCLUDE_DIR}
+    ${GLM_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshIO
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshutils
+    ${CMAKE_CURRENT_SOURCE_DIR}/Common
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cutting
+    ${OpenMesh_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Core_INCLUDE_DIRS}
+    ${Qt5OpenGL_INCLUDE_DIRS}
+    ${OPENGL_INCLUDE_DIR}
 )
 
-# 链接库
+# ===================== 链接库 =====================
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::OpenGL
-    GL
-    OpenGL::GL
-    OpenGL::GLU
+    opengl32
+    glu32
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
     CGAL::CGAL
     ${ANN_LIBRARY}
-    # 添加 MeshIO 库
-    ${MESHIO_LIBRARY}
-    ${MY_TRI}
-    ${CUTBASE}
+    ${OVM_LIBRARY}
     ${COMMONLIB_LIBRARY}
-    OpenVolumeMesh::OpenVolumeMesh  # 使用导入的目标
-    ${ANN_LIBRARY}
-    ${WGT_LIBRARY}
+    ${MESHIO_LIBRARY}
+    ${MYMESH_LIBRARY}
+    ${CUTBASE_LIBRARY}
 )
 
-# 如果 CommonLib 存在，链接它
-#if(EXISTS ${COMMONLIB_LIBRARY})
-#    set(COMMONLIB_LIBRARY "../lib/libCommonLib.a")
-#endif()
+# ===================== MSVC编译选项 =====================
+if(MSVC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        NOMINMAX
+        _USE_MATH_DEFINES
+        UNICODE
+        _UNICODE
+        OM_STATIC_BUILD
+    )
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /EHsc
+        /MP
+        /utf-8
+        /wd4251
+        /wd4275
+        /wd4996
+        /wd4100
+        /wd4267
+    )
+endif()
+
+# ===================== 编译后复制 DLL =====================
+set(QT_BIN_DIR "${QT5_ROOT}/bin")
+set(QT_PLUGINS_DIR "${QT5_ROOT}/plugins")
+set(VCPKG_BIN_DIR "${VCPKG_ROOT}/bin")
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    # Qt DLLs
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${QT_BIN_DIR}/Qt5Core.dll"
+        "${QT_BIN_DIR}/Qt5Gui.dll"
+        "${QT_BIN_DIR}/Qt5Widgets.dll"
+        "${QT_BIN_DIR}/Qt5OpenGL.dll"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    # vcpkg DLLs
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${VCPKG_BIN_DIR}/OpenMeshCore.dll"
+        "${VCPKG_BIN_DIR}/OpenMeshTools.dll"
+        "${VCPKG_BIN_DIR}/gmp-10.dll"
+        "${VCPKG_BIN_DIR}/gmpxx-4.dll"
+        "${VCPKG_BIN_DIR}/mpfr-6.dll"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    # Qt platform plugin
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${QT_PLUGINS_DIR}/platforms/qwindows.dll"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms/"
+    # Sub-project DLLs
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/Common/build/Release/CommonLib.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/meshIO/build/Release/MeshIO.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/meshutils/build/bin/Release/mymesh.dll"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Cutting/build/Release/QGLViewerWidget.dll"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    COMMENT "Copying runtime DLLs to output directory"
+)
 
 # 设置安装路径
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
