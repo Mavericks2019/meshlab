@@ -386,16 +386,15 @@ void ARAPGLWidget::copySurfaceMeshToCgalMesh()
     std::map<ARAPKernel::vertex_descriptor, CgalMesh::Vertex_index> vertex_map;
     
     // 获取UV属性映射
-    auto uv_map_it = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
-    bool has_uv = uv_map_it.second;
-    auto uv_map = uv_map_it.first;
+    auto uv_map = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
+    bool has_uv = uv_map.has_value();
     
     // 添加顶点（使用UV坐标作为3D位置，Z=0）
     for (auto vd : arap_mesh_.vertices()) {
         Point point;
         if (has_uv) {
             // 使用参数化后的UV坐标作为3D位置（XY平面）
-            const ARAPKernel::Point_2& uv = uv_map[vd];
+            const ARAPKernel::Point_2& uv = (*uv_map)[vd];
             point = Point(uv.x(), uv.y(), 0.0);
         } else {
             // 如果没有UV坐标，使用原始3D位置
@@ -577,20 +576,18 @@ void ARAPGLWidget::mapUVTo3DMesh()
     }
     
     // 将UV坐标转换为3D点（XY平面，Z=0）
-    auto uv_map_it = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
-    if (!uv_map_it.second) {
+    auto uv_map = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
+    if (!uv_map) {
         qWarning() << "UV map not found in arap_mesh_";
         return;
     }
-    
-    auto uv_map = uv_map_it.first;
     
     // 遍历arap_mesh_的顶点，将UV坐标应用到对应的CgalMesh顶点
     for (auto vd : arap_mesh_.vertices()) {
         // 获取对应的CgalMesh顶点
         if (vertex_arap_to_cgal_map_.find(vd) != vertex_arap_to_cgal_map_.end()) {
             CgalMesh::Vertex_index v = vertex_arap_to_cgal_map_[vd];
-            const ARAPKernel::Point_2& uv = uv_map[vd];
+            const ARAPKernel::Point_2& uv = (*uv_map)[vd];
             
             // 将UV坐标转换为3D点（放在XY平面，Z=0）
             Point newPoint(uv.x(), uv.y(), 0.0);
@@ -862,19 +859,17 @@ void ARAPGLWidget::updateUVCoordinates()
     uv_edges_.clear();
     
     // 将UV坐标从Surface_mesh提取出来
-    auto uv_map_it = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
-    if (!uv_map_it.second) {
+    auto uv_map = arap_mesh_.property_map<ARAPKernel::vertex_descriptor, ARAPKernel::Point_2>("v:uv");
+    if (!uv_map) {
         qWarning() << "UV map not found in arap_mesh_";
         return;
     }
-    
-    auto uv_map = uv_map_it.first;
     
     // 收集所有顶点的UV坐标
     std::map<ARAPKernel::vertex_descriptor, int> vertex_index_map;
     int index = 0;
     for (auto vd : arap_mesh_.vertices()) {
-        const ARAPKernel::Point_2& uv = uv_map[vd];
+        const ARAPKernel::Point_2& uv = (*uv_map)[vd];
         uv_coordinates_.emplace_back(uv.x(), uv.y());
         vertex_index_map[vd] = index++;
     }

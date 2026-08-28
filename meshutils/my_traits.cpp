@@ -77,25 +77,6 @@ bool flip_openmesh(Mesh::EdgeHandle& eh, Mesh& mesh_)
 	return true;
 }
 
-bool check_in_triangle_face(const std::vector<OpenMesh::Vec3d>& tri, const OpenMesh::Vec3d& p)
-{
-	OpenMesh::Vec3d v1 = tri[1] - tri[0]; OpenMesh::Vec3d v2 = tri[2] - tri[0];
-	OpenMesh::Vec3d n = OpenMesh::cross(v1, v2);
-	double face_area = n.norm(); n.normalize(); double all_area = 0;
-	for(unsigned i=0; i < tri.size(); ++i)
-	{
-		unsigned next_i = ( i+1 )%tri.size(); unsigned prev_i = ( i + tri.size() - 1 )%tri.size();
-		v1 = tri[next_i] - p; v2 = tri[prev_i] - p;
-		double area = OpenMesh::dot(OpenMesh::cross(v1, v2), n); all_area += area;
-		if(area < 0)
-		{
-			return false;
-		}
-	}
-	if(std::abs(all_area - face_area) < 1e-8) {return true;}
-	else {return false;}
-}
-
 bool Mesh_doubleIO::load_mesh(Mesh& _mesh, const char* _filename, bool load_texture)
 {
 	if (!OpenMesh::IO::read_mesh(_mesh, _filename))

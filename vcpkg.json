@@ -1,0 +1,15 @@
+{
+  "name": "objviewer",
+  "version-string": "1.0.0",
+  "builtin-baseline": "e99d87dcf02926bfd629560e11e156329d5720c1",
+  "dependencies": [
+    "cgal",
+    "eigen3",
+    "glm",
+    "openmesh",
+    {
+      "name": "qt5-base",
+      "default-features": false
+    }
+  ]
+}

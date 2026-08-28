@@ -1,130 +1,105 @@
-cmake_minimum_required(VERSION 3.5)
-project(objViewer)
+cmake_minimum_required(VERSION 3.21)
 
-# 设置C++标准
+project(objViewer LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# 自动处理Qt的moc、uic、rcc
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
-#set(COMMONLIB_INCLUDE_DIR ../lib/include)
-#set(COMMONLIB_LIBRARY ../lib/libCommonLib.a)
+if(MSVC)
+    add_compile_options(/MP /utf-8 /bigobj)
+    add_compile_definitions(NOMINMAX _USE_MATH_DEFINES)
+endif()
 
-# 检查 CommonLib 是否存在
-#if(NOT EXISTS ${COMMONLIB_INCLUDE_DIR} OR NOT EXISTS ${COMMONLIB_LIBRARY})
-#    message(WARNING "CommonLib not found at expected location. Some features may be disabled.")
-#else()
-#    # 添加头文件路径
-#    include_directories(${COMMONLIB_INCLUDE_DIR})
-    
-#    # 添加库文件路径
-#    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
-#endif()
+include(FetchContent)
 
-# 查找Qt5组件
-find_package(Qt5 COMPONENTS Widgets OpenGL REQUIRED)
-# 添加着色器资源文件
-qt5_add_resources(RESOURCE_FILES shaders.qrc)
+# ANN 1.1.2 is not available in the Visual Studio vcpkg registry. Build the
+# small upstream library directly so the project remains self-contained.
+FetchContent_Declare(
+    ann
+    URL https://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz
+    URL_HASH SHA256=eea03f2e224b66813226d775053316675375dcec45bd263674c052d9324a49a5
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(ann)
+file(GLOB ANN_SOURCES CONFIGURE_DEPENDS "${ann_SOURCE_DIR}/src/*.cpp")
+add_library(ann STATIC ${ANN_SOURCES})
+target_include_directories(ann PUBLIC
+    "${ann_SOURCE_DIR}/include"
+    "${ann_SOURCE_DIR}/include/ANN"
+)
+target_compile_definitions(ann PUBLIC DLL_EXPORTS)
+set_target_properties(ann PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
 
-find_package(OpenMesh REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(CGAL REQUIRED)
-find_package(OpenVolumeMesh REQUIRED)
-include_directories(${CGAL_INCLUDE_DIRS})
+# This project uses legacy OpenVolumeMesh mesh aliases.
+set(OVM_ENABLE_APPLICATIONS OFF CACHE BOOL "" FORCE)
+set(OVM_ENABLE_UNITTESTS OFF CACHE BOOL "" FORCE)
+set(OVM_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(OVM_BUILD_DOCUMENTATION OFF CACHE BOOL "" FORCE)
+set(OVM_ENABLE_DEPRECATED_APIS ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    openvolumemesh
+    GIT_REPOSITORY https://github.com/OpenVolumeMesh/OpenVolumeMesh.git
+    GIT_TAG v3.4.1
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(openvolumemesh)
+
+find_package(Qt5 REQUIRED COMPONENTS Core Concurrent Gui OpenGL Widgets)
 find_package(OpenGL REQUIRED)
+find_package(OpenMesh CONFIG REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
+find_package(CGAL CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
-set(ANN_INCLUDE_DIR "/opt/Volume_Framework/Volume_Framework/VolumeMeshProcessing_Base/Include/ANN")
-set(ANN_LIBRARY "/opt/project/meshlab/lib/libANN.so")
-
-set(VWGT_INCLUDE_DIR "/opt/project/meshlab/include")
-# set(WGT_LIBRARY "/opt/project/meshlab/lib/libVolumeMeshViewer.so")
-
-# 添加 MeshIO 库的配置
-# 假设 libMeshIO.so 在你指定的路径
-set(MESHIO_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/meshIO/build/libMeshIO.so)
-
-# 检查 MeshIO 库是否存在
-if(NOT EXISTS ${MESHIO_LIBRARY})
-    message(WARNING "MeshIO library not found at ${MESHIO_LIBRARY}. You may need to build it first.")
-else()
-    message(STATUS "Found MeshIO library: ${MESHIO_LIBRARY}")
-endif()
-
-set(MY_TRI ${CMAKE_CURRENT_SOURCE_DIR}/meshutils/build/lib/libmymesh.so)
-
-# 检查 MY_TRI 库是否存在
-if(NOT EXISTS ${MY_TRI})
-    message(WARNING "MeshIO library not found at ${MY_TRI}. You may need to build it first.")
-else()
-    message(STATUS "Found MY_TRI library: ${MY_TRI}")
-endif()
-
-set(COMMONLIB_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/Common/build/libCommonLib.so)
-
-# 检查 COMMONLIB_LIBRARY 库是否存在
-if(NOT EXISTS ${COMMONLIB_LIBRARY})
-    message(WARNING "MeshIO library not found at ${COMMONLIB_LIBRARY}. You may need to build it first.")
-else()
-    message(STATUS "Found COMMONLIB_LIBRARY library: ${COMMONLIB_LIBRARY}")
-endif()
-
-set(CUTBASE ${CMAKE_CURRENT_SOURCE_DIR}/Cutting/build/libQGLViewerWidget.so)
-
-# 检查 CUTBASE 库是否存在
-if(NOT EXISTS ${CUTBASE})
-    message(WARNING "MeshIO library not found at ${CUTBASE}. You may need to build it first.")
-else()
-    message(STATUS "Found CUTBASE library: ${CUTBASE}")
-endif()
-
-# 添加 MeshIO 头文件路径（假设头文件在 meshIO 源码目录）
-set(MESHIO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/meshIO)
-include_directories(${MESHIO_INCLUDE_DIR})
-
-# 添加可执行文件
-add_executable(${PROJECT_NAME}
+set(OBJVIEWER_SOURCES
     main.cpp
-    glwidget/baseglwidget.h
-    glwidget/baseglwidget.cpp
-    glwidget/modelglwidget.cpp
-    glwidget/modelglwidget.h
-    glwidget/cgalglwidget.h
-    glwidget/cgalglwidget.cpp
-    glwidget/shortestpathglwidget.h
-    glwidget/shortestpathglwidget.cpp
-    glwidget/uvparamwidget.cpp
-    glwidget/simplesquarewidget.cpp
-    glwidget/simplesquarewidget.h
-    glwidget/uvparamwidget_extended.cpp
-    glwidget/relasticwidget.cpp      # 新增：相对论可视化widget
-    glwidget/relasticwidget.h        # 新增：相对论可视化widget头文件
-    glwidget/blackholewidget.cpp
-    glwidget/relativisticwidget.cpp
-    tabs/dualview_simple_tab.h
-    glwidget/simplesquarewidget_parameterization.cpp
-    tabs/model_tab.h
-    tabs/basic_tab.h
-    tabs/cgal_tab.h
-    tabs/shortestpath_tab.h
-    tabs/uvparam_tab.h
-    tabs/dualview_tab.h
-    tabs/dualview_extended_tab.h
-    tabs/dualview_simple_tab.h
-    tabs/relastic_tab.h              # 新增：相对论可视化tab
-    glwidget/arapglwidget.cpp
-    glwidget/arapglwidget.h
     menu_utils.cpp
     menu_utils.h
     tab_manager.cpp
     tab_manager.h
-    # 新增文件
-    tabs/openmesh_viewer_tab.h
-    tabs/new_cgal_uv_tab.h
+    shaders.qrc
 
-    include/auxiliary_function_mesh.cpp
+    glwidget/arapglwidget.cpp
+    glwidget/arapglwidget.h
+    glwidget/baseglwidget.cpp
+    glwidget/baseglwidget.h
+    glwidget/blackholewidget.cpp
+    glwidget/blackholewidget.h
+    glwidget/cgalglwidget.cpp
+    glwidget/cgalglwidget.h
+    glwidget/modelglwidget.cpp
+    glwidget/modelglwidget.h
+    glwidget/relasticwidget.cpp
+    glwidget/relasticwidget.h
+    glwidget/relativisticwidget.cpp
+    glwidget/relativisticwidget.h
+    glwidget/shortestpathglwidget.cpp
+    glwidget/shortestpathglwidget.h
+    glwidget/simplesquarewidget.cpp
+    glwidget/simplesquarewidget.h
+    glwidget/simplesquarewidget_parameterization.cpp
+    glwidget/uvparamwidget.cpp
+    glwidget/uvparamwidget.h
+    glwidget/uvparamwidget_extended.cpp
+    glwidget/uvparamwidget_extended.h
+
+    Common/CommonDefinitions.cpp
+    Common/CommonDefinitions.h
+    Common/CommonFunctions.h
+    Common/TimeProfiler.cpp
+    Common/TimeProfiler.h
+    Common/VKString.cpp
+    Common/VKString.h
+    Common/VKStringList.cpp
+    Common/VKStringList.h
+
+    meshutils/my_traits.cpp
+    meshutils/my_traits.h
+
     include/InteractiveWidget.cpp
     include/InteractiveWidget.h
     include/MeshDefinition.cpp
@@ -136,40 +111,36 @@ add_executable(${PROJECT_NAME}
     include/OpenGLHeaders.h
     include/QGLViewerWidget.cpp
     include/QGLViewerWidget.h
-    ${RESOURCE_FILES}
+    include/auxiliary_function_mesh.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${VWGT_INCLUDE_DIR}
-    ${ANN_INCLUDE_DIR}
+add_executable(objViewer WIN32 ${OBJVIEWER_SOURCES})
+target_include_directories(objViewer PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Common"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/meshutils"
 )
-
-# 链接库
-target_link_libraries(${PROJECT_NAME}
-    Qt5::Widgets
+target_link_libraries(objViewer PRIVATE
+    Qt5::Core
+    Qt5::Concurrent
+    Qt5::Gui
     Qt5::OpenGL
-    GL
+    Qt5::Widgets
     OpenGL::GL
     OpenGL::GLU
     OpenMeshCore
     OpenMeshTools
     Eigen3::Eigen
     CGAL::CGAL
-    ${ANN_LIBRARY}
-    # 添加 MeshIO 库
-    ${MESHIO_LIBRARY}
-    ${MY_TRI}
-    ${CUTBASE}
-    ${COMMONLIB_LIBRARY}
-    OpenVolumeMesh::OpenVolumeMesh  # 使用导入的目标
-    ${ANN_LIBRARY}
-    ${WGT_LIBRARY}
+    glm::glm
+    OpenVolumeMesh::OpenVolumeMesh
+    ann
 )
 
-# 如果 CommonLib 存在，链接它
-#if(EXISTS ${COMMONLIB_LIBRARY})
-#    set(COMMONLIB_LIBRARY "../lib/libCommonLib.a")
-#endif()
+set_target_properties(objViewer PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 
-# 设置安装路径
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(TARGETS objViewer RUNTIME DESTINATION bin)

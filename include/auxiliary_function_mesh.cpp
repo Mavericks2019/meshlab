@@ -748,7 +748,7 @@ void InteractiveWidget::create_slice_mesh()
 			for (SurfaceMesh::VertexOHalfedgeIter voh_it = s_mesh_.voh_iter(s_mesh_.vertex_handle(i)); voh_it; ++voh_it)
 			{
 				SurfaceMesh::FaceHandle fh = s_mesh_.face_handle(voh_it.handle());
-				if (fh != SurfaceMesh::InvalidFaceHandle)
+				if (fh.is_valid())
 				{
 					s_mesh_.delete_face(fh);
 				}
