@@ -106,6 +106,7 @@ void ProgressiveMeshViewport::initializeGL()
 
 void ProgressiveMeshViewport::setMeshData(const ProgressiveMeshData& data, bool planar)
 {
+    const bool initializeView = !modelLoaded;
     clearMeshData();
     QVector<Mesh::VertexHandle> handles;
     handles.reserve(data.vertices.size());
@@ -130,16 +131,18 @@ void ProgressiveMeshViewport::setMeshData(const ProgressiveMeshData& data, bool 
     prepareFaceIndices();
     prepareEdgeIndices();
     modelLoaded = true;
-    rotation = planar ? QQuaternion() : QQuaternion::fromEulerAngles(-18.0f, 28.0f, 0.0f);
-    zoom = 1.0f;
-    modelCenter = QVector3D(0.0f, 0.0f, 0.0f);
-    viewDistance = 4.0f;
-    viewScale = 1.0f;
-    initialRotation = rotation;
-    initialZoom = zoom;
-    initialModelCenter = modelCenter;
-    initialViewDistance = viewDistance;
-    initialViewScale = viewScale;
+    if (initializeView) {
+        rotation = planar ? QQuaternion() : QQuaternion::fromEulerAngles(-18.0f, 28.0f, 0.0f);
+        zoom = 1.0f;
+        modelCenter = QVector3D(0.0f, 0.0f, 0.0f);
+        viewDistance = 4.0f;
+        viewScale = 1.0f;
+        initialRotation = rotation;
+        initialZoom = zoom;
+        initialModelCenter = modelCenter;
+        initialViewDistance = viewDistance;
+        initialViewScale = viewScale;
+    }
 
     // Snapshots arrive after initializeGL in the normal UI flow, so upload the
     // newly rebuilt OpenMesh explicitly instead of leaving stale/empty buffers.

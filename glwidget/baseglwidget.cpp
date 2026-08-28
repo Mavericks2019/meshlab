@@ -281,6 +281,13 @@ void BaseGLWidget::paintGL() {
     if (hideFaces) {
         drawWireframe(model, view, projection);
     } else {
+        // Push filled fragments slightly back so the edge overlay has a stable
+        // depth advantage even when both primitives describe the same surface.
+        if (showWireframeOverlay) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(1.0f, 1.0f);
+        }
+
         // 基类只实现BlinnPhong渲染，曲率渲染在派生类中实现
         if (currentRenderMode == BlinnPhong) {
             blinnPhongProgram.bind();
@@ -335,6 +342,10 @@ void BaseGLWidget::paintGL() {
             faceEbo.release();
             vao.release();
             flatProgram.release();
+        }
+
+        if (showWireframeOverlay) {
+            glDisable(GL_POLYGON_OFFSET_FILL);
         }
 
         if (showWireframeOverlay) {
@@ -496,9 +507,12 @@ void BaseGLWidget::drawWireframe(const QMatrix4x4& model, const QMatrix4x4& view
 }
 
 void BaseGLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x4& view, const QMatrix4x4& projection) {
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glPolygonOffset(-1.0, -1.0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    GLint previousDepthFunc;
+    GLboolean previousDepthMask;
+    glGetIntegerv(GL_DEPTH_FUNC, &previousDepthFunc);
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &previousDepthMask);
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
     glLineWidth(1.5f);
     
     wireframeProgram.bind();
@@ -515,7 +529,8 @@ void BaseGLWidget::drawWireframeOverlay(const QMatrix4x4& model, const QMatrix4x
     ebo.release();
     vao.release();
     wireframeProgram.release();
-    glDisable(GL_POLYGON_OFFSET_LINE);
+    glDepthMask(previousDepthMask);
+    glDepthFunc(previousDepthFunc);
 }
 
 void BaseGLWidget::drawXYZAxis(const QMatrix4x4& view, const QMatrix4x4& projection) {
