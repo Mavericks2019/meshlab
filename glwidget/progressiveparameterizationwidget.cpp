@@ -264,6 +264,39 @@ void ProgressiveParameterizationWidget::reset()
     worker_ = nullptr;
     emit runningChanged(false);
 }
+
+void ProgressiveParameterizationWidget::setRenderMode(BaseGLWidget::RenderMode mode)
+{
+    for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_}) {
+        view->currentRenderMode = mode;
+        view->update();
+    }
+}
+
+void ProgressiveParameterizationWidget::setWireframeVisible(bool visible)
+{
+    for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_})
+        view->setShowWireframeOverlay(visible);
+}
+
+void ProgressiveParameterizationWidget::setFacesVisible(bool visible)
+{
+    for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_})
+        view->setHideFaces(!visible);
+}
+
+void ProgressiveParameterizationWidget::resetViews()
+{
+    for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_})
+        view->resetView();
+}
+
+void ProgressiveParameterizationWidget::centerViews()
+{
+    for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_})
+        view->centerView();
+}
+
 bool ProgressiveParameterizationWidget::isRunning() const { return worker_ && worker_->isRunning(); }
 
 void ProgressiveParameterizationWidget::applySnapshot(const ProgressiveSnapshot& snapshot)

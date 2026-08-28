@@ -3,6 +3,7 @@
 #include "../glwidget/progressiveparameterizationwidget.h"
 
 #include <QCoreApplication>
+#include <QCheckBox>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -11,6 +12,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 inline QWidget* createProgressiveParameterizationTab(ProgressiveParameterizationWidget* widget)
@@ -62,6 +64,30 @@ inline QWidget* createProgressiveParameterizationControlPanel(
     runLayout->addWidget(stepButton);
     runLayout->addWidget(resetButton);
 
+    QGroupBox* renderingGroup = new QGroupBox("Rendering Mode", panel);
+    QVBoxLayout* renderingLayout = new QVBoxLayout(renderingGroup);
+    QRadioButton* blinnPhongRadio = new QRadioButton("Solid (Blinn-Phong)", renderingGroup);
+    QRadioButton* flatShadingRadio = new QRadioButton("Flat Shading", renderingGroup);
+    flatShadingRadio->setChecked(true);
+    renderingLayout->addWidget(blinnPhongRadio);
+    renderingLayout->addWidget(flatShadingRadio);
+
+    QGroupBox* displayGroup = new QGroupBox("Display Options", panel);
+    QVBoxLayout* displayLayout = new QVBoxLayout(displayGroup);
+    QCheckBox* facesCheckbox = new QCheckBox("Show Faces", displayGroup);
+    QCheckBox* wireframeCheckbox = new QCheckBox("Show Wireframe Overlay", displayGroup);
+    facesCheckbox->setChecked(true);
+    wireframeCheckbox->setChecked(true);
+    displayLayout->addWidget(facesCheckbox);
+    displayLayout->addWidget(wireframeCheckbox);
+
+    QGroupBox* viewGroup = new QGroupBox("View", panel);
+    QVBoxLayout* viewLayout = new QVBoxLayout(viewGroup);
+    QPushButton* resetViewsButton = new QPushButton("Reset Views", viewGroup);
+    QPushButton* centerViewsButton = new QPushButton("Center Views", viewGroup);
+    viewLayout->addWidget(resetViewsButton);
+    viewLayout->addWidget(centerViewsButton);
+
     QPushButton* saveButton = new QPushButton("Export Mp OBJ", panel);
     saveButton->setEnabled(false);
 
@@ -90,6 +116,16 @@ inline QWidget* createProgressiveParameterizationControlPanel(
         else loadPath(progressiveSamplePath());
     });
     QObject::connect(resetButton, &QPushButton::clicked, widget, &ProgressiveParameterizationWidget::reset);
+    QObject::connect(blinnPhongRadio, &QRadioButton::toggled, panel, [widget](bool checked) {
+        if (checked) widget->setRenderMode(BaseGLWidget::BlinnPhong);
+    });
+    QObject::connect(flatShadingRadio, &QRadioButton::toggled, panel, [widget](bool checked) {
+        if (checked) widget->setRenderMode(BaseGLWidget::FlatShading);
+    });
+    QObject::connect(facesCheckbox, &QCheckBox::toggled, widget, &ProgressiveParameterizationWidget::setFacesVisible);
+    QObject::connect(wireframeCheckbox, &QCheckBox::toggled, widget, &ProgressiveParameterizationWidget::setWireframeVisible);
+    QObject::connect(resetViewsButton, &QPushButton::clicked, widget, &ProgressiveParameterizationWidget::resetViews);
+    QObject::connect(centerViewsButton, &QPushButton::clicked, widget, &ProgressiveParameterizationWidget::centerViews);
     QObject::connect(widget, &ProgressiveParameterizationWidget::statusChanged, statusLabel, &QLabel::setText);
     QObject::connect(widget, &ProgressiveParameterizationWidget::statusChanged, panel, [saveButton](const QString& text) {
         saveButton->setEnabled(!text.startsWith("Error") && text != "Idle");
@@ -102,6 +138,9 @@ inline QWidget* createProgressiveParameterizationControlPanel(
 
     layout->addWidget(inputGroup);
     layout->addWidget(runGroup);
+    layout->addWidget(renderingGroup);
+    layout->addWidget(displayGroup);
+    layout->addWidget(viewGroup);
     layout->addWidget(statusLabel);
     layout->addWidget(saveButton);
     layout->addStretch();

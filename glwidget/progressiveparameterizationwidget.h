@@ -76,6 +76,11 @@ public:
     void resume();
     void step();
     void reset();
+    void setRenderMode(BaseGLWidget::RenderMode mode);
+    void setWireframeVisible(bool visible);
+    void setFacesVisible(bool visible);
+    void resetViews();
+    void centerViews();
     bool saveParameterized(const QString& path) const;
     bool isRunning() const;
     QString inputPath() const { return inputPath_; }

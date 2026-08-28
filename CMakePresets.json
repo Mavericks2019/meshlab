@@ -13,7 +13,7 @@
       "architecture": "x64",
       "toolset": "host=x64",
       "binaryDir": "${sourceDir}/build-vs",
-      "toolchainFile": "D:/Environment/VS/plugins/VC/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
       "environment": {
         "PROCESSOR_ARCHITECTURE": "AMD64"
       },
