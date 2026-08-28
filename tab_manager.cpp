@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QDebug>
+#include <QSizePolicy>
 
 TabManager::TabManager(QWidget* mainWindow) 
     : QObject(mainWindow)
@@ -33,6 +34,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , relativisticGlWidget(nullptr)
     , blackHoleWidget(nullptr)  // 初始化BlackHoleWidget
     , interactiveVolumeWidget(nullptr)
+    , progressiveParameterizationWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -191,13 +193,13 @@ void TabManager::registerTabConfigs() {
                 
                 dualViewLeftInfoLabel = new QLabel("No model loaded (Left View)");
                 dualViewLeftInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewLeftInfoLabel->setFixedHeight(50);
+                dualViewLeftInfoLabel->setMinimumHeight(50);
                 dualViewLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewLeftInfoLabel->setWordWrap(true);
                 
                 dualViewRightInfoLabel = new QLabel("No model loaded (Right View)");
                 dualViewRightInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewRightInfoLabel->setFixedHeight(50);
+                dualViewRightInfoLabel->setMinimumHeight(50);
                 dualViewRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewRightInfoLabel->setWordWrap(true);
                 
@@ -236,13 +238,13 @@ void TabManager::registerTabConfigs() {
                 
                 dualViewExtendedLeftInfoLabel = new QLabel("No model loaded (Left View)");
                 dualViewExtendedLeftInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewExtendedLeftInfoLabel->setFixedHeight(50);
+                dualViewExtendedLeftInfoLabel->setMinimumHeight(50);
                 dualViewExtendedLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewExtendedLeftInfoLabel->setWordWrap(true);
                 
                 dualViewExtendedRightInfoLabel = new QLabel("No model loaded (Right View)");
                 dualViewExtendedRightInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewExtendedRightInfoLabel->setFixedHeight(50);
+                dualViewExtendedRightInfoLabel->setMinimumHeight(50);
                 dualViewExtendedRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewExtendedRightInfoLabel->setWordWrap(true);
                 
@@ -281,13 +283,13 @@ void TabManager::registerTabConfigs() {
                 
                 dualViewSimpleLeftInfoLabel = new QLabel("No model loaded (Left View)");
                 dualViewSimpleLeftInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewSimpleLeftInfoLabel->setFixedHeight(50);
+                dualViewSimpleLeftInfoLabel->setMinimumHeight(50);
                 dualViewSimpleLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewSimpleLeftInfoLabel->setWordWrap(true);
                 
                 dualViewSimpleRightInfoLabel = new QLabel("White Square View - Ready for extension");
                 dualViewSimpleRightInfoLabel->setAlignment(Qt::AlignCenter);
-                dualViewSimpleRightInfoLabel->setFixedHeight(50);
+                dualViewSimpleRightInfoLabel->setMinimumHeight(50);
                 dualViewSimpleRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 dualViewSimpleRightInfoLabel->setWordWrap(true);
                 
@@ -326,13 +328,13 @@ void TabManager::registerTabConfigs() {
                 
                 newCGALUVLeftInfoLabel = new QLabel("No model loaded (ARAP View)");
                 newCGALUVLeftInfoLabel->setAlignment(Qt::AlignCenter);
-                newCGALUVLeftInfoLabel->setFixedHeight(50);
+                newCGALUVLeftInfoLabel->setMinimumHeight(50);
                 newCGALUVLeftInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 newCGALUVLeftInfoLabel->setWordWrap(true);
                 
                 newCGALUVRightInfoLabel = new QLabel("No model loaded (UV View)");
                 newCGALUVRightInfoLabel->setAlignment(Qt::AlignCenter);
-                newCGALUVRightInfoLabel->setFixedHeight(50);
+                newCGALUVRightInfoLabel->setMinimumHeight(50);
                 newCGALUVRightInfoLabel->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
                 newCGALUVRightInfoLabel->setWordWrap(true);
                 
@@ -459,6 +461,22 @@ void TabManager::registerTabConfigs() {
             },
             13,  // 根据实际标签页数量调整索引
             "Volume Base"
+        },
+        {"Progressive Parameterization",
+            [this]() -> QWidget* {
+                getOrCreateWidget(progressiveParameterizationWidget);
+                return ::createProgressiveParameterizationTab(progressiveParameterizationWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(progressiveParameterizationWidget);
+                return ::createProgressiveParameterizationControlPanel(progressiveParameterizationWidget, mainWindow);
+            },
+            [this]() {
+                delete progressiveParameterizationWidget;
+                progressiveParameterizationWidget = nullptr;
+            },
+            14,
+            "Progressive Parameterization"
         }
     };
 }
@@ -479,8 +497,7 @@ void TabManager::initializeTabs() {
     controlContainerLayout->setAlignment(Qt::AlignTop);
     controlContainerLayout->setContentsMargins(0, 0, 0, 0);
     
-    // 设置控制面板固定宽度
-    controlContainer->setFixedWidth(400);
+    controlContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     
     // 先连接信号
     connectSignals();

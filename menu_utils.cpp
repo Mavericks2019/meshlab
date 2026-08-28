@@ -188,7 +188,8 @@ namespace UIUtils {
             "UV Parameterization", "Dual View", 
             "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
             "Point Cloud",
-            "Volume Base"  // 添加Volume Base标签页
+            "Volume Base",
+            "Progressive Parameterization"
         };
         
         // 创建动作组，确保只有一个被选中
@@ -559,7 +560,7 @@ namespace UIUtils {
         // 创建信息标签
         QLabel *label = new QLabel("No model loaded");
         label->setAlignment(Qt::AlignCenter);
-        label->setFixedHeight(50);
+        label->setMinimumHeight(50);
         label->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
         label->setWordWrap(true);
         

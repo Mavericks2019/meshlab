@@ -1,2 +1,5 @@
 /build-vs/
+/build-ninja/
+/build-progressive/
 /vcpkg_installed/
+/progressive_smoke.obj

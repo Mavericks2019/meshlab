@@ -219,7 +219,7 @@ inline QGroupBox* createRelasticInfoGroup(QLabel** infoLabel) {
     // Create information label
     QLabel *label = new QLabel("No model loaded\nUsing Lorentz transformation to visualize relativistic effects");
     label->setAlignment(Qt::AlignCenter);
-    label->setFixedHeight(80);
+    label->setMinimumHeight(80);
     label->setStyleSheet("background-color: #3A3A3A; color: white; border-radius: 5px; padding: 5px; font-size: 14px;");
     label->setWordWrap(true);
     

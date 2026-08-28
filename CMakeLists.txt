@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
 if(MSVC)
-    add_compile_options(/MP /utf-8 /bigobj)
+    add_compile_options(/utf-8 /bigobj)
     add_compile_definitions(NOMINMAX _USE_MATH_DEFINES)
 endif()
 
@@ -73,6 +73,8 @@ set(OBJVIEWER_SOURCES
     glwidget/cgalglwidget.h
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
+    glwidget/progressiveparameterizationwidget.cpp
+    glwidget/progressiveparameterizationwidget.h
     glwidget/relasticwidget.cpp
     glwidget/relasticwidget.h
     glwidget/relativisticwidget.cpp
@@ -86,6 +88,13 @@ set(OBJVIEWER_SOURCES
     glwidget/uvparamwidget.h
     glwidget/uvparamwidget_extended.cpp
     glwidget/uvparamwidget_extended.h
+
+    progressive/reference/Parafun.cpp
+    progressive/reference/Parafun.h
+    progressive/reference/PardisoSolver.cpp
+    progressive/reference/PardisoSolver.h
+    progressive/reference/MeshDefinition.h
+    tabs/progressive_parameterization_tab.h
 
     Common/CommonDefinitions.cpp
     Common/CommonDefinitions.h

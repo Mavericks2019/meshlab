@@ -4,7 +4,6 @@
 
 #include <QApplication>
 #include <QMouseEvent>
-#include <QDesktopWidget>
 
 #include "QGLViewerWidget.h"
 
@@ -55,8 +54,7 @@ QSize QGLViewerWidget::minimumSizeHint() const
 
 QSize QGLViewerWidget::sizeHint() const
 {
-	QRect rect = QApplication::desktop()->screenGeometry();
-	return QSize(int(rect.width()*0.9),int(rect.height()));
+	return QSize(960, 720);
 }
 
 void QGLViewerWidget::setDefaultMaterial(void)

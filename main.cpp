@@ -1,7 +1,11 @@
 // main.cpp
 #include <QApplication>
+#include <QCursor>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QScrollArea>
+#include <QSplitter>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include "menu_utils.h"
 #include "tab_manager.h"
 
@@ -26,19 +30,21 @@ namespace UIUtils {
         palette.setColor(QPalette::HighlightedText, Qt::black);
         app.setPalette(palette);
         
-        QFont defaultFont("Arial", 12);
-        app.setFont(defaultFont);
     }
 } // namespace UIUtils
 
 int main(int argc, char *argv[])
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+
     QApplication app(argc, argv);
     UIUtils::applyDarkTheme(app);
 
     // 创建主窗口
     QWidget mainWindow;
-    mainWindow.resize(2480, 1800);
     
     // 创建主布局
     QVBoxLayout *outerLayout = new QVBoxLayout(&mainWindow);
@@ -53,20 +59,48 @@ int main(int argc, char *argv[])
     outerLayout->addWidget(tabManager->getMenuBar());
     
     // 创建主内容区域
-    QWidget *contentWidget = new QWidget;
-    QHBoxLayout *mainLayout = new QHBoxLayout(contentWidget);
-    mainLayout->setContentsMargins(10, 10, 10, 10);
-    
-    // 添加tab widget和控制面板到主布局
-    mainLayout->addWidget(tabManager->getTabWidget(), 8);
-    mainLayout->addWidget(tabManager->getControlContainer());
+    QSplitter *contentSplitter = new QSplitter(Qt::Horizontal);
+    contentSplitter->setChildrenCollapsible(false);
+    contentSplitter->setHandleWidth(6);
+
+    QScrollArea *controlScrollArea = new QScrollArea;
+    controlScrollArea->setWidgetResizable(true);
+    controlScrollArea->setFrameShape(QFrame::NoFrame);
+    controlScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    controlScrollArea->setMinimumWidth(240);
+    controlScrollArea->setWidget(tabManager->getControlContainer());
+
+    contentSplitter->addWidget(tabManager->getTabWidget());
+    contentSplitter->addWidget(controlScrollArea);
+    contentSplitter->setStretchFactor(0, 4);
+    contentSplitter->setStretchFactor(1, 1);
     
     // 将内容添加到外层布局
-    outerLayout->addWidget(contentWidget, 1);
+    outerLayout->addWidget(contentSplitter, 1);
     
     // 设置主窗口
     mainWindow.setLayout(outerLayout);
     mainWindow.setWindowTitle("OBJ Viewer - OpenMesh");
+
+    QScreen *screen = QGuiApplication::screenAt(QCursor::pos());
+    if (!screen) {
+        screen = QGuiApplication::primaryScreen();
+    }
+
+    if (screen) {
+        const QRect available = screen->availableGeometry();
+        const qreal scale = available.height() < 900 ? 0.96 : 0.90;
+        const QSize initialSize(
+            qRound(available.width() * scale),
+            qRound(available.height() * scale));
+        QRect initialGeometry(QPoint(0, 0), initialSize);
+        initialGeometry.moveCenter(available.center());
+        mainWindow.setGeometry(initialGeometry);
+
+        const int controlWidth = qBound(260, qRound(initialSize.width() * 0.22), 420);
+        contentSplitter->setSizes({initialSize.width() - controlWidth, controlWidth});
+    }
+
     mainWindow.show();
 
     return app.exec();
