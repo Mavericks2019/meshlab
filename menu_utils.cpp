@@ -190,7 +190,8 @@ namespace UIUtils {
             "Point Cloud",
             "Volume Base",
             "Progressive Parameterization",
-            "AAAtlas Packing"
+            "AAAtlas Packing",
+            "D-Charts"
         };
         
         // 创建动作组，确保只有一个被选中

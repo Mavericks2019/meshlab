@@ -36,6 +36,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , interactiveVolumeWidget(nullptr)
     , progressiveParameterizationWidget(nullptr)
     , atlasParameterizationWidget(nullptr)
+    , dChartsWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -495,6 +496,22 @@ void TabManager::registerTabConfigs() {
             },
             15,
             "AAAtlas Packing"
+        },
+        {"D-Charts",
+            [this]() -> QWidget* {
+                getOrCreateWidget(dChartsWidget);
+                return ::createDChartsTab(dChartsWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(dChartsWidget);
+                return ::createDChartsControlPanel(dChartsWidget, mainWindow);
+            },
+            [this]() {
+                delete dChartsWidget;
+                dChartsWidget = nullptr;
+            },
+            16,
+            "D-Charts"
         }
     };
 }

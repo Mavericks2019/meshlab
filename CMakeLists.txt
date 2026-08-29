@@ -158,6 +158,8 @@ set(OBJVIEWER_SOURCES
     glwidget/blackholewidget.h
     glwidget/cgalglwidget.cpp
     glwidget/cgalglwidget.h
+    glwidget/dchartswidget.cpp
+    glwidget/dchartswidget.h
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
     glwidget/progressiveparameterizationwidget.cpp
@@ -183,6 +185,10 @@ set(OBJVIEWER_SOURCES
     progressive/reference/MeshDefinition.h
     tabs/progressive_parameterization_tab.h
     tabs/atlas_parameterization_tab.h
+    tabs/dcharts_tab.h
+
+    dcharts/dchartsalgorithm.cpp
+    dcharts/dchartsalgorithm.h
 
     Common/CommonDefinitions.cpp
     Common/CommonDefinitions.h
@@ -256,3 +262,53 @@ set_property(SOURCE tab_manager.cpp APPEND PROPERTY OBJECT_DEPENDS
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 
 install(TARGETS objViewer RUNTIME DESTINATION bin)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(dcharts_smoke EXCLUDE_FROM_ALL
+        tests/dcharts_smoke.cpp
+        dcharts/dchartsalgorithm.cpp
+        dcharts/dchartsalgorithm.h
+    )
+    target_include_directories(dcharts_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(dcharts_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        OpenMeshCore
+        OpenMeshTools
+        Eigen3::Eigen
+    )
+    set_target_properties(dcharts_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+    add_test(NAME dcharts_cow_smoke
+        COMMAND dcharts_smoke "${CMAKE_CURRENT_SOURCE_DIR}/models/cow.obj")
+
+    add_executable(dcharts_ui_smoke EXCLUDE_FROM_ALL
+        tests/dcharts_ui_smoke.cpp
+        glwidget/baseglwidget.cpp
+        glwidget/baseglwidget.h
+        glwidget/dchartswidget.cpp
+        glwidget/dchartswidget.h
+        dcharts/dchartsalgorithm.cpp
+        dcharts/dchartsalgorithm.h
+        shaders.qrc
+    )
+    target_include_directories(dcharts_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(dcharts_ui_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        Qt5::OpenGL
+        Qt5::Widgets
+        OpenGL::GL
+        OpenGL::GLU
+        OpenMeshCore
+        OpenMeshTools
+        Eigen3::Eigen
+    )
+    set_target_properties(dcharts_ui_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+endif()
