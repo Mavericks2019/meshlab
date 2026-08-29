@@ -64,6 +64,7 @@ public:
     void setRenderMode(BaseGLWidget::RenderMode mode);
     void setWireframeVisible(bool visible);
     void setFacesVisible(bool visible);
+    void setCheckerboardVisible(bool visible);
     void resetViews();
     void centerViews();
     bool saveParameterized(const QString& path) const;

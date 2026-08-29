@@ -47,6 +47,7 @@ void StateManager::run_cmd(bool isfirst)
 
 			printf("Iter %3d: ", iter_num_sum);
 			perform_one_iteration(bigger_factor, last_mesh_energy, conv_rate);
+			notify_iteration();
 			double expect_conv_rate = (last_mesh_energy - src_distortion) / last_mesh_energy;
 
 			int iterations_needed = (int)(expect_conv_rate / conv_rate);
@@ -95,6 +96,7 @@ void StateManager::run_cmd(bool isfirst)
 					iter_num_sum++;
 					printf("Iter %3d: ", iter_num_sum);
 					perform_one_iteration(bigger_factor, last_mesh_energy, conv_rate);
+					notify_iteration();
 
 					if (conv_rate < conv_rate_flag || last_mesh_energy < src_distortion)
 					{
@@ -210,6 +212,7 @@ void StateManager::run_cmd_2bound(bool isfirst)
 			iter_num_sum++;
 
 			perform_one_iteration(bigger_factor, last_mesh_energy, conv_rate);
+			notify_iteration();
 
 			if (conv_rate < conv_rate_flag)
 			{
@@ -262,6 +265,7 @@ void StateManager::run_cmd_2bound(bool isfirst)
 					iter_count++;
 					iter_num_sum++;
 					perform_one_iteration(bigger_factor, last_mesh_energy, conv_rate);
+					notify_iteration();
 
 					if (conv_rate < conv_rate_flag)
 					{
@@ -359,8 +363,9 @@ void StateManager::run(std::string filename, std::string filename_e,double gap, 
 	}
 }
 
-void StateManager::run_interface(const Eigen::MatrixXd & v_pos, const Eigen::MatrixXd & uv_v_pos, Eigen::MatrixXi & fv_id, Eigen::MatrixXi & uv_fv_id, double dis_bound, double gap, double peb, const string & type)
+void StateManager::run_interface(const Eigen::MatrixXd & v_pos, const Eigen::MatrixXd & uv_v_pos, Eigen::MatrixXi & fv_id, Eigen::MatrixXi & uv_fv_id, double dis_bound, double gap, double peb, const string & type, IterationCallback callback)
 {
+	iteration_callback = std::move(callback);
 	src_distortion = dis_bound;
 	src_distortion -= 4.0;
 	atlas_init_interface(v_pos, uv_v_pos, fv_id, uv_fv_id);
@@ -395,6 +400,13 @@ void StateManager::run_interface(const Eigen::MatrixXd & v_pos, const Eigen::Mat
 		cout << "Error:Wrong Type!!!!!!" << endl;
 	}
 
+}
+
+void StateManager::notify_iteration()
+{
+	if (!iteration_callback) return;
+	update_uv();
+	iteration_callback(scaf_data.UV_V, iter_num_sum);
 }
 
 void StateManager::update_uv()

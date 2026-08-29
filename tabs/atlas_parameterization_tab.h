@@ -77,10 +77,14 @@ inline QWidget* createAtlasParameterizationControlPanel(
     QVBoxLayout* displayLayout = new QVBoxLayout(displayGroup);
     QCheckBox* facesCheckbox = new QCheckBox("Show Faces", displayGroup);
     QCheckBox* wireframeCheckbox = new QCheckBox("Show Wireframe Overlay", displayGroup);
+    QCheckBox* checkerboardCheckbox =
+        new QCheckBox("Show Checkerboard Texture (3D + UV)", displayGroup);
     facesCheckbox->setChecked(true);
     wireframeCheckbox->setChecked(true);
+    checkerboardCheckbox->setChecked(true);
     displayLayout->addWidget(facesCheckbox);
     displayLayout->addWidget(wireframeCheckbox);
+    displayLayout->addWidget(checkerboardCheckbox);
 
     QGroupBox* viewGroup = new QGroupBox("View", panel);
     QVBoxLayout* viewLayout = new QVBoxLayout(viewGroup);
@@ -136,6 +140,8 @@ inline QWidget* createAtlasParameterizationControlPanel(
                      widget, &AtlasParameterizationWidget::setFacesVisible);
     QObject::connect(wireframeCheckbox, &QCheckBox::toggled,
                      widget, &AtlasParameterizationWidget::setWireframeVisible);
+    QObject::connect(checkerboardCheckbox, &QCheckBox::toggled,
+                     widget, &AtlasParameterizationWidget::setCheckerboardVisible);
     QObject::connect(resetViewsButton, &QPushButton::clicked,
                      widget, &AtlasParameterizationWidget::resetViews);
     QObject::connect(centerViewsButton, &QPushButton::clicked,
@@ -150,6 +156,8 @@ inline QWidget* createAtlasParameterizationControlPanel(
         if (!path.isEmpty() && !widget->saveParameterized(path))
             QMessageBox::warning(mainWindow, "Export", "Could not write the atlas mesh.");
     });
+
+    widget->setCheckerboardVisible(checkerboardCheckbox->isChecked());
 
     layout->addWidget(inputGroup);
     layout->addWidget(pipelineGroup);

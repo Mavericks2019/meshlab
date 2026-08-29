@@ -40,6 +40,44 @@ AtlasMeshData copyMeshData(const Mesh& mesh)
     return data;
 }
 
+AtlasMeshData copyTexturedMeshData(const Mesh& mesh, std::size_t textureVertexCount)
+{
+    OpenMesh::HPropHandleT<int> textureIndex;
+    if (!mesh.get_property_handle(textureIndex, "hvt_index"))
+        return copyMeshData(mesh);
+
+    AtlasMeshData data;
+    data.vertices.assign(textureVertexCount * 3, 0.0f);
+    data.faces.reserve(mesh.n_faces() * 3);
+    std::vector<bool> assigned(textureVertexCount, false);
+
+    for (auto face : mesh.faces()) {
+        std::vector<std::uint32_t> vertices;
+        for (auto halfedge : mesh.fh_range(face)) {
+            const int textureVertex = mesh.property(textureIndex, halfedge);
+            if (textureVertex < 0 || std::size_t(textureVertex) >= textureVertexCount)
+                return copyMeshData(mesh);
+
+            const auto& point = mesh.point(mesh.to_vertex_handle(halfedge));
+            const std::size_t offset = std::size_t(textureVertex) * 3;
+            data.vertices[offset] = float(point[0]);
+            data.vertices[offset + 1] = float(point[1]);
+            data.vertices[offset + 2] = float(point[2]);
+            assigned[std::size_t(textureVertex)] = true;
+            vertices.push_back(std::uint32_t(textureVertex));
+        }
+        for (std::size_t i = 1; i + 1 < vertices.size(); ++i) {
+            data.faces.push_back(vertices[0]);
+            data.faces.push_back(vertices[i]);
+            data.faces.push_back(vertices[i + 1]);
+        }
+    }
+
+    if (std::find(assigned.begin(), assigned.end(), false) != assigned.end())
+        return copyMeshData(mesh);
+    return data;
+}
+
 void prepareMesh(Mesh& mesh)
 {
     mesh.request_vertex_status();
@@ -100,7 +138,7 @@ public:
         stage = Stage::Loaded;
     }
 
-    void executeNextStep()
+    void executeNextStep(const AtlasPipeline::ProgressCallback& progressCallback)
     {
         switch (stage) {
         case Stage::Loaded:
@@ -123,7 +161,7 @@ public:
             stage = Stage::Packed;
             break;
         case Stage::Packed:
-            reduceDistortion();
+            reduceDistortion(progressCallback);
             phase = "Distortion Reduce";
             stage = Stage::Complete;
             break;
@@ -139,8 +177,11 @@ public:
     {
         AtlasPipelineSnapshot result;
         result.source = source;
-        if (cutting && cutting->is_valid())
+        if (cutting && cutting->is_valid()) {
             result.parameterized = copyMeshData(cutting->get_origin_para());
+            result.source = copyTexturedMeshData(
+                mesh, result.parameterized.vertices.size() / 3);
+        }
         result.phase = phase;
         result.step = stepIndex;
         result.distortion = cutting ? cutting->get_distortion() : 0.0;
@@ -272,7 +313,17 @@ private:
         reloadCutting();
     }
 
-    void reduceDistortion()
+    void applyDistortionResult(const Eigen::MatrixXd& uvPositions)
+    {
+        cutting->load_from_scaf(uvPositions);
+        cutting->update_textured_mesh(mesh, true);
+        prepareMesh(mesh);
+        cutting.reset();
+        boundaryVk.clear();
+        reloadCutting();
+    }
+
+    void reduceDistortion(const AtlasPipeline::ProgressCallback& progressCallback)
     {
         Eigen::MatrixXd positions;
         Eigen::MatrixXd uvPositions;
@@ -283,13 +334,14 @@ private:
         StateManager stateManager;
         stateManager.run_interface(
             positions, uvPositions, faces, uvFaces,
-            inputDistortion * 4.0, chartGap, packingEfficiencyBound);
-        cutting->load_from_scaf(stateManager.get_uv());
-        cutting->update_textured_mesh(mesh, true);
-        prepareMesh(mesh);
-        cutting.reset();
-        boundaryVk.clear();
-        reloadCutting();
+            inputDistortion * 4.0, chartGap, packingEfficiencyBound, "LOWER",
+            [this, &progressCallback](const Eigen::MatrixXd& currentUv, int iteration) {
+                applyDistortionResult(currentUv);
+                phase = "Distortion Reduce Iteration " + std::to_string(iteration);
+                if (progressCallback)
+                    progressCallback(snapshot());
+            });
+        applyDistortionResult(stateManager.get_uv());
     }
 
     Mesh mesh;
@@ -319,9 +371,9 @@ void AtlasPipeline::initialize(const std::string& inputPath)
     impl_->initialize(inputPath);
 }
 
-void AtlasPipeline::executeNextStep()
+void AtlasPipeline::executeNextStep(const ProgressCallback& progressCallback)
 {
-    impl_->executeNextStep();
+    impl_->executeNextStep(progressCallback);
 }
 
 bool AtlasPipeline::isComplete() const

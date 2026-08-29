@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -24,6 +25,8 @@ struct AtlasPipelineSnapshot
 class AtlasPipeline
 {
 public:
+    using ProgressCallback = std::function<void(const AtlasPipelineSnapshot&)>;
+
     AtlasPipeline();
     ~AtlasPipeline();
 
@@ -31,7 +34,7 @@ public:
     AtlasPipeline& operator=(const AtlasPipeline&) = delete;
 
     void initialize(const std::string& inputPath);
-    void executeNextStep();
+    void executeNextStep(const ProgressCallback& progressCallback = {});
     bool isComplete() const;
     std::string nextStepName() const;
     AtlasPipelineSnapshot snapshot() const;

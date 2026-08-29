@@ -7,10 +7,13 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <functional>
 #include "Parafun.h"
 
 struct StateManager
 {
+  using IterationCallback = std::function<void(const Eigen::MatrixXd&, int)>;
+
   StateManager(){} //empty constructor
 
   void run_cmd(bool isfirst=true);
@@ -21,7 +24,7 @@ struct StateManager
  
   void run(std::string filename, std::string filename_e, double gap,const string& type);
 
-  void run_interface(const Eigen::MatrixXd& v_pos, const Eigen::MatrixXd& uv_v_pos, Eigen::MatrixXi& fv_id, Eigen::MatrixXi& uv_fv_id, double dis_bound, double gap, double peb = 0.8, const string& type = "LOWER");
+  void run_interface(const Eigen::MatrixXd& v_pos, const Eigen::MatrixXd& uv_v_pos, Eigen::MatrixXi& fv_id, Eigen::MatrixXi& uv_fv_id, double dis_bound, double gap, double peb = 0.8, const string& type = "LOWER", IterationCallback iteration_callback = {});
 
   void update_uv();
   void after_load();
@@ -36,6 +39,7 @@ struct StateManager
   std::string model_file = std::string("NA");
 
   std::shared_ptr<Parafun> parafun_solver = nullptr;
+  IterationCallback iteration_callback;
 
   //tweaking
   bool optimize_scaffold = true;
@@ -67,6 +71,8 @@ struct StateManager
 
   OutRelated out_related;
   //display
+
+  void notify_iteration();
 
 };
 

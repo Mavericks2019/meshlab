@@ -8,6 +8,8 @@
 #include <QLabel>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <algorithm>
+#include <cmath>
 #include <stdexcept>
 
 namespace
@@ -93,7 +95,10 @@ void AtlasWorker::run()
             if (!waitForNextStep())
                 return;
             emit stepStarted(QString::fromStdString(pipeline.nextStepName()));
-            pipeline.executeNextStep();
+            pipeline.executeNextStep([this](const AtlasPipelineSnapshot& snapshot) {
+                if (!stopRequested_.load())
+                    emit snapshotReady(toDisplaySnapshot(snapshot));
+            });
             emit snapshotReady(toDisplaySnapshot(pipeline.snapshot()));
         }
     } catch (const std::exception& error) {
@@ -223,6 +228,12 @@ void AtlasParameterizationWidget::setFacesVisible(bool visible)
         view->setHideFaces(!visible);
 }
 
+void AtlasParameterizationWidget::setCheckerboardVisible(bool visible)
+{
+    sourceView_->setCheckerboardVisible(visible);
+    parameterizedView_->setCheckerboardVisible(visible);
+}
+
 void AtlasParameterizationWidget::resetViews()
 {
     sourceView_->resetView();
@@ -263,8 +274,35 @@ bool AtlasParameterizationWidget::isRunning() const
 void AtlasParameterizationWidget::applySnapshot(const AtlasDisplaySnapshot& snapshot)
 {
     lastSnapshot_ = snapshot;
-    sourceView_->setMeshData(snapshot.source, false);
-    parameterizedView_->setMeshData(snapshot.parameterized, true);
+    QVector<QVector2D> checkerCoordinates;
+    if (!snapshot.parameterized.vertices.isEmpty()) {
+        float minX = snapshot.parameterized.vertices.front().x();
+        float maxX = minX;
+        float minY = snapshot.parameterized.vertices.front().y();
+        float maxY = minY;
+        for (const QVector3D& vertex : snapshot.parameterized.vertices) {
+            minX = (std::min)(minX, vertex.x());
+            maxX = (std::max)(maxX, vertex.x());
+            minY = (std::min)(minY, vertex.y());
+            maxY = (std::max)(maxY, vertex.y());
+        }
+        const float extent = (std::max)(maxX - minX, maxY - minY);
+        const QVector2D origin(0.5f * (minX + maxX), 0.5f * (minY + maxY));
+        const float scale = std::isfinite(extent) && extent > 1e-8f ? 1.0f / extent : 1.0f;
+        checkerCoordinates.reserve(snapshot.parameterized.vertices.size());
+        for (const QVector3D& vertex : snapshot.parameterized.vertices) {
+            checkerCoordinates.push_back(
+                (QVector2D(vertex.x(), vertex.y()) - origin) * scale
+                + QVector2D(0.5f, 0.5f));
+        }
+    }
+
+    const bool matchingTopology =
+        snapshot.source.vertices.size() == checkerCoordinates.size();
+    sourceView_->setMeshData(
+        snapshot.source, false,
+        matchingTopology ? checkerCoordinates : QVector<QVector2D>());
+    parameterizedView_->setMeshData(snapshot.parameterized, true, checkerCoordinates);
     emit resultAvailable(!snapshot.parameterized.vertices.isEmpty());
     emit statusChanged(QString("%1 | step %2 | UV V/F %3/%4 | distortion %5")
         .arg(snapshot.phase)
@@ -278,8 +316,7 @@ void AtlasParameterizationWidget::handleStepStarted(const QString& phase)
 {
     if (phase == "Distortion Reduce") {
         emit statusChanged(
-            "Running: Distortion Reduce | iterative sparse solve in progress...\n"
-            "The packed rectangles will change to distortion-reduced chart boundaries when complete.");
+            "Running: Distortion Reduce | each sparse-solver iteration will refresh the atlas...");
         return;
     }
     emit statusChanged("Running: " + phase + "...");

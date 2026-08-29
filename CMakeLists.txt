@@ -241,6 +241,18 @@ set_target_properties(objViewer PROPERTIES
     VS_GLOBAL_TrackFileAccess false
     VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
 )
+
+set_property(SOURCE atlas/atlaspipeline.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/atlaspipeline.h"
+)
+set_property(SOURCE glwidget/atlasparameterizationwidget.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/atlaspipeline.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/glwidget/atlasparameterizationwidget.h"
+)
+set_property(SOURCE tab_manager.cpp APPEND PROPERTY OBJECT_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/glwidget/atlasparameterizationwidget.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tabs/atlas_parameterization_tab.h"
+)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 
 install(TARGETS objViewer RUNTIME DESTINATION bin)
