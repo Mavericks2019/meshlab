@@ -2,6 +2,7 @@
 
 #include "glwidget/printableinterlockwidget.h"
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QCoreApplication>
 #include <QDoubleSpinBox>
@@ -135,6 +136,22 @@ inline QWidget* createPrintableInterlockControlPanel(
 
     QGroupBox* displayGroup = new QGroupBox("Display", panel);
     QVBoxLayout* displayLayout = new QVBoxLayout(displayGroup);
+    QHBoxLayout* geometryModeLayout = new QHBoxLayout;
+    QPushButton* voxelModeButton = new QPushButton("Voxel solids (D)", displayGroup);
+    QPushButton* surfaceModeButton = new QPushButton("Surface cut (E)", displayGroup);
+    voxelModeButton->setObjectName("printableVoxelMode");
+    surfaceModeButton->setObjectName("printableSurfaceMode");
+    QButtonGroup* geometryMode = new QButtonGroup(displayGroup);
+    geometryMode->setExclusive(true);
+    for (QPushButton* button : {voxelModeButton, surfaceModeButton}) {
+        button->setCheckable(true);
+        button->setFixedHeight(32);
+        button->setStyleSheet(
+            "QPushButton:checked { background: #397a69; color: white; border: 1px solid #69a894; }");
+        geometryMode->addButton(button);
+        geometryModeLayout->addWidget(button);
+    }
+    surfaceModeButton->setChecked(true);
     QCheckBox* wireframe = new QCheckBox("Show triangle and voxel edges", displayGroup);
     wireframe->setChecked(false);
     QFormLayout* explosionLayout = new QFormLayout;
@@ -144,9 +161,17 @@ inline QWidget* createPrintableInterlockControlPanel(
     explosionLayout->addRow("Part spacing", explosion);
     QPushButton* resetViewsButton = new QPushButton("Reset both views", displayGroup);
     resetViewsButton->setIcon(panel->style()->standardIcon(QStyle::SP_DesktopIcon));
+    displayLayout->addLayout(geometryModeLayout);
     displayLayout->addWidget(wireframe);
     displayLayout->addLayout(explosionLayout);
     displayLayout->addWidget(resetViewsButton);
+
+    QGroupBox* outputGroup = new QGroupBox("Printable Output", panel);
+    QVBoxLayout* outputLayout = new QVBoxLayout(outputGroup);
+    QPushButton* exportButton = new QPushButton("Export displayed OBJ parts", outputGroup);
+    exportButton->setIcon(panel->style()->standardIcon(QStyle::SP_DialogSaveButton));
+    exportButton->setEnabled(false);
+    outputLayout->addWidget(exportButton);
 
     QLabel* statusLabel = new QLabel("Ready", panel);
     statusLabel->setWordWrap(true);
@@ -219,11 +244,40 @@ inline QWidget* createPrintableInterlockControlPanel(
                      widget, &PrintableInterlockWidget::reset);
     QObject::connect(wireframe, &QCheckBox::toggled,
                      widget, &PrintableInterlockWidget::setWireframeVisible);
+    QObject::connect(voxelModeButton, &QPushButton::toggled, panel, [=](bool checked) {
+        if (checked)
+            widget->setSurfaceClippedMode(false);
+    });
+    QObject::connect(surfaceModeButton, &QPushButton::toggled, panel, [=](bool checked) {
+        if (checked)
+            widget->setSurfaceClippedMode(true);
+    });
     QObject::connect(explosion, &QSlider::valueChanged, panel, [=](int value) {
         widget->setExplosion(float(value) / 100.0f);
     });
     QObject::connect(resetViewsButton, &QPushButton::clicked,
                      widget, &PrintableInterlockWidget::resetViews);
+    QObject::connect(exportButton, &QPushButton::clicked, panel, [=]() {
+        const QString directory = QFileDialog::getExistingDirectory(
+            mainWindow, "Export watertight interlocking parts");
+        if (directory.isEmpty())
+            return;
+        QString error;
+        if (!widget->exportPrintableParts(directory, &error)) {
+            QMessageBox::warning(mainWindow, "Printable Interlocking Parts", error);
+            return;
+        }
+        QMessageBox::information(
+            mainWindow, "Printable Interlocking Parts",
+            QString("Exported %1 watertight OBJ parts to:\n%2")
+                .arg(pieceCount->value()).arg(directory));
+    });
+    QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
+                     exportButton, [=](const PrintableInterlockSnapshot& snapshot) {
+        exportButton->setEnabled(snapshot.complete
+            && snapshot.voxelWatertightParts == snapshot.requestedPieces
+            && snapshot.watertightParts == snapshot.requestedPieces);
+    });
     QObject::connect(widget, &PrintableInterlockWidget::statusChanged,
                      statusLabel, &QLabel::setText);
 
@@ -232,6 +286,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     layout->addWidget(parametersGroup);
     layout->addWidget(iterationGroup);
     layout->addWidget(displayGroup);
+    layout->addWidget(outputGroup);
     layout->addWidget(statusLabel);
     layout->addStretch();
     return panel;

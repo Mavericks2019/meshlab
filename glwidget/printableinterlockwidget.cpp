@@ -1,10 +1,14 @@
 #include "printableinterlockwidget.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLocale>
+#include <QSaveFile>
 #include <QSplitter>
+#include <QTextStream>
 #include <QVBoxLayout>
 
 PrintableInterlockWorker::PrintableInterlockWorker(
@@ -191,6 +195,7 @@ void PrintableInterlockWidget::reset()
     partitionNameLabel_->setText("Interlocking parts");
     phaseLabel_->setText("Select one watertight triangle mesh");
     metricsLabel_->clear();
+    lastSnapshot_ = PrintableInterlockSnapshot();
     emit statusChanged("Ready");
     emit runningChanged(false);
 }
@@ -206,10 +211,83 @@ void PrintableInterlockWidget::setExplosion(float amount)
     partitionViewport_->setExplosion(amount);
 }
 
+void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
+{
+    surfaceClippedMode_ = surfaceClipped;
+    if (!lastSnapshot_.complete)
+        return;
+    partitionViewport_->setModelData(
+        surfaceClippedMode_ ? lastSnapshot_.partitionedModel
+                            : lastSnapshot_.voxelizedModel,
+        lastSnapshot_.requestedPieces);
+    partitionNameLabel_->setText(
+        QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
+        + QFileInfo(meshPath_).fileName());
+}
+
 void PrintableInterlockWidget::resetViews()
 {
     originalViewport_->resetView();
     partitionViewport_->resetView();
+}
+
+bool PrintableInterlockWidget::exportPrintableParts(
+    const QString& directory, QString* errorMessage) const
+{
+    const QVector<SteadyDissectionMeshData>& parts = surfaceClippedMode_
+        ? lastSnapshot_.printableParts : lastSnapshot_.voxelParts;
+    const int watertightParts = surfaceClippedMode_
+        ? lastSnapshot_.watertightParts : lastSnapshot_.voxelWatertightParts;
+    if (!lastSnapshot_.complete || watertightParts != lastSnapshot_.requestedPieces
+        || parts.size() != lastSnapshot_.requestedPieces) {
+        if (errorMessage)
+            *errorMessage = "Run the construction until all watertight parts are complete.";
+        return false;
+    }
+    QDir outputDirectory(directory);
+    if (!outputDirectory.exists()) {
+        if (errorMessage)
+            *errorMessage = "The selected output directory does not exist.";
+        return false;
+    }
+
+    const QString baseName = QFileInfo(meshPath_).completeBaseName();
+    const QString modeName = surfaceClippedMode_ ? "surface" : "voxel";
+    for (int piece = 0; piece < parts.size(); ++piece) {
+        const SteadyDissectionMeshData& mesh = parts[piece];
+        const QString fileName = QString("%1_%2_part_%3.obj")
+            .arg(baseName.isEmpty() ? "interlocking" : baseName)
+            .arg(modeName)
+            .arg(piece + 1, 2, 10, QChar('0'));
+        QSaveFile file(outputDirectory.filePath(fileName));
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            if (errorMessage)
+                *errorMessage = QString("Could not create %1.").arg(fileName);
+            return false;
+        }
+        QTextStream stream(&file);
+        stream.setLocale(QLocale::c());
+        stream.setRealNumberNotation(QTextStream::FixedNotation);
+        stream.setRealNumberPrecision(9);
+        stream << "# Watertight printable interlocking " << modeName << " part\n";
+        stream << "o " << baseName << "_part_" << piece + 1 << "\n";
+        const float sourceScale = float(lastSnapshot_.sourceUnitsPerNormalizedUnit);
+        for (const QVector3D& normalized : mesh.vertices) {
+            const QVector3D point = lastSnapshot_.sourceCenter + normalized * sourceScale;
+            stream << "v " << point.x() << ' ' << point.y() << ' ' << point.z() << "\n";
+        }
+        for (int index = 0; index + 2 < mesh.faces.size(); index += 3) {
+            stream << "f " << mesh.faces[index] + 1U << ' '
+                   << mesh.faces[index + 1] + 1U << ' '
+                   << mesh.faces[index + 2] + 1U << "\n";
+        }
+        if (stream.status() != QTextStream::Ok || !file.commit()) {
+            if (errorMessage)
+                *errorMessage = QString("Could not finish writing %1.").arg(fileName);
+            return false;
+        }
+    }
+    return true;
 }
 
 bool PrintableInterlockWidget::isRunning() const
@@ -219,15 +297,23 @@ bool PrintableInterlockWidget::isRunning() const
 
 void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& snapshot)
 {
+    lastSnapshot_ = snapshot;
     originalViewport_->setModelData(snapshot.originalModel, snapshot.requestedPieces);
-    partitionViewport_->setModelData(snapshot.partitionedModel, snapshot.requestedPieces);
+    const SteadyDissectionMeshData& displayedModel = snapshot.complete
+        && !surfaceClippedMode_ ? snapshot.voxelizedModel : snapshot.partitionedModel;
+    partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
+    if (snapshot.complete) {
+        partitionNameLabel_->setText(
+            QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
+            + QFileInfo(meshPath_).fileName());
+    }
     phaseLabel_->setText(snapshot.phase);
     metricsLabel_->setText(QString("%1 / %2 pieces  |  %3^3 voxels")
         .arg(snapshot.completedPieces).arg(snapshot.requestedPieces).arg(snapshot.resolution));
     emit statusChanged(QString(
         "%1\nPieces %2 / %3\nOccupied voxels %4 | internal %5 | boundary %6\n"
         "Boundary attached %7 / %6\nTiny/disconnected local cells %8 / %9\n"
-        "Interlocking sequence: %10")
+        "Interlocking sequence: %10\nWatertight voxel/surface parts: %11 / %12 / %3")
         .arg(snapshot.phase)
         .arg(snapshot.completedPieces)
         .arg(snapshot.requestedPieces)
@@ -237,7 +323,9 @@ void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& s
         .arg(snapshot.attachedBoundaryVoxels)
         .arg(snapshot.tinyVoxels)
         .arg(snapshot.disconnectedVoxels)
-        .arg(snapshot.interlocking ? "satisfied" : "pending"));
+        .arg(snapshot.interlocking ? "satisfied" : "pending")
+        .arg(snapshot.voxelWatertightParts)
+        .arg(snapshot.watertightParts));
     emit snapshotChanged(snapshot);
 }
 

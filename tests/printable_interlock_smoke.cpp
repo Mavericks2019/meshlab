@@ -2,8 +2,39 @@
 
 #include <QCoreApplication>
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <map>
 #include <numeric>
+
+namespace {
+bool isClosedIndexedMesh(const SteadyDissectionMeshData& mesh)
+{
+    if (mesh.vertices.isEmpty() || mesh.faces.isEmpty() || mesh.faces.size() % 3 != 0)
+        return false;
+    std::map<std::pair<unsigned int, unsigned int>, int> edgeCounts;
+    double signedVolume = 0.0;
+    for (int index = 0; index < mesh.faces.size(); index += 3) {
+        const unsigned int a = mesh.faces[index];
+        const unsigned int b = mesh.faces[index + 1];
+        const unsigned int c = mesh.faces[index + 2];
+        if (a >= unsigned(mesh.vertices.size()) || b >= unsigned(mesh.vertices.size())
+            || c >= unsigned(mesh.vertices.size()) || a == b || b == c || c == a)
+            return false;
+        for (const auto& edge : {std::pair<unsigned int, unsigned int>{a, b},
+                                 {b, c}, {c, a}}) {
+            const auto ordered = std::minmax(edge.first, edge.second);
+            ++edgeCounts[{ordered.first, ordered.second}];
+        }
+        signedVolume += QVector3D::dotProduct(
+            mesh.vertices[a], QVector3D::crossProduct(mesh.vertices[b], mesh.vertices[c])) / 6.0;
+    }
+    return std::abs(signedVolume) > 1e-9
+        && std::all_of(edgeCounts.begin(), edgeCounts.end(),
+                       [](const auto& edge) { return edge.second == 2; });
+}
+}
 
 int main(int argc, char** argv)
 {
@@ -59,7 +90,12 @@ int main(int argc, char** argv)
         || assigned != finalSnapshot.occupiedVoxels
         || finalSnapshot.attachedBoundaryVoxels != finalSnapshot.boundaryVoxels
         || finalSnapshot.originalModel.faces.isEmpty()
+        || finalSnapshot.voxelizedModel.faces.isEmpty()
         || finalSnapshot.partitionedModel.faces.isEmpty()
+        || finalSnapshot.voxelWatertightParts != parameters.pieceCount
+        || finalSnapshot.watertightParts != parameters.pieceCount
+        || finalSnapshot.voxelParts.size() != parameters.pieceCount
+        || finalSnapshot.printableParts.size() != parameters.pieceCount
         || snapshotCount < 4) {
         std::cerr << "The single-model partition is incomplete or not interlocking.\n";
         return 4;
@@ -68,6 +104,13 @@ int main(int argc, char** argv)
         if (count <= 0) {
             std::cerr << "The result contains an empty part.\n";
             return 5;
+        }
+    }
+    for (int piece = 0; piece < parameters.pieceCount; ++piece) {
+        if (!isClosedIndexedMesh(finalSnapshot.voxelParts[piece])
+            || !isClosedIndexedMesh(finalSnapshot.printableParts[piece])) {
+            std::cerr << "A generated voxel or surface-cut part has an open indexed boundary.\n";
+            return 6;
         }
     }
     return 0;

@@ -23,10 +23,15 @@ struct PrintableInterlockParameters {
 
 struct PrintableInterlockSnapshot {
     SteadyDissectionMeshData originalModel;
+    SteadyDissectionMeshData voxelizedModel;
     SteadyDissectionMeshData partitionedModel;
+    QVector<SteadyDissectionMeshData> voxelParts;
+    QVector<SteadyDissectionMeshData> printableParts;
     QVector<int> pieceVoxelCounts;
     QVector<int> extractionDirections;
+    QVector3D sourceCenter;
     QString phase;
+    double sourceUnitsPerNormalizedUnit = 1.0;
     int resolution = 0;
     int requestedPieces = 0;
     int completedPieces = 0;
@@ -36,6 +41,8 @@ struct PrintableInterlockSnapshot {
     int attachedBoundaryVoxels = 0;
     int tinyVoxels = 0;
     int disconnectedVoxels = 0;
+    int voxelWatertightParts = 0;
+    int watertightParts = 0;
     bool interlocking = false;
     bool complete = false;
 };

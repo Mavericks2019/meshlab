@@ -1,10 +1,17 @@
 #include "printableinterlockalgorithm.h"
 
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Polygon_mesh_processing/connected_components.h>
+#include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
+#include <CGAL/Polygon_mesh_processing/orientation.h>
+#include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
+#include <CGAL/Polygon_mesh_processing/orient_polygon_soup_extension.h>
+#include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+#include <CGAL/Polygon_mesh_processing/repair.h>
 #include <CGAL/Polygon_mesh_processing/self_intersections.h>
 #include <CGAL/Polygon_mesh_processing/shape_predicates.h>
+#include <CGAL/Polygon_mesh_processing/stitch_borders.h>
 #include <CGAL/Side_of_triangle_mesh.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/boost/graph/IO/polygon_mesh_io.h>
@@ -18,15 +25,17 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <queue>
 #include <random>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 
 namespace {
 namespace PMP = CGAL::Polygon_mesh_processing;
-using Kernel = CGAL::Exact_predicates_inexact_constructions_kernel;
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
 using Point = Kernel::Point_3;
 using SurfaceMesh = CGAL::Surface_mesh<Point>;
 
@@ -108,8 +117,10 @@ struct Grid {
 struct LoadedMesh {
     SurfaceMesh mesh;
     Point center;
+    QVector3D sourceCenter;
     double extent = 0.0;
     double volume = 0.0;
+    double sourceUnitsPerNormalizedUnit = 1.0;
 };
 
 bool loadAndValidateMesh(const QString& path, LoadedMesh* result, QString* error)
@@ -163,6 +174,9 @@ bool loadAndValidateMesh(const QString& path, LoadedMesh* result, QString* error
     result->center = Point(0.5 * (box.xmin() + box.xmax()),
                            0.5 * (box.ymin() + box.ymax()),
                            0.5 * (box.zmin() + box.zmax()));
+    result->sourceCenter = QVector3D(float(CGAL::to_double(result->center.x())),
+                                     float(CGAL::to_double(result->center.y())),
+                                     float(CGAL::to_double(result->center.z())));
     result->extent = (std::max)({box.xmax() - box.xmin(), box.ymax() - box.ymin(),
                                  box.zmax() - box.zmin()});
     result->volume = std::abs(CGAL::to_double(PMP::volume(result->mesh)));
@@ -173,6 +187,7 @@ bool loadAndValidateMesh(const QString& path, LoadedMesh* result, QString* error
     }
 
     const double scale = 2.0 / result->extent;
+    result->sourceUnitsPerNormalizedUnit = 1.0 / scale;
     for (SurfaceMesh::Vertex_index vertex : result->mesh.vertices()) {
         const Point point = result->mesh.point(vertex);
         result->mesh.point(vertex) = Point(
@@ -183,6 +198,7 @@ bool loadAndValidateMesh(const QString& path, LoadedMesh* result, QString* error
     result->center = Point(0.0, 0.0, 0.0);
     result->extent = 2.0;
     result->volume *= scale * scale * scale;
+    PMP::orient_to_bound_a_volume(result->mesh);
     return true;
 }
 
@@ -1164,6 +1180,275 @@ SteadyDissectionMeshData buildPartitionMesh(const SurfaceMesh& mesh, const Grid&
     return output;
 }
 
+bool buildVoxelSolid(const Grid& grid, int piece, SurfaceMesh* output, QString* error)
+{
+    output->clear();
+    const int vertexSide = grid.resolution + 1;
+    std::vector<int> vertices(vertexSide * vertexSide * vertexSide, -1);
+    std::vector<Point> points;
+    std::vector<std::array<std::size_t, 3>> triangles;
+    auto vertexAt = [&](const Coord& point) {
+        const int key = (point.z * vertexSide + point.y) * vertexSide + point.x;
+        int& vertex = vertices[key];
+        if (vertex < 0) {
+            vertex = int(points.size());
+            points.emplace_back(
+                grid.origin + point.x * grid.cellSize,
+                grid.origin + point.y * grid.cellSize,
+                grid.origin + point.z * grid.cellSize);
+        }
+        return std::size_t(vertex);
+    };
+    auto addQuad = [&](const std::array<Coord, 4>& corners) {
+        const std::size_t a = vertexAt(corners[0]);
+        const std::size_t b = vertexAt(corners[1]);
+        const std::size_t c = vertexAt(corners[2]);
+        const std::size_t d = vertexAt(corners[3]);
+        triangles.push_back({{a, b, c}});
+        triangles.push_back({{a, c, d}});
+        return true;
+    };
+
+    bool valid = true;
+    for (int index = 0; index < int(grid.labels.size()) && valid; ++index) {
+        if (grid.labels[index] != piece)
+            continue;
+        const Coord cell = grid.coord(index);
+        const int x = cell.x;
+        const int y = cell.y;
+        const int z = cell.z;
+        for (int direction = 0; direction < 6 && valid; ++direction) {
+            if (grid.label(cell + kDirections[direction]) == piece)
+                continue;
+            switch (direction) {
+            case 0:
+                valid = addQuad({{{x + 1, y, z}, {x + 1, y + 1, z},
+                                  {x + 1, y + 1, z + 1}, {x + 1, y, z + 1}}});
+                break;
+            case 1:
+                valid = addQuad({{{x, y, z + 1}, {x, y + 1, z + 1},
+                                  {x, y + 1, z}, {x, y, z}}});
+                break;
+            case 2:
+                valid = addQuad({{{x, y + 1, z + 1}, {x + 1, y + 1, z + 1},
+                                  {x + 1, y + 1, z}, {x, y + 1, z}}});
+                break;
+            case 3:
+                valid = addQuad({{{x, y, z}, {x + 1, y, z},
+                                  {x + 1, y, z + 1}, {x, y, z + 1}}});
+                break;
+            case 4:
+                valid = addQuad({{{x + 1, y, z + 1}, {x + 1, y + 1, z + 1},
+                                  {x, y + 1, z + 1}, {x, y, z + 1}}});
+                break;
+            default:
+                valid = addQuad({{{x, y, z}, {x, y + 1, z},
+                                  {x + 1, y + 1, z}, {x + 1, y, z}}});
+                break;
+            }
+        }
+    }
+
+    if (!valid || triangles.empty()) {
+        *error = QString("Part %1 does not form a manifold closed voxel solid.").arg(piece + 1);
+        return false;
+    }
+
+    const bool soupWasManifold = PMP::orient_polygon_soup(points, triangles);
+    PMP::duplicate_non_manifold_edges_in_polygon_soup(points, triangles);
+    PMP::polygon_soup_to_polygon_mesh(points, triangles, *output);
+    PMP::stitch_borders(*output);
+    int singularGroupCount = 0;
+    auto insetVertices = [&](const std::unordered_set<int>& marked, double amount) {
+        std::vector<std::pair<SurfaceMesh::Vertex_index, Kernel::Vector_3>> displacements;
+        for (SurfaceMesh::Vertex_index vertex : output->vertices()) {
+            if (!marked.count(vertex.idx()))
+                continue;
+            Kernel::Vector_3 towardUmbrella = CGAL::NULL_VECTOR;
+            int neighborCount = 0;
+            for (SurfaceMesh::Vertex_index neighbor :
+                 CGAL::vertices_around_target(output->halfedge(vertex), *output)) {
+                towardUmbrella = towardUmbrella + (output->point(neighbor) - output->point(vertex));
+                ++neighborCount;
+            }
+            if (neighborCount > 0)
+                towardUmbrella = towardUmbrella / neighborCount;
+            const double length = std::sqrt(CGAL::to_double(towardUmbrella.squared_length()));
+            if (length > 1e-12)
+                displacements.push_back({vertex, towardUmbrella * (amount / length)});
+        }
+        for (const auto& displacement : displacements)
+            output->point(displacement.first) = output->point(displacement.first)
+                + displacement.second;
+    };
+    if (!soupWasManifold) {
+        std::map<std::tuple<double, double, double>,
+                 std::vector<SurfaceMesh::Vertex_index>> coincidentVertices;
+        for (SurfaceMesh::Vertex_index vertex : output->vertices()) {
+            const Point point = output->point(vertex);
+            coincidentVertices[{CGAL::to_double(point.x()), CGAL::to_double(point.y()),
+                                CGAL::to_double(point.z())}].push_back(vertex);
+        }
+        const double inset = grid.cellSize * 0.02;
+        std::unordered_set<int> singularVertices;
+        for (const auto& entry : coincidentVertices) {
+            if (entry.second.size() < 2)
+                continue;
+            ++singularGroupCount;
+            for (SurfaceMesh::Vertex_index vertex : entry.second)
+                singularVertices.insert(vertex.idx());
+        }
+        insetVertices(singularVertices, inset);
+    }
+
+    if (output->is_empty() || !CGAL::is_triangle_mesh(*output)
+        || !CGAL::is_closed(*output)) {
+        *error = QString("Part %1 does not form a closed voxel solid "
+                         "(empty: %2; triangles: %3; closed: %4; soup manifold: %5).")
+                     .arg(piece + 1)
+                     .arg(output->is_empty() ? "yes" : "no")
+                     .arg(CGAL::is_triangle_mesh(*output) ? "yes" : "no")
+                     .arg(CGAL::is_closed(*output) ? "yes" : "no")
+                     .arg(soupWasManifold ? "yes" : "no");
+        return false;
+    }
+    const bool selfIntersecting = PMP::does_self_intersect(*output);
+    const bool boundsVolume = !selfIntersecting && PMP::does_bound_a_volume(*output);
+    if (selfIntersecting || !boundsVolume) {
+        *error = QString("Part %1 has an invalid voxel boundary (%2). "
+                         "Soup manifold: %3; singular groups: %4.")
+                     .arg(piece + 1)
+                     .arg(selfIntersecting ? "self-intersection" : "invalid orientation")
+                     .arg(soupWasManifold ? "yes" : "no")
+                     .arg(singularGroupCount);
+        return false;
+    }
+    auto componentMap = output->add_property_map<
+        SurfaceMesh::Face_index, std::size_t>("f:voxel_component", 0).first;
+    const std::size_t componentCount = PMP::connected_components(*output, componentMap);
+    output->remove_property_map(componentMap);
+    if (componentCount != 1) {
+        *error = QString("Part %1 contains %2 disconnected voxel shells. "
+                         "Try a different seed or a higher voxel resolution.")
+                     .arg(piece + 1).arg(componentCount);
+        return false;
+    }
+    PMP::orient_to_bound_a_volume(*output);
+    return true;
+}
+
+SteadyDissectionMeshData surfaceMeshData(const SurfaceMesh& mesh, int piece)
+{
+    SteadyDissectionMeshData output;
+    std::unordered_map<int, unsigned int> vertexMap;
+    vertexMap.reserve(mesh.number_of_vertices());
+    for (SurfaceMesh::Vertex_index vertex : mesh.vertices()) {
+        const Point point = mesh.point(vertex);
+        const unsigned int index = unsigned(output.vertices.size());
+        vertexMap.emplace(vertex.idx(), index);
+        output.vertices << QVector3D(float(CGAL::to_double(point.x())),
+                                     float(CGAL::to_double(point.y())),
+                                     float(CGAL::to_double(point.z())));
+    }
+    for (SurfaceMesh::Face_index face : mesh.faces()) {
+        int corners = 0;
+        for (SurfaceMesh::Vertex_index vertex :
+             CGAL::vertices_around_face(mesh.halfedge(face), mesh)) {
+            output.faces << vertexMap.at(vertex.idx());
+            ++corners;
+        }
+        if (corners != 3) {
+            output.faces.resize(output.faces.size() - corners);
+            continue;
+        }
+        output.facePieces << piece;
+    }
+    return output;
+}
+
+void appendMeshData(SteadyDissectionMeshData* destination,
+                    const SteadyDissectionMeshData& source)
+{
+    const unsigned int offset = unsigned(destination->vertices.size());
+    destination->vertices += source.vertices;
+    destination->facePieces += source.facePieces;
+    destination->faces.reserve(destination->faces.size() + source.faces.size());
+    for (unsigned int vertex : source.faces)
+        destination->faces << offset + vertex;
+}
+
+bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
+                              int pieceCount,
+                              QVector<SteadyDissectionMeshData>* voxelParts,
+                              SteadyDissectionMeshData* voxelCombined,
+                              QVector<SteadyDissectionMeshData>* clippedParts,
+                              SteadyDissectionMeshData* clippedCombined,
+                              QString* error)
+{
+    voxelParts->clear();
+    clippedParts->clear();
+    *voxelCombined = SteadyDissectionMeshData();
+    *clippedCombined = SteadyDissectionMeshData();
+    voxelParts->reserve(pieceCount);
+    clippedParts->reserve(pieceCount);
+
+    for (int piece = 0; piece < pieceCount; ++piece) {
+        SurfaceMesh voxelSolid;
+        if (!buildVoxelSolid(grid, piece, &voxelSolid, error))
+            return false;
+        SteadyDissectionMeshData voxelData = surfaceMeshData(voxelSolid, piece);
+        appendMeshData(voxelCombined, voxelData);
+        voxelParts->push_back(std::move(voxelData));
+
+        SurfaceMesh source = original;
+        SurfaceMesh intersection;
+        bool computed = false;
+        try {
+            computed = PMP::corefine_and_compute_intersection(
+                source, voxelSolid, intersection);
+        } catch (const std::exception& exception) {
+            *error = QString("Boolean intersection failed for part %1: %2")
+                         .arg(piece + 1).arg(exception.what());
+            return false;
+        }
+        PMP::remove_isolated_vertices(intersection);
+        if (!computed || intersection.is_empty() || !CGAL::is_triangle_mesh(intersection)
+            || !CGAL::is_closed(intersection)) {
+            *error = QString("Part %1 did not produce a closed solid intersection.")
+                         .arg(piece + 1);
+            return false;
+        }
+        const bool selfIntersecting = PMP::does_self_intersect(intersection);
+        const bool boundsVolume = !selfIntersecting && PMP::does_bound_a_volume(intersection);
+        if (selfIntersecting || !boundsVolume) {
+            *error = QString("Part %1 intersection is not a printable watertight volume (%2).")
+                         .arg(piece + 1)
+                         .arg(selfIntersecting ? "self-intersection" : "invalid orientation");
+            return false;
+        }
+        auto componentMap = intersection.add_property_map<
+            SurfaceMesh::Face_index, std::size_t>("f:printable_component", 0).first;
+        const std::size_t componentCount = PMP::connected_components(
+            intersection, componentMap);
+        intersection.remove_property_map(componentMap);
+        if (componentCount != 1) {
+            *error = QString("Part %1 intersects the original solid in %2 disconnected volumes. "
+                             "Try a different seed or a higher voxel resolution.")
+                         .arg(piece + 1).arg(componentCount);
+            return false;
+        }
+        PMP::orient_to_bound_a_volume(intersection);
+        SteadyDissectionMeshData data = surfaceMeshData(intersection, piece);
+        if (data.faces.isEmpty()) {
+            *error = QString("Part %1 produced no printable triangles.").arg(piece + 1);
+            return false;
+        }
+        appendMeshData(clippedCombined, data);
+        clippedParts->push_back(std::move(data));
+    }
+    return true;
+}
+
 SteadyDissectionMeshData buildAnalysisMesh(const Grid& grid)
 {
     SteadyDissectionMeshData output;
@@ -1286,7 +1571,7 @@ public:
 
         if (parameters_.refineSalientSeams)
             seamSwapCount_ = refineSalientSeams(&grid_, directions_, parameters_);
-        const bool interlocking = localModelSatisfied(grid_, directions_);
+        bool interlocking = localModelSatisfied(grid_, directions_);
         if (parameters_.enforceInterlocking && !interlocking) {
             *error = "Boundary or seam refinement broke the interlocking sequence.";
             return false;
@@ -1297,11 +1582,25 @@ public:
                 return false;
             }
         }
+        if (!publish("Preparing watertight voxel solids", false,
+                     buildPartitionMesh(mesh_.mesh, grid_), interlocking))
+            return true;
+        const SteadyDissectionMeshData preview = buildPartitionMesh(mesh_.mesh, grid_);
+        if (!publish("Computing watertight solid intersections", false,
+                     preview, interlocking))
+            return true;
+        SteadyDissectionMeshData voxelModel;
+        SteadyDissectionMeshData printableModel;
+        if (!buildPrintableSolidParts(mesh_.mesh, grid_, parameters_.pieceCount,
+                                      &voxelParts_, &voxelModel,
+                                      &printableParts_, &printableModel, error))
+            return false;
+        voxelModel_ = std::move(voxelModel);
         return publish(parameters_.refineSalientSeams
-                           ? QString("Complete printable interlocking partition (%1 seam swaps)")
+                           ? QString("Complete watertight solids (%1 seam swaps)")
                                  .arg(seamSwapCount_)
-                           : "Complete printable interlocking partition",
-                       true, buildPartitionMesh(mesh_.mesh, grid_), interlocking);
+                           : "Complete watertight interlocking solids",
+                       true, printableModel, interlocking);
     }
 
 private:
@@ -1312,9 +1611,17 @@ private:
             return true;
         PrintableInterlockSnapshot snapshot;
         snapshot.originalModel = original_;
+        if (complete)
+            snapshot.voxelizedModel = voxelModel_;
         snapshot.partitionedModel = partitioned;
+        if (complete) {
+            snapshot.voxelParts = voxelParts_;
+            snapshot.printableParts = printableParts_;
+        }
         snapshot.pieceVoxelCounts = pieceCounts(grid_, parameters_.pieceCount);
         snapshot.extractionDirections = directions_;
+        snapshot.sourceCenter = mesh_.sourceCenter;
+        snapshot.sourceUnitsPerNormalizedUnit = mesh_.sourceUnitsPerNormalizedUnit;
         snapshot.phase = phase;
         snapshot.resolution = parameters_.resolution;
         snapshot.requestedPieces = parameters_.pieceCount;
@@ -1327,6 +1634,8 @@ private:
         snapshot.attachedBoundaryVoxels = attachedBoundaryCount_;
         snapshot.tinyVoxels = tinyCount_;
         snapshot.disconnectedVoxels = disconnectedCount_;
+        snapshot.voxelWatertightParts = complete ? voxelParts_.size() : 0;
+        snapshot.watertightParts = complete ? printableParts_.size() : 0;
         snapshot.interlocking = interlocking;
         snapshot.complete = complete;
         return callback_(snapshot);
@@ -1338,7 +1647,10 @@ private:
     LoadedMesh mesh_;
     Grid grid_;
     SteadyDissectionMeshData original_;
+    SteadyDissectionMeshData voxelModel_;
     QVector<int> directions_;
+    QVector<SteadyDissectionMeshData> voxelParts_;
+    QVector<SteadyDissectionMeshData> printableParts_;
     int occupiedCount_ = 0;
     int internalCount_ = 0;
     int boundaryCount_ = 0;

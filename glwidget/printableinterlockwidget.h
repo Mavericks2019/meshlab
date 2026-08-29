@@ -57,7 +57,9 @@ public:
     void reset();
     void setWireframeVisible(bool visible);
     void setExplosion(float amount);
+    void setSurfaceClippedMode(bool surfaceClipped);
     void resetViews();
+    bool exportPrintableParts(const QString& directory, QString* errorMessage) const;
     bool isRunning() const;
 
 signals:
@@ -80,4 +82,6 @@ private:
     PrintableInterlockWorker* worker_ = nullptr;
     QString meshPath_;
     PrintableInterlockParameters lastParameters_;
+    PrintableInterlockSnapshot lastSnapshot_;
+    bool surfaceClippedMode_ = true;
 };
