@@ -1114,9 +1114,11 @@ SteadyDissectionMeshData buildPartitionMesh(const SurfaceMesh& mesh, const Grid&
                 ? (std::min)(grid.cells[index].faceArea[direction],
                              grid.cells[grid.index(neighborCell)].faceArea[direction ^ 1])
                 : 0.0;
-            if (contact <= 0.0)
+            // A partial contact ratio does not describe where material lies on the
+            // face. Drawing a centered square for it can protrude outside the solid.
+            if (contact < 1.0 - 1e-9)
                 continue;
-            const float halfContact = 0.5f * float(std::sqrt(contact));
+            const float halfContact = 0.5f;
             const float low = 0.5f - halfContact;
             const float high = 0.5f + halfContact;
             switch (direction) {
