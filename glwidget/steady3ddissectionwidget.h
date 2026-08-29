@@ -20,6 +20,7 @@ public:
     void setModelData(const SteadyDissectionMeshData& data, int pieceCount);
     void clearModel();
     void setExplosion(float amount);
+    void setFeatureWireframeOnly(bool enabled);
 
 protected:
     void initializeGL() override;
@@ -29,8 +30,10 @@ protected:
 private:
     QVector3D pieceColor(int piece) const;
     void rebuildMesh();
+    void rebuildWireframeEdges();
 
     bool glReady_ = false;
+    bool featureWireframeOnly_ = false;
     int pieceCount_ = 0;
     float explosion_ = 0.08f;
     SteadyDissectionMeshData modelData_;

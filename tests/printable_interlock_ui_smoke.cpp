@@ -47,7 +47,8 @@ int main(int argc, char* argv[])
     controls->setWidget(createPrintableInterlockControlPanel(widget, &window));
     QPushButton* voxelModeButton = controls->findChild<QPushButton*>("printableVoxelMode");
     QPushButton* surfaceModeButton = controls->findChild<QPushButton*>("printableSurfaceMode");
-    if (!voxelModeButton || !surfaceModeButton)
+    QCheckBox* wireframeToggle = controls->findChild<QCheckBox*>("printableWireframeToggle");
+    if (!voxelModeButton || !surfaceModeButton || !wireframeToggle)
         return 8;
     layout->addWidget(widget, 1);
     layout->addWidget(controls);
@@ -75,6 +76,7 @@ int main(int argc, char* argv[])
             app.quit();
             return;
         }
+        wireframeToggle->setChecked(true);
         auto captureSurface = [&, screenshotPath]() {
             surfaceModeButton->click();
             QTimer::singleShot(700, &window, [&, screenshotPath]() {

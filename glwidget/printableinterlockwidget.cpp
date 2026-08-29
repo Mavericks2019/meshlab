@@ -86,6 +86,7 @@ PrintableInterlockWidget::PrintableInterlockWidget(QWidget* parent)
     partitionViewport_ = new SteadyDissectionViewport(this);
     originalViewport_->setShowWireframeOverlay(false);
     partitionViewport_->setShowWireframeOverlay(false);
+    partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
 
     phaseLabel_ = new QLabel("Select one watertight triangle mesh", this);
     phaseLabel_->setStyleSheet("font-size: 15px; font-weight: 600; color: #f4f6f8;");
@@ -214,6 +215,7 @@ void PrintableInterlockWidget::setExplosion(float amount)
 void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
 {
     surfaceClippedMode_ = surfaceClipped;
+    partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
     if (!lastSnapshot_.complete)
         return;
     partitionViewport_->setModelData(

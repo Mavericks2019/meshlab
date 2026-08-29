@@ -152,7 +152,8 @@ inline QWidget* createPrintableInterlockControlPanel(
         geometryModeLayout->addWidget(button);
     }
     surfaceModeButton->setChecked(true);
-    QCheckBox* wireframe = new QCheckBox("Show triangle and voxel edges", displayGroup);
+    QCheckBox* wireframe = new QCheckBox("Show surface feature and voxel edges", displayGroup);
+    wireframe->setObjectName("printableWireframeToggle");
     wireframe->setChecked(false);
     QFormLayout* explosionLayout = new QFormLayout;
     QSlider* explosion = new QSlider(Qt::Horizontal, displayGroup);

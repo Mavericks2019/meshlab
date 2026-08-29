@@ -9,6 +9,8 @@
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <array>
+#include <map>
 
 SteadyDissectionViewport::SteadyDissectionViewport(QWidget* parent)
     : BaseGLWidget(parent), colorVbo_(QOpenGLBuffer::VertexBuffer)
@@ -84,6 +86,22 @@ void SteadyDissectionViewport::setExplosion(float amount)
         rebuildMesh();
 }
 
+void SteadyDissectionViewport::setFeatureWireframeOnly(bool enabled)
+{
+    if (featureWireframeOnly_ == enabled)
+        return;
+    featureWireframeOnly_ = enabled;
+    if (!modelLoaded)
+        return;
+    rebuildWireframeEdges();
+    if (glReady_) {
+        makeCurrent();
+        updateBuffersFromOpenMesh();
+        doneCurrent();
+    }
+    update();
+}
+
 void SteadyDissectionViewport::rebuildMesh()
 {
     const bool initializeView = !modelLoaded;
@@ -119,18 +137,38 @@ void SteadyDissectionViewport::rebuildMesh()
         if (pieceSamples[piece] > 0)
             pieceCenters[piece] /= float(pieceSamples[piece]);
 
+    std::map<std::pair<unsigned int, int>, Mesh::VertexHandle> vertexHandles;
     for (int face = 0; face < faceCount; ++face) {
         const int piece = face < modelData_.facePieces.size()
             ? modelData_.facePieces[face] : -1;
         const QVector3D offset = piece >= 0 && piece < pieceCenters.size()
             ? (pieceCenters[piece] - globalCenter) * explosion_ : QVector3D();
+        std::array<unsigned int, 3> sourceVertices;
+        bool validFace = true;
+        for (int corner = 0; corner < 3; ++corner) {
+            sourceVertices[corner] = modelData_.faces[face * 3 + corner];
+            if (sourceVertices[corner] >= unsigned(modelData_.vertices.size()))
+                validFace = false;
+        }
+        if (!validFace)
+            continue;
         std::vector<Mesh::VertexHandle> handles;
         handles.reserve(3);
         for (int corner = 0; corner < 3; ++corner) {
-            const QVector3D point = modelData_.vertices[
-                int(modelData_.faces[face * 3 + corner])] + offset;
-            handles.push_back(openMesh.add_vertex(Mesh::Point(point.x(), point.y(), point.z())));
-            faceColors_.push_back(pieceColor(piece));
+            const auto key = std::make_pair(sourceVertices[corner], piece);
+            auto found = vertexHandles.find(key);
+            if (found == vertexHandles.end()) {
+                const QVector3D point = modelData_.vertices[int(sourceVertices[corner])] + offset;
+                const Mesh::VertexHandle handle = openMesh.add_vertex(
+                    Mesh::Point(point.x(), point.y(), point.z()));
+                vertexHandles.emplace(key, handle);
+                if (faceColors_.size() <= handle.idx())
+                    faceColors_.resize(handle.idx() + 1);
+                faceColors_[handle.idx()] = pieceColor(piece);
+                handles.push_back(handle);
+            } else {
+                handles.push_back(found->second);
+            }
         }
         openMesh.add_face(handles);
     }
@@ -139,7 +177,7 @@ void SteadyDissectionViewport::rebuildMesh()
     openMesh.request_vertex_normals();
     openMesh.update_normals();
     prepareFaceIndices();
-    prepareEdgeIndices();
+    rebuildWireframeEdges();
     modelLoaded = true;
     if (initializeView) {
         rotation = QQuaternion::fromEulerAngles(-18.0f, 30.0f, 0.0f);
@@ -159,6 +197,36 @@ void SteadyDissectionViewport::rebuildMesh()
         doneCurrent();
     }
     update();
+}
+
+void SteadyDissectionViewport::rebuildWireframeEdges()
+{
+    if (!featureWireframeOnly_) {
+        prepareEdgeIndices();
+        return;
+    }
+
+    edges.clear();
+    constexpr double kCoplanarNormalDot = 0.9999;
+    for (Mesh::EdgeHandle edge : openMesh.edges()) {
+        const Mesh::HalfedgeHandle first = openMesh.halfedge_handle(edge, 0);
+        const Mesh::HalfedgeHandle second = openMesh.halfedge_handle(edge, 1);
+        bool visible = openMesh.is_boundary(first) || openMesh.is_boundary(second);
+        if (!visible) {
+            const Mesh::FaceHandle firstFace = openMesh.face_handle(first);
+            const Mesh::FaceHandle secondFace = openMesh.face_handle(second);
+            const Mesh::Normal firstNormal = openMesh.normal(firstFace);
+            const Mesh::Normal secondNormal = openMesh.normal(secondFace);
+            const double normalDot = firstNormal[0] * secondNormal[0]
+                + firstNormal[1] * secondNormal[1]
+                + firstNormal[2] * secondNormal[2];
+            visible = normalDot < kCoplanarNormalDot;
+        }
+        if (!visible)
+            continue;
+        edges.push_back(unsigned(openMesh.from_vertex_handle(first).idx()));
+        edges.push_back(unsigned(openMesh.to_vertex_handle(first).idx()));
+    }
 }
 
 void SteadyDissectionViewport::updateBuffersFromOpenMesh()
