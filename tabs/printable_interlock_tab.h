@@ -157,7 +157,8 @@ inline QWidget* createPrintableInterlockControlPanel(
     wireframe->setChecked(false);
     QFormLayout* explosionLayout = new QFormLayout;
     QSlider* explosion = new QSlider(Qt::Horizontal, displayGroup);
-    explosion->setRange(0, 45);
+    explosion->setObjectName("printablePartSpacing");
+    explosion->setRange(0, 150);
     explosion->setValue(10);
     explosionLayout->addRow("Part spacing", explosion);
     QPushButton* resetViewsButton = new QPushButton("Reset both views", displayGroup);

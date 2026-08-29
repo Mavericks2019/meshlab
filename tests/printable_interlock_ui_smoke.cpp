@@ -48,7 +48,9 @@ int main(int argc, char* argv[])
     QPushButton* voxelModeButton = controls->findChild<QPushButton*>("printableVoxelMode");
     QPushButton* surfaceModeButton = controls->findChild<QPushButton*>("printableSurfaceMode");
     QCheckBox* wireframeToggle = controls->findChild<QCheckBox*>("printableWireframeToggle");
-    if (!voxelModeButton || !surfaceModeButton || !wireframeToggle)
+    QSlider* partSpacing = controls->findChild<QSlider*>("printablePartSpacing");
+    if (!voxelModeButton || !surfaceModeButton || !wireframeToggle
+        || !partSpacing || partSpacing->maximum() != 150)
         return 8;
     layout->addWidget(widget, 1);
     layout->addWidget(controls);
