@@ -160,6 +160,8 @@ set(OBJVIEWER_SOURCES
     glwidget/cgalglwidget.h
     glwidget/dchartswidget.cpp
     glwidget/dchartswidget.h
+    glwidget/steady3ddissectionwidget.cpp
+    glwidget/steady3ddissectionwidget.h
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
     glwidget/progressiveparameterizationwidget.cpp
@@ -186,9 +188,13 @@ set(OBJVIEWER_SOURCES
     tabs/progressive_parameterization_tab.h
     tabs/atlas_parameterization_tab.h
     tabs/dcharts_tab.h
+    tabs/steady3ddissection_tab.h
 
     dcharts/dchartsalgorithm.cpp
     dcharts/dchartsalgorithm.h
+
+    dissection/steady3ddissectionalgorithm.cpp
+    dissection/steady3ddissectionalgorithm.h
 
     Common/CommonDefinitions.cpp
     Common/CommonDefinitions.h
@@ -285,6 +291,31 @@ if(BUILD_TESTING)
     add_test(NAME dcharts_cow_smoke
         COMMAND dcharts_smoke "${CMAKE_CURRENT_SOURCE_DIR}/models/cow.obj")
 
+    add_executable(steady_dissection_smoke EXCLUDE_FROM_ALL
+        tests/steady_dissection_smoke.cpp
+        dissection/steady3ddissectionalgorithm.cpp
+        dissection/steady3ddissectionalgorithm.h
+    )
+    target_include_directories(steady_dissection_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(steady_dissection_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        CGAL::CGAL
+    )
+    set_target_properties(steady_dissection_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+    add_test(NAME steady_dissection_cube_cuboid_smoke
+        COMMAND steady_dissection_smoke
+            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
+            "${CMAKE_CURRENT_SOURCE_DIR}/models/dissection_cuboid.obj")
+    add_test(NAME steady_dissection_cube_exact_cover
+        COMMAND steady_dissection_smoke
+            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
+            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
+            16 10 10 --expect-zero-deletion)
+
     add_executable(dcharts_ui_smoke EXCLUDE_FROM_ALL
         tests/dcharts_ui_smoke.cpp
         glwidget/baseglwidget.cpp
@@ -308,6 +339,34 @@ if(BUILD_TESTING)
         Eigen3::Eigen
     )
     set_target_properties(dcharts_ui_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+
+    add_executable(steady_dissection_ui_smoke EXCLUDE_FROM_ALL
+        tests/steady_dissection_ui_smoke.cpp
+        glwidget/baseglwidget.cpp
+        glwidget/baseglwidget.h
+        glwidget/steady3ddissectionwidget.cpp
+        glwidget/steady3ddissectionwidget.h
+        dissection/steady3ddissectionalgorithm.cpp
+        dissection/steady3ddissectionalgorithm.h
+        shaders.qrc
+    )
+    target_include_directories(steady_dissection_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(steady_dissection_ui_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        Qt5::OpenGL
+        Qt5::Widgets
+        OpenGL::GL
+        OpenGL::GLU
+        OpenMeshCore
+        OpenMeshTools
+        Eigen3::Eigen
+        CGAL::CGAL
+    )
+    set_target_properties(steady_dissection_ui_smoke PROPERTIES
         VS_GLOBAL_TrackFileAccess false
         VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
     )

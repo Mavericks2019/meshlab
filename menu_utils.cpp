@@ -191,7 +191,8 @@ namespace UIUtils {
             "Volume Base",
             "Progressive Parameterization",
             "AAAtlas Packing",
-            "D-Charts"
+            "D-Charts",
+            "Steady 3D Dissection"
         };
         
         // 创建动作组，确保只有一个被选中

@@ -37,6 +37,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , progressiveParameterizationWidget(nullptr)
     , atlasParameterizationWidget(nullptr)
     , dChartsWidget(nullptr)
+    , steady3DDissectionWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -512,6 +513,23 @@ void TabManager::registerTabConfigs() {
             },
             16,
             "D-Charts"
+        },
+        {"Steady 3D Dissection",
+            [this]() -> QWidget* {
+                getOrCreateWidget(steady3DDissectionWidget);
+                return ::createSteady3DDissectionTab(steady3DDissectionWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(steady3DDissectionWidget);
+                return ::createSteady3DDissectionControlPanel(
+                    steady3DDissectionWidget, mainWindow);
+            },
+            [this]() {
+                delete steady3DDissectionWidget;
+                steady3DDissectionWidget = nullptr;
+            },
+            17,
+            "Steady 3D Dissection"
         }
     };
 }

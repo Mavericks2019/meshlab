@@ -28,6 +28,7 @@
 #include "glwidget/progressiveparameterizationwidget.h"
 #include "glwidget/atlasparameterizationwidget.h"
 #include "glwidget/dchartswidget.h"
+#include "glwidget/steady3ddissectionwidget.h"
 #include "InteractiveWidget.h"
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
@@ -45,6 +46,7 @@
 #include "tabs/progressive_parameterization_tab.h"
 #include "tabs/atlas_parameterization_tab.h"
 #include "tabs/dcharts_tab.h"
+#include "tabs/steady3ddissection_tab.h"
 // #include "Cutting/QGLViewerWidget.h"
 
 // 标签页配置结构体
@@ -174,6 +176,7 @@ private:
     ProgressiveParameterizationWidget* progressiveParameterizationWidget;
     AtlasParameterizationWidget* atlasParameterizationWidget;
     DChartsWidget* dChartsWidget;
+    Steady3DDissectionWidget* steady3DDissectionWidget;
 
     // 信息标签
     QLabel* basicInfoLabel;
