@@ -65,6 +65,7 @@ public:
     void setWireframeVisible(bool visible);
     void setFacesVisible(bool visible);
     void setCheckerboardVisible(bool visible);
+    void setComponentColorsVisible(bool visible);
     void resetViews();
     void centerViews();
     bool saveParameterized(const QString& path) const;

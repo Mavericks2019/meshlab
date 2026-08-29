@@ -34,8 +34,10 @@ public:
 
     void loadOBJ(const QString& path) override;
     void setMeshData(const ProgressiveMeshData& data, bool planar,
-                     const QVector<QVector2D>& textureCoordinates = {});
+                     const QVector<QVector2D>& textureCoordinates = {},
+                     const QVector<QVector3D>& componentColors = {});
     void setCheckerboardVisible(bool visible);
+    void setComponentColorsVisible(bool visible);
 
 protected:
     void initializeGL() override;
@@ -44,12 +46,17 @@ protected:
 
 private:
     bool hasCheckerboardCoordinates() const;
+    bool hasComponentColors() const;
 
     bool glReady_ = false;
     bool checkerboardVisible_ = false;
+    bool componentColorsVisible_ = false;
     QVector<QVector2D> textureCoordinates_;
+    QVector<QVector3D> componentColors_;
     QOpenGLShaderProgram checkerboardProgram_;
+    QOpenGLShaderProgram componentColorProgram_;
     QOpenGLBuffer textureCoordinateVbo_;
+    QOpenGLBuffer componentColorVbo_;
 };
 
 class ProgressiveWorker : public QThread {

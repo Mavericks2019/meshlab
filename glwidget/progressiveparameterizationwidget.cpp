@@ -92,7 +92,9 @@ ProgressiveSnapshot makeSnapshot(Parafun& solver, const char* phase, int iterati
 }
 
 ProgressiveMeshViewport::ProgressiveMeshViewport(QWidget* parent)
-    : BaseGLWidget(parent), textureCoordinateVbo_(QOpenGLBuffer::VertexBuffer)
+    : BaseGLWidget(parent),
+      textureCoordinateVbo_(QOpenGLBuffer::VertexBuffer),
+      componentColorVbo_(QOpenGLBuffer::VertexBuffer)
 {
     setShowWireframeOverlay(true);
     setSurfaceColor(QVector3D(0.70f, 0.76f, 0.82f));
@@ -104,7 +106,9 @@ ProgressiveMeshViewport::~ProgressiveMeshViewport()
     if (context()) {
         makeCurrent();
         textureCoordinateVbo_.destroy();
+        componentColorVbo_.destroy();
         checkerboardProgram_.removeAllShaders();
+        componentColorProgram_.removeAllShaders();
         doneCurrent();
     }
 }
@@ -113,11 +117,17 @@ void ProgressiveMeshViewport::initializeGL()
 {
     BaseGLWidget::initializeGL();
     textureCoordinateVbo_.create();
+    componentColorVbo_.create();
     checkerboardProgram_.addShaderFromSourceFile(
         QOpenGLShader::Vertex, ":/glwidget/shaders/progressive_checker.vert");
     checkerboardProgram_.addShaderFromSourceFile(
         QOpenGLShader::Fragment, ":/glwidget/shaders/progressive_checker.frag");
     checkerboardProgram_.link();
+    componentColorProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Vertex, ":/glwidget/shaders/progressive_component.vert");
+    componentColorProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Fragment, ":/glwidget/shaders/progressive_component.frag");
+    componentColorProgram_.link();
     glReady_ = true;
     if (modelLoaded)
         updateBuffersFromOpenMesh();
@@ -126,14 +136,18 @@ void ProgressiveMeshViewport::initializeGL()
 void ProgressiveMeshViewport::loadOBJ(const QString& path)
 {
     textureCoordinates_.clear();
+    componentColors_.clear();
     BaseGLWidget::loadOBJ(path);
 }
 
 void ProgressiveMeshViewport::setMeshData(
-    const ProgressiveMeshData& data, bool planar, const QVector<QVector2D>& textureCoordinates)
+    const ProgressiveMeshData& data, bool planar,
+    const QVector<QVector2D>& textureCoordinates,
+    const QVector<QVector3D>& componentColors)
 {
     const bool initializeView = !modelLoaded;
     textureCoordinates_ = textureCoordinates;
+    componentColors_ = componentColors;
     clearMeshData();
     QVector<Mesh::VertexHandle> handles;
     handles.reserve(data.vertices.size());
@@ -187,47 +201,86 @@ void ProgressiveMeshViewport::setCheckerboardVisible(bool visible)
     update();
 }
 
+void ProgressiveMeshViewport::setComponentColorsVisible(bool visible)
+{
+    componentColorsVisible_ = visible;
+    update();
+}
+
 bool ProgressiveMeshViewport::hasCheckerboardCoordinates() const
 {
     return !textureCoordinates_.isEmpty()
         && textureCoordinates_.size() == int(openMesh.n_vertices());
 }
 
+bool ProgressiveMeshViewport::hasComponentColors() const
+{
+    return !componentColors_.isEmpty()
+        && componentColors_.size() == int(openMesh.n_vertices());
+}
+
 void ProgressiveMeshViewport::updateBuffersFromOpenMesh()
 {
     BaseGLWidget::updateBuffersFromOpenMesh();
-    if (!glReady_ || !checkerboardProgram_.isLinked() || !hasCheckerboardCoordinates())
+    if (!glReady_)
         return;
 
     vao.bind();
-    checkerboardProgram_.bind();
+    if (checkerboardProgram_.isLinked() && hasCheckerboardCoordinates()) {
+        checkerboardProgram_.bind();
+        vbo.bind();
+        const int positionLocation = checkerboardProgram_.attributeLocation("aPos");
+        if (positionLocation >= 0) {
+            checkerboardProgram_.enableAttributeArray(positionLocation);
+            checkerboardProgram_.setAttributeBuffer(
+                positionLocation, GL_FLOAT, 0, 3, 3 * sizeof(float));
+        }
 
-    vbo.bind();
-    const int positionLocation = checkerboardProgram_.attributeLocation("aPos");
-    if (positionLocation >= 0) {
-        checkerboardProgram_.enableAttributeArray(positionLocation);
-        checkerboardProgram_.setAttributeBuffer(
-            positionLocation, GL_FLOAT, 0, 3, 3 * sizeof(float));
+        textureCoordinateVbo_.bind();
+        textureCoordinateVbo_.allocate(
+            textureCoordinates_.constData(), textureCoordinates_.size() * int(sizeof(QVector2D)));
+        const int textureLocation = checkerboardProgram_.attributeLocation("aTexCoord");
+        if (textureLocation >= 0) {
+            checkerboardProgram_.enableAttributeArray(textureLocation);
+            checkerboardProgram_.setAttributeBuffer(
+                textureLocation, GL_FLOAT, 0, 2, sizeof(QVector2D));
+        }
+        textureCoordinateVbo_.release();
+        checkerboardProgram_.release();
     }
 
-    textureCoordinateVbo_.bind();
-    textureCoordinateVbo_.allocate(
-        textureCoordinates_.constData(), textureCoordinates_.size() * int(sizeof(QVector2D)));
-    const int textureLocation = checkerboardProgram_.attributeLocation("aTexCoord");
-    if (textureLocation >= 0) {
-        checkerboardProgram_.enableAttributeArray(textureLocation);
-        checkerboardProgram_.setAttributeBuffer(
-            textureLocation, GL_FLOAT, 0, 2, sizeof(QVector2D));
+    if (componentColorProgram_.isLinked() && hasComponentColors()) {
+        componentColorProgram_.bind();
+        vbo.bind();
+        const int positionLocation = componentColorProgram_.attributeLocation("aPos");
+        if (positionLocation >= 0) {
+            componentColorProgram_.enableAttributeArray(positionLocation);
+            componentColorProgram_.setAttributeBuffer(
+                positionLocation, GL_FLOAT, 0, 3, 3 * sizeof(float));
+        }
+
+        componentColorVbo_.bind();
+        componentColorVbo_.allocate(
+            componentColors_.constData(), componentColors_.size() * int(sizeof(QVector3D)));
+        const int colorLocation = componentColorProgram_.attributeLocation("aComponentColor");
+        if (colorLocation >= 0) {
+            componentColorProgram_.enableAttributeArray(colorLocation);
+            componentColorProgram_.setAttributeBuffer(
+                colorLocation, GL_FLOAT, 0, 3, sizeof(QVector3D));
+        }
+        componentColorVbo_.release();
+        componentColorProgram_.release();
     }
 
-    textureCoordinateVbo_.release();
-    checkerboardProgram_.release();
     vao.release();
 }
 
 void ProgressiveMeshViewport::paintGL()
 {
-    if (!checkerboardVisible_ || !hasCheckerboardCoordinates()) {
+    const bool drawComponents = componentColorsVisible_ && hasComponentColors();
+    const bool drawCheckerboard = !drawComponents
+        && checkerboardVisible_ && hasCheckerboardCoordinates();
+    if (!drawComponents && !drawCheckerboard) {
         BaseGLWidget::paintGL();
         return;
     }
@@ -256,18 +309,21 @@ void ProgressiveMeshViewport::paintGL()
             glPolygonOffset(1.0f, 1.0f);
         }
 
-        checkerboardProgram_.bind();
+        QOpenGLShaderProgram& surfaceProgram =
+            drawComponents ? componentColorProgram_ : checkerboardProgram_;
+        surfaceProgram.bind();
         vao.bind();
         faceEbo.bind();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        checkerboardProgram_.setUniformValue("model", model);
-        checkerboardProgram_.setUniformValue("view", view);
-        checkerboardProgram_.setUniformValue("projection", projection);
-        checkerboardProgram_.setUniformValue("checkerFrequency", 12.0f);
+        surfaceProgram.setUniformValue("model", model);
+        surfaceProgram.setUniformValue("view", view);
+        surfaceProgram.setUniformValue("projection", projection);
+        if (drawCheckerboard)
+            surfaceProgram.setUniformValue("checkerFrequency", 12.0f);
         glDrawElements(GL_TRIANGLES, GLsizei(faces.size()), GL_UNSIGNED_INT, nullptr);
         faceEbo.release();
         vao.release();
-        checkerboardProgram_.release();
+        surfaceProgram.release();
 
         if (showWireframeOverlay) {
             glDisable(GL_POLYGON_OFFSET_FILL);

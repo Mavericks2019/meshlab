@@ -4,12 +4,15 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QColor>
+#include <QHash>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QTextStream>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 #include <stdexcept>
 
 namespace
@@ -234,6 +237,12 @@ void AtlasParameterizationWidget::setCheckerboardVisible(bool visible)
     parameterizedView_->setCheckerboardVisible(visible);
 }
 
+void AtlasParameterizationWidget::setComponentColorsVisible(bool visible)
+{
+    sourceView_->setComponentColorsVisible(visible);
+    parameterizedView_->setComponentColorsVisible(visible);
+}
+
 void AtlasParameterizationWidget::resetViews()
 {
     sourceView_->resetView();
@@ -299,10 +308,58 @@ void AtlasParameterizationWidget::applySnapshot(const AtlasDisplaySnapshot& snap
 
     const bool matchingTopology =
         snapshot.source.vertices.size() == checkerCoordinates.size();
+
+    QVector<int> parent(snapshot.parameterized.vertices.size());
+    std::iota(parent.begin(), parent.end(), 0);
+    auto findRoot = [&parent](int vertex) {
+        int root = vertex;
+        while (parent[root] != root)
+            root = parent[root];
+        while (parent[vertex] != vertex) {
+            const int next = parent[vertex];
+            parent[vertex] = root;
+            vertex = next;
+        }
+        return root;
+    };
+    auto unite = [&parent, &findRoot](int first, int second) {
+        const int firstRoot = findRoot(first);
+        const int secondRoot = findRoot(second);
+        if (firstRoot != secondRoot)
+            parent[secondRoot] = firstRoot;
+    };
+    for (int i = 0; i + 2 < snapshot.parameterized.faces.size(); i += 3) {
+        const int first = int(snapshot.parameterized.faces[i]);
+        const int second = int(snapshot.parameterized.faces[i + 1]);
+        const int third = int(snapshot.parameterized.faces[i + 2]);
+        if (first >= 0 && second >= 0 && third >= 0
+            && first < parent.size() && second < parent.size() && third < parent.size()) {
+            unite(first, second);
+            unite(first, third);
+        }
+    }
+
+    QVector<QVector3D> componentColors(parent.size());
+    QHash<int, QVector3D> colorsByRoot;
+    for (int vertex = 0; vertex < parent.size(); ++vertex) {
+        const int root = findRoot(vertex);
+        auto color = colorsByRoot.find(root);
+        if (color == colorsByRoot.end()) {
+            const int component = colorsByRoot.size();
+            const float hue = std::fmod(0.08f + 0.61803398875f * component, 1.0f);
+            const QColor generated = QColor::fromHsvF(hue, 0.58, 0.88);
+            color = colorsByRoot.insert(
+                root, QVector3D(generated.redF(), generated.greenF(), generated.blueF()));
+        }
+        componentColors[vertex] = color.value();
+    }
+
     sourceView_->setMeshData(
         snapshot.source, false,
-        matchingTopology ? checkerCoordinates : QVector<QVector2D>());
-    parameterizedView_->setMeshData(snapshot.parameterized, true, checkerCoordinates);
+        matchingTopology ? checkerCoordinates : QVector<QVector2D>(),
+        matchingTopology ? componentColors : QVector<QVector3D>());
+    parameterizedView_->setMeshData(
+        snapshot.parameterized, true, checkerCoordinates, componentColors);
     emit resultAvailable(!snapshot.parameterized.vertices.isEmpty());
     emit statusChanged(QString("%1 | step %2 | UV V/F %3/%4 | distortion %5")
         .arg(snapshot.phase)

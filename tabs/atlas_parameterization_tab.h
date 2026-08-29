@@ -79,12 +79,16 @@ inline QWidget* createAtlasParameterizationControlPanel(
     QCheckBox* wireframeCheckbox = new QCheckBox("Show Wireframe Overlay", displayGroup);
     QCheckBox* checkerboardCheckbox =
         new QCheckBox("Show Checkerboard Texture (3D + UV)", displayGroup);
+    QCheckBox* componentsCheckbox =
+        new QCheckBox("Color Connected Components (3D + UV)", displayGroup);
     facesCheckbox->setChecked(true);
-    wireframeCheckbox->setChecked(true);
-    checkerboardCheckbox->setChecked(true);
+    wireframeCheckbox->setChecked(false);
+    checkerboardCheckbox->setChecked(false);
+    componentsCheckbox->setChecked(true);
     displayLayout->addWidget(facesCheckbox);
     displayLayout->addWidget(wireframeCheckbox);
     displayLayout->addWidget(checkerboardCheckbox);
+    displayLayout->addWidget(componentsCheckbox);
 
     QGroupBox* viewGroup = new QGroupBox("View", panel);
     QVBoxLayout* viewLayout = new QVBoxLayout(viewGroup);
@@ -140,8 +144,18 @@ inline QWidget* createAtlasParameterizationControlPanel(
                      widget, &AtlasParameterizationWidget::setFacesVisible);
     QObject::connect(wireframeCheckbox, &QCheckBox::toggled,
                      widget, &AtlasParameterizationWidget::setWireframeVisible);
-    QObject::connect(checkerboardCheckbox, &QCheckBox::toggled,
-                     widget, &AtlasParameterizationWidget::setCheckerboardVisible);
+    QObject::connect(checkerboardCheckbox, &QCheckBox::toggled, panel,
+                     [widget, componentsCheckbox](bool checked) {
+        if (checked)
+            componentsCheckbox->setChecked(false);
+        widget->setCheckerboardVisible(checked);
+    });
+    QObject::connect(componentsCheckbox, &QCheckBox::toggled, panel,
+                     [widget, checkerboardCheckbox](bool checked) {
+        if (checked)
+            checkerboardCheckbox->setChecked(false);
+        widget->setComponentColorsVisible(checked);
+    });
     QObject::connect(resetViewsButton, &QPushButton::clicked,
                      widget, &AtlasParameterizationWidget::resetViews);
     QObject::connect(centerViewsButton, &QPushButton::clicked,
@@ -158,6 +172,8 @@ inline QWidget* createAtlasParameterizationControlPanel(
     });
 
     widget->setCheckerboardVisible(checkerboardCheckbox->isChecked());
+    widget->setComponentColorsVisible(componentsCheckbox->isChecked());
+    widget->setWireframeVisible(wireframeCheckbox->isChecked());
 
     layout->addWidget(inputGroup);
     layout->addWidget(pipelineGroup);
