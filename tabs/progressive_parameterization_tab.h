@@ -76,10 +76,13 @@ inline QWidget* createProgressiveParameterizationControlPanel(
     QVBoxLayout* displayLayout = new QVBoxLayout(displayGroup);
     QCheckBox* facesCheckbox = new QCheckBox("Show Faces", displayGroup);
     QCheckBox* wireframeCheckbox = new QCheckBox("Show Wireframe Overlay", displayGroup);
+    QCheckBox* checkerboardCheckbox = new QCheckBox("Show Checkerboard Texture (M + Mp)", displayGroup);
     facesCheckbox->setChecked(true);
     wireframeCheckbox->setChecked(true);
+    checkerboardCheckbox->setChecked(true);
     displayLayout->addWidget(facesCheckbox);
     displayLayout->addWidget(wireframeCheckbox);
+    displayLayout->addWidget(checkerboardCheckbox);
 
     QGroupBox* viewGroup = new QGroupBox("View", panel);
     QVBoxLayout* viewLayout = new QVBoxLayout(viewGroup);
@@ -124,6 +127,7 @@ inline QWidget* createProgressiveParameterizationControlPanel(
     });
     QObject::connect(facesCheckbox, &QCheckBox::toggled, widget, &ProgressiveParameterizationWidget::setFacesVisible);
     QObject::connect(wireframeCheckbox, &QCheckBox::toggled, widget, &ProgressiveParameterizationWidget::setWireframeVisible);
+    QObject::connect(checkerboardCheckbox, &QCheckBox::toggled, widget, &ProgressiveParameterizationWidget::setCheckerboardVisible);
     QObject::connect(resetViewsButton, &QPushButton::clicked, widget, &ProgressiveParameterizationWidget::resetViews);
     QObject::connect(centerViewsButton, &QPushButton::clicked, widget, &ProgressiveParameterizationWidget::centerViews);
     QObject::connect(widget, &ProgressiveParameterizationWidget::statusChanged, statusLabel, &QLabel::setText);
@@ -135,6 +139,8 @@ inline QWidget* createProgressiveParameterizationControlPanel(
         if (!path.isEmpty() && !widget->saveParameterized(path))
             QMessageBox::warning(mainWindow, "Export", "Could not write the parameterized mesh.");
     });
+
+    widget->setCheckerboardVisible(checkerboardCheckbox->isChecked());
 
     layout->addWidget(inputGroup);
     layout->addWidget(runGroup);

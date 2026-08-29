@@ -3,6 +3,7 @@
 #include "baseglwidget.h"
 
 #include <QMutex>
+#include <QVector2D>
 #include <QThread>
 #include <QVector3D>
 #include <QWaitCondition>
@@ -29,13 +30,26 @@ class ProgressiveMeshViewport : public BaseGLWidget {
     Q_OBJECT
 public:
     explicit ProgressiveMeshViewport(QWidget* parent = nullptr);
-    void setMeshData(const ProgressiveMeshData& data, bool planar);
+    ~ProgressiveMeshViewport() override;
+
+    void loadOBJ(const QString& path) override;
+    void setMeshData(const ProgressiveMeshData& data, bool planar,
+                     const QVector<QVector2D>& textureCoordinates = {});
+    void setCheckerboardVisible(bool visible);
 
 protected:
     void initializeGL() override;
+    void paintGL() override;
+    void updateBuffersFromOpenMesh() override;
 
 private:
+    bool hasCheckerboardCoordinates() const;
+
     bool glReady_ = false;
+    bool checkerboardVisible_ = false;
+    QVector<QVector2D> textureCoordinates_;
+    QOpenGLShaderProgram checkerboardProgram_;
+    QOpenGLBuffer textureCoordinateVbo_;
 };
 
 class ProgressiveWorker : public QThread {
@@ -79,6 +93,7 @@ public:
     void setRenderMode(BaseGLWidget::RenderMode mode);
     void setWireframeVisible(bool visible);
     void setFacesVisible(bool visible);
+    void setCheckerboardVisible(bool visible);
     void resetViews();
     void centerViews();
     bool saveParameterized(const QString& path) const;
@@ -101,4 +116,7 @@ private:
     ProgressiveWorker* worker_ = nullptr;
     QString inputPath_;
     ProgressiveSnapshot lastSnapshot_;
+    QVector2D checkerUvOrigin_;
+    float checkerUvScale_ = 1.0f;
+    bool checkerUvTransformValid_ = false;
 };

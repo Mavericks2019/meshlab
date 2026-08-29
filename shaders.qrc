@@ -9,6 +9,8 @@
     <file>glwidget/shaders/curvature.frag</file>
     <file>glwidget/shaders/texture.vert</file>
     <file>glwidget/shaders/texture.frag</file>
+    <file>glwidget/shaders/progressive_checker.vert</file>
+    <file>glwidget/shaders/progressive_checker.frag</file>
     <file>glwidget/shaders/axis.vert</file>
     <file>glwidget/shaders/axis.frag</file>
     <file>glwidget/shaders/flat.vert</file>

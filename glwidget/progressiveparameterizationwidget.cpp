@@ -91,22 +91,49 @@ ProgressiveSnapshot makeSnapshot(Parafun& solver, const char* phase, int iterati
 }
 }
 
-ProgressiveMeshViewport::ProgressiveMeshViewport(QWidget* parent) : BaseGLWidget(parent)
+ProgressiveMeshViewport::ProgressiveMeshViewport(QWidget* parent)
+    : BaseGLWidget(parent), textureCoordinateVbo_(QOpenGLBuffer::VertexBuffer)
 {
     setShowWireframeOverlay(true);
     setSurfaceColor(QVector3D(0.70f, 0.76f, 0.82f));
     setMinimumSize(220, 220);
 }
 
+ProgressiveMeshViewport::~ProgressiveMeshViewport()
+{
+    if (context()) {
+        makeCurrent();
+        textureCoordinateVbo_.destroy();
+        checkerboardProgram_.removeAllShaders();
+        doneCurrent();
+    }
+}
+
 void ProgressiveMeshViewport::initializeGL()
 {
     BaseGLWidget::initializeGL();
+    textureCoordinateVbo_.create();
+    checkerboardProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Vertex, ":/glwidget/shaders/progressive_checker.vert");
+    checkerboardProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Fragment, ":/glwidget/shaders/progressive_checker.frag");
+    checkerboardProgram_.link();
     glReady_ = true;
+    if (modelLoaded)
+        updateBuffersFromOpenMesh();
 }
 
-void ProgressiveMeshViewport::setMeshData(const ProgressiveMeshData& data, bool planar)
+void ProgressiveMeshViewport::loadOBJ(const QString& path)
+{
+    textureCoordinates_.clear();
+    BaseGLWidget::loadOBJ(path);
+}
+
+void ProgressiveMeshViewport::setMeshData(
+    const ProgressiveMeshData& data, bool planar, const QVector<QVector2D>& textureCoordinates)
 {
     const bool initializeView = !modelLoaded;
+    textureCoordinates_ = textureCoordinates;
     clearMeshData();
     QVector<Mesh::VertexHandle> handles;
     handles.reserve(data.vertices.size());
@@ -152,6 +179,107 @@ void ProgressiveMeshViewport::setMeshData(const ProgressiveMeshData& data, bool 
         doneCurrent();
     }
     update();
+}
+
+void ProgressiveMeshViewport::setCheckerboardVisible(bool visible)
+{
+    checkerboardVisible_ = visible;
+    update();
+}
+
+bool ProgressiveMeshViewport::hasCheckerboardCoordinates() const
+{
+    return !textureCoordinates_.isEmpty()
+        && textureCoordinates_.size() == int(openMesh.n_vertices());
+}
+
+void ProgressiveMeshViewport::updateBuffersFromOpenMesh()
+{
+    BaseGLWidget::updateBuffersFromOpenMesh();
+    if (!glReady_ || !checkerboardProgram_.isLinked() || !hasCheckerboardCoordinates())
+        return;
+
+    vao.bind();
+    checkerboardProgram_.bind();
+
+    vbo.bind();
+    const int positionLocation = checkerboardProgram_.attributeLocation("aPos");
+    if (positionLocation >= 0) {
+        checkerboardProgram_.enableAttributeArray(positionLocation);
+        checkerboardProgram_.setAttributeBuffer(
+            positionLocation, GL_FLOAT, 0, 3, 3 * sizeof(float));
+    }
+
+    textureCoordinateVbo_.bind();
+    textureCoordinateVbo_.allocate(
+        textureCoordinates_.constData(), textureCoordinates_.size() * int(sizeof(QVector2D)));
+    const int textureLocation = checkerboardProgram_.attributeLocation("aTexCoord");
+    if (textureLocation >= 0) {
+        checkerboardProgram_.enableAttributeArray(textureLocation);
+        checkerboardProgram_.setAttributeBuffer(
+            textureLocation, GL_FLOAT, 0, 2, sizeof(QVector2D));
+    }
+
+    textureCoordinateVbo_.release();
+    checkerboardProgram_.release();
+    vao.release();
+}
+
+void ProgressiveMeshViewport::paintGL()
+{
+    if (!checkerboardVisible_ || !hasCheckerboardCoordinates()) {
+        BaseGLWidget::paintGL();
+        return;
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!modelLoaded || openMesh.n_vertices() == 0)
+        return;
+
+    QMatrix4x4 model;
+    QMatrix4x4 view;
+    QMatrix4x4 projection;
+    model.rotate(rotation);
+    model.scale(zoom);
+    view.lookAt(QVector3D(0.0f, 0.0f, viewDistance * viewScale), modelCenter,
+                QVector3D(0.0f, 1.0f, 0.0f));
+    projection.perspective(45.0f, width() / float((std::max)(height(), 1)), 0.1f, 100.0f);
+
+    GLint oldPolygonMode[2];
+    glGetIntegerv(GL_POLYGON_MODE, oldPolygonMode);
+
+    if (hideFaces) {
+        drawWireframe(model, view, projection);
+    } else {
+        if (showWireframeOverlay) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(1.0f, 1.0f);
+        }
+
+        checkerboardProgram_.bind();
+        vao.bind();
+        faceEbo.bind();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        checkerboardProgram_.setUniformValue("model", model);
+        checkerboardProgram_.setUniformValue("view", view);
+        checkerboardProgram_.setUniformValue("projection", projection);
+        checkerboardProgram_.setUniformValue("checkerFrequency", 12.0f);
+        glDrawElements(GL_TRIANGLES, GLsizei(faces.size()), GL_UNSIGNED_INT, nullptr);
+        faceEbo.release();
+        vao.release();
+        checkerboardProgram_.release();
+
+        if (showWireframeOverlay) {
+            glDisable(GL_POLYGON_OFFSET_FILL);
+            drawWireframeOverlay(model, view, projection);
+        }
+    }
+
+    if (showAxis)
+        drawXYZAxis(view, projection);
+
+    glPolygonMode(GL_FRONT, oldPolygonMode[0]);
+    glPolygonMode(GL_BACK, oldPolygonMode[1]);
 }
 
 ProgressiveWorker::ProgressiveWorker(const QString& path, QObject* parent) : QThread(parent), path_(path) {}
@@ -242,6 +370,8 @@ void ProgressiveParameterizationWidget::loadAndStart(const QString& path, bool c
 {
     reset();
     inputPath_ = path;
+    checkerUvTransformValid_ = false;
+    lastSnapshot_ = ProgressiveSnapshot();
     sourceView_->loadOBJ(path);
     referenceView_->setMeshData(ProgressiveMeshData(), true);
     parameterizedView_->setMeshData(ProgressiveMeshData(), true);
@@ -288,6 +418,12 @@ void ProgressiveParameterizationWidget::setFacesVisible(bool visible)
         view->setHideFaces(!visible);
 }
 
+void ProgressiveParameterizationWidget::setCheckerboardVisible(bool visible)
+{
+    sourceView_->setCheckerboardVisible(visible);
+    parameterizedView_->setCheckerboardVisible(visible);
+}
+
 void ProgressiveParameterizationWidget::resetViews()
 {
     for (ProgressiveMeshViewport* view : {sourceView_, referenceView_, parameterizedView_})
@@ -305,9 +441,34 @@ bool ProgressiveParameterizationWidget::isRunning() const { return worker_ && wo
 void ProgressiveParameterizationWidget::applySnapshot(const ProgressiveSnapshot& snapshot)
 {
     lastSnapshot_ = snapshot;
-    sourceView_->setMeshData(snapshot.source, false);
+    if (!checkerUvTransformValid_ && !snapshot.parameterized.vertices.isEmpty()) {
+        float minX = snapshot.parameterized.vertices.front().x();
+        float maxX = minX;
+        float minY = snapshot.parameterized.vertices.front().y();
+        float maxY = minY;
+        for (const QVector3D& vertex : snapshot.parameterized.vertices) {
+            minX = (std::min)(minX, vertex.x());
+            maxX = (std::max)(maxX, vertex.x());
+            minY = (std::min)(minY, vertex.y());
+            maxY = (std::max)(maxY, vertex.y());
+        }
+        const float extent = (std::max)(maxX - minX, maxY - minY);
+        checkerUvOrigin_ = QVector2D(0.5f * (minX + maxX), 0.5f * (minY + maxY));
+        checkerUvScale_ = std::isfinite(extent) && extent > 1e-8f ? 1.0f / extent : 1.0f;
+        checkerUvTransformValid_ = true;
+    }
+
+    QVector<QVector2D> checkerCoordinates;
+    checkerCoordinates.reserve(snapshot.parameterized.vertices.size());
+    for (const QVector3D& vertex : snapshot.parameterized.vertices) {
+        checkerCoordinates.push_back(
+            (QVector2D(vertex.x(), vertex.y()) - checkerUvOrigin_) * checkerUvScale_
+            + QVector2D(0.5f, 0.5f));
+    }
+
+    sourceView_->setMeshData(snapshot.source, false, checkerCoordinates);
     referenceView_->setMeshData(snapshot.reference, true);
-    parameterizedView_->setMeshData(snapshot.parameterized, true);
+    parameterizedView_->setMeshData(snapshot.parameterized, true, checkerCoordinates);
     emit statusChanged(QString("%1 | iter %2 | t %3 | E %4 | |g| %5")
         .arg(snapshot.phase).arg(snapshot.iteration).arg(snapshot.interpolation, 0, 'f', 5)
         .arg(snapshot.energy, 0, 'g', 8).arg(snapshot.gradientNorm, 0, 'g', 5));
