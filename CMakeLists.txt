@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(objViewer LANGUAGES CXX)
+project(objViewer LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -55,6 +55,91 @@ find_package(Eigen3 CONFIG REQUIRED)
 find_package(CGAL CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
+add_library(aaatlas_triangle STATIC triangle/triangle.c)
+target_compile_definitions(aaatlas_triangle PRIVATE TRILIBRARY NO_TIMER)
+target_include_directories(aaatlas_triangle PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+set_target_properties(aaatlas_triangle PROPERTIES
+    AUTOMOC OFF
+    AUTOUIC OFF
+    AUTORCC OFF
+    VS_GLOBAL_TrackFileAccess false
+    VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+)
+if(MSVC)
+    target_compile_options(aaatlas_triangle PRIVATE /wd4477)
+endif()
+
+set(AAATLAS_CORE_SOURCES
+    atlas/atlaspipeline.cpp
+    atlas/atlaspipeline.h
+    atlas/reference/ParaQuadCutting.cpp
+    atlas/reference/ParaQuadCutting.h
+    atlas/reference/ParaQuadChartDecomposition.cpp
+    atlas/reference/ParaQuadChartDecomposition.h
+    atlas/reference/PolySquareDeformation.cpp
+    atlas/reference/PolySquareDeformation.h
+    atlas/reference/ChartDeformation.cpp
+    atlas/reference/ChartDeformation.h
+    atlas/reference/ChartDeformation_Deform.cpp
+    atlas/reference/ChartUntangle.cpp
+    atlas/reference/ChartUntangle.h
+    atlas/reference/MeshViewer/MeshDefinition.cpp
+    atlas/reference/MeshViewer/MeshDefinition.h
+    atlas/reference/MeshViewer/Mesh_doubleIO.cpp
+    atlas/reference/MeshViewer/Mesh_doubleIO.h
+    atlas/reference/Mosek/ConvexQuadOptimization.cpp
+    atlas/reference/Mosek/ConvexQuadOptimization.h
+    atlas/reference/Optimization/HLBFGS/HLBFGS.cpp
+    atlas/reference/Optimization/HLBFGS/HLBFGS_BLAS.cpp
+    atlas/reference/Optimization/HLBFGS/ICFS.cpp
+    atlas/reference/Optimization/HLBFGS/LineSearch.cpp
+    atlas/reference/Optimization/HLBFGS/Lite_Sparse_Matrix.cpp
+    atlas/reference/Optimization/Numeric/FastMath.cpp
+    atlas/reference/Scaffold/Parafun.cpp
+    atlas/reference/Scaffold/Parafun.h
+    atlas/reference/Scaffold/PardisoSolver.cpp
+    atlas/reference/Scaffold/PardisoSolver.h
+    atlas/reference/Scaffold/ScafCommon.cpp
+    atlas/reference/Scaffold/ScafCommon.h
+    atlas/reference/Scaffold/ScafData.cpp
+    atlas/reference/Scaffold/ScafData.h
+    atlas/reference/Scaffold/StateManager.cpp
+    atlas/reference/Scaffold/StateManager.h
+    atlas/reference/Scaffold/TriangleInterface.cpp
+    atlas/reference/Scaffold/TriangleInterface.h
+)
+
+add_library(aaatlas_core STATIC ${AAATLAS_CORE_SOURCES})
+target_include_directories(aaatlas_core PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference/rectpack2D/src"
+)
+target_compile_definitions(aaatlas_core PRIVATE
+    Mesh=AAAtlasMesh
+    MeshTraits=AAAtlasMeshTraits
+    Mesh_doubleIO=AAAtlasMesh_doubleIO
+    Parafun=AAAtlasParafun
+    PardisoSolver=AAAtlasPardisoSolver
+)
+set_target_properties(aaatlas_core PROPERTIES
+    AUTOMOC OFF
+    AUTOUIC OFF
+    AUTORCC OFF
+    VS_GLOBAL_TrackFileAccess false
+    VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+)
+if(MSVC)
+    target_compile_options(aaatlas_core PRIVATE /wd4828)
+endif()
+target_link_libraries(aaatlas_core PRIVATE
+    Qt5::Core
+    OpenMeshCore
+    OpenMeshTools
+    Eigen3::Eigen
+    aaatlas_triangle
+)
+
 set(OBJVIEWER_SOURCES
     main.cpp
     menu_utils.cpp
@@ -65,6 +150,8 @@ set(OBJVIEWER_SOURCES
 
     glwidget/arapglwidget.cpp
     glwidget/arapglwidget.h
+    glwidget/atlasparameterizationwidget.cpp
+    glwidget/atlasparameterizationwidget.h
     glwidget/baseglwidget.cpp
     glwidget/baseglwidget.h
     glwidget/blackholewidget.cpp
@@ -95,6 +182,7 @@ set(OBJVIEWER_SOURCES
     progressive/reference/PardisoSolver.h
     progressive/reference/MeshDefinition.h
     tabs/progressive_parameterization_tab.h
+    tabs/atlas_parameterization_tab.h
 
     Common/CommonDefinitions.cpp
     Common/CommonDefinitions.h
@@ -145,10 +233,13 @@ target_link_libraries(objViewer PRIVATE
     glm::glm
     OpenVolumeMesh::OpenVolumeMesh
     ann
+    aaatlas_core
 )
 
 set_target_properties(objViewer PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    VS_GLOBAL_TrackFileAccess false
+    VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
 )
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 

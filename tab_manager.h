@@ -26,6 +26,7 @@
 #include "glwidget/relativisticwidget.h"
 #include "glwidget/blackholewidget.h"
 #include "glwidget/progressiveparameterizationwidget.h"
+#include "glwidget/atlasparameterizationwidget.h"
 #include "InteractiveWidget.h"
 #include "tabs/model_tab.h"
 #include "tabs/basic_tab.h"
@@ -41,6 +42,7 @@
 #include "tabs/interactive_volume_tab.h"
 #include "tabs/new_cgal_uv_tab.h"
 #include "tabs/progressive_parameterization_tab.h"
+#include "tabs/atlas_parameterization_tab.h"
 // #include "Cutting/QGLViewerWidget.h"
 
 // 标签页配置结构体
@@ -168,6 +170,7 @@ private:
     InteractiveWidget* interactiveVolumeWidget;
 
     ProgressiveParameterizationWidget* progressiveParameterizationWidget;
+    AtlasParameterizationWidget* atlasParameterizationWidget;
 
     // 信息标签
     QLabel* basicInfoLabel;

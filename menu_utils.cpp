@@ -189,7 +189,8 @@ namespace UIUtils {
             "Extended Dual View", "Simple Dual View", "New CGAL-UV View", "OpenMesh Viewer",
             "Point Cloud",
             "Volume Base",
-            "Progressive Parameterization"
+            "Progressive Parameterization",
+            "AAAtlas Packing"
         };
         
         // 创建动作组，确保只有一个被选中

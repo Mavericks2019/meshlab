@@ -247,8 +247,11 @@
 /*  not used, `numberofsegments' will indicate the number of boundary edges. */
 /*                                                                           */
 /*****************************************************************************/
+#ifndef _MSC_VER
+#include <stdint.h>
 #define __int64 int64_t
 #define unsigned __int64 uint64_t
+#endif
 
 #ifdef __cplusplus
 extern "C" {

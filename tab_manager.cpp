@@ -35,6 +35,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , blackHoleWidget(nullptr)  // 初始化BlackHoleWidget
     , interactiveVolumeWidget(nullptr)
     , progressiveParameterizationWidget(nullptr)
+    , atlasParameterizationWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -477,6 +478,23 @@ void TabManager::registerTabConfigs() {
             },
             14,
             "Progressive Parameterization"
+        },
+        {"AAAtlas Packing",
+            [this]() -> QWidget* {
+                getOrCreateWidget(atlasParameterizationWidget);
+                return ::createAtlasParameterizationTab(atlasParameterizationWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(atlasParameterizationWidget);
+                return ::createAtlasParameterizationControlPanel(
+                    atlasParameterizationWidget, mainWindow);
+            },
+            [this]() {
+                delete atlasParameterizationWidget;
+                atlasParameterizationWidget = nullptr;
+            },
+            15,
+            "AAAtlas Packing"
         }
     };
 }
