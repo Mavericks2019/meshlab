@@ -38,6 +38,7 @@ TabManager::TabManager(QWidget* mainWindow)
     , atlasParameterizationWidget(nullptr)
     , dChartsWidget(nullptr)
     , steady3DDissectionWidget(nullptr)
+    , printableInterlockWidget(nullptr)
     // 初始化所有info label指针为nullptr
     , basicInfoLabel(nullptr)
     , cgalInfoLabel(nullptr)
@@ -530,6 +531,23 @@ void TabManager::registerTabConfigs() {
             },
             17,
             "Steady 3D Dissection"
+        },
+        {"Printable Interlocking Parts (2015)",
+            [this]() -> QWidget* {
+                getOrCreateWidget(printableInterlockWidget);
+                return ::createPrintableInterlockTab(printableInterlockWidget);
+            },
+            [this]() -> QWidget* {
+                getOrCreateWidget(printableInterlockWidget);
+                return ::createPrintableInterlockControlPanel(
+                    printableInterlockWidget, mainWindow);
+            },
+            [this]() {
+                delete printableInterlockWidget;
+                printableInterlockWidget = nullptr;
+            },
+            18,
+            "Printable Interlocking Parts (2015)"
         }
     };
 }

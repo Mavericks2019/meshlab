@@ -192,7 +192,8 @@ namespace UIUtils {
             "Progressive Parameterization",
             "AAAtlas Packing",
             "D-Charts",
-            "Steady 3D Dissection"
+            "Steady 3D Dissection",
+            "Printable Interlocking Parts (2015)"
         };
         
         // 创建动作组，确保只有一个被选中

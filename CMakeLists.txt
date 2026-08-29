@@ -162,6 +162,8 @@ set(OBJVIEWER_SOURCES
     glwidget/dchartswidget.h
     glwidget/steady3ddissectionwidget.cpp
     glwidget/steady3ddissectionwidget.h
+    glwidget/printableinterlockwidget.cpp
+    glwidget/printableinterlockwidget.h
     glwidget/modelglwidget.cpp
     glwidget/modelglwidget.h
     glwidget/progressiveparameterizationwidget.cpp
@@ -189,12 +191,16 @@ set(OBJVIEWER_SOURCES
     tabs/atlas_parameterization_tab.h
     tabs/dcharts_tab.h
     tabs/steady3ddissection_tab.h
+    tabs/printable_interlock_tab.h
 
     dcharts/dchartsalgorithm.cpp
     dcharts/dchartsalgorithm.h
 
     dissection/steady3ddissectionalgorithm.cpp
     dissection/steady3ddissectionalgorithm.h
+
+    interlocking/printableinterlockalgorithm.cpp
+    interlocking/printableinterlockalgorithm.h
 
     Common/CommonDefinitions.cpp
     Common/CommonDefinitions.h
@@ -316,6 +322,28 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
             16 10 10 --expect-zero-deletion)
 
+    add_executable(printable_interlock_smoke EXCLUDE_FROM_ALL
+        tests/printable_interlock_smoke.cpp
+        interlocking/printableinterlockalgorithm.cpp
+        interlocking/printableinterlockalgorithm.h
+    )
+    target_include_directories(printable_interlock_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(printable_interlock_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        CGAL::CGAL
+    )
+    set_target_properties(printable_interlock_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+    add_test(NAME printable_interlock_cube_smoke
+        COMMAND printable_interlock_smoke "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj")
+    add_test(NAME printable_interlock_sphere_smoke
+        COMMAND printable_interlock_smoke
+            "${CMAKE_CURRENT_SOURCE_DIR}/models/sphere_high_res.obj"
+            14 6 30 5 7)
+
     add_executable(dcharts_ui_smoke EXCLUDE_FROM_ALL
         tests/dcharts_ui_smoke.cpp
         glwidget/baseglwidget.cpp
@@ -367,6 +395,38 @@ if(BUILD_TESTING)
         CGAL::CGAL
     )
     set_target_properties(steady_dissection_ui_smoke PROPERTIES
+        VS_GLOBAL_TrackFileAccess false
+        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
+    )
+
+    add_executable(printable_interlock_ui_smoke EXCLUDE_FROM_ALL
+        tests/printable_interlock_ui_smoke.cpp
+        glwidget/baseglwidget.cpp
+        glwidget/baseglwidget.h
+        glwidget/steady3ddissectionwidget.cpp
+        glwidget/steady3ddissectionwidget.h
+        glwidget/printableinterlockwidget.cpp
+        glwidget/printableinterlockwidget.h
+        dissection/steady3ddissectionalgorithm.cpp
+        dissection/steady3ddissectionalgorithm.h
+        interlocking/printableinterlockalgorithm.cpp
+        interlocking/printableinterlockalgorithm.h
+        shaders.qrc
+    )
+    target_include_directories(printable_interlock_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(printable_interlock_ui_smoke PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        Qt5::OpenGL
+        Qt5::Widgets
+        OpenGL::GL
+        OpenGL::GLU
+        OpenMeshCore
+        OpenMeshTools
+        Eigen3::Eigen
+        CGAL::CGAL
+    )
+    set_target_properties(printable_interlock_ui_smoke PROPERTIES
         VS_GLOBAL_TrackFileAccess false
         VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
     )
