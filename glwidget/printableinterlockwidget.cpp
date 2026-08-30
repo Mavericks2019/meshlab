@@ -7,11 +7,11 @@
 #include <QLabel>
 #include <QLocale>
 #include <QSaveFile>
-#include <QSplitter>
 #include <QTextStream>
 #include <QVBoxLayout>
 
 #include <algorithm>
+#include <utility>
 
 PrintableInterlockWorker::PrintableInterlockWorker(
     const QString& meshPath, const PrintableInterlockParameters& parameters,
@@ -84,9 +84,7 @@ PrintableInterlockWidget::PrintableInterlockWidget(QWidget* parent)
     : QWidget(parent)
 {
     qRegisterMetaType<PrintableInterlockSnapshot>("PrintableInterlockSnapshot");
-    originalViewport_ = new SteadyDissectionViewport(this);
     partitionViewport_ = new SteadyDissectionViewport(this);
-    originalViewport_->setShowWireframeOverlay(false);
     partitionViewport_->setShowWireframeOverlay(false);
     partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
 
@@ -103,35 +101,23 @@ PrintableInterlockWidget::PrintableInterlockWidget(QWidget* parent)
     headerLayout->addWidget(phaseLabel_, 1);
     headerLayout->addWidget(metricsLabel_);
 
-    auto createPanel = [this](QLabel** nameLabel, SteadyDissectionViewport* viewport,
-                              const QString& title) {
-        QWidget* panel = new QWidget(this);
-        QVBoxLayout* layout = new QVBoxLayout(panel);
-        layout->setContentsMargins(0, 0, 0, 0);
-        layout->setSpacing(0);
-        *nameLabel = new QLabel(title, panel);
-        (*nameLabel)->setAlignment(Qt::AlignCenter);
-        (*nameLabel)->setMinimumHeight(34);
-        (*nameLabel)->setStyleSheet(
-            "background: #272c32; color: #d8dde3; padding: 6px; border-bottom: 1px solid #3c434c;");
-        layout->addWidget(*nameLabel);
-        layout->addWidget(viewport, 1);
-        return panel;
-    };
-
-    QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->setChildrenCollapsible(false);
-    splitter->setHandleWidth(5);
-    splitter->addWidget(createPanel(&originalNameLabel_, originalViewport_, "Original model"));
-    splitter->addWidget(createPanel(&partitionNameLabel_, partitionViewport_,
-                                    "Interlocking parts"));
-    splitter->setSizes({600, 600});
+    QWidget* viewportPanel = new QWidget(this);
+    QVBoxLayout* viewportLayout = new QVBoxLayout(viewportPanel);
+    viewportLayout->setContentsMargins(0, 0, 0, 0);
+    viewportLayout->setSpacing(0);
+    partitionNameLabel_ = new QLabel("Model preview", viewportPanel);
+    partitionNameLabel_->setAlignment(Qt::AlignCenter);
+    partitionNameLabel_->setMinimumHeight(34);
+    partitionNameLabel_->setStyleSheet(
+        "background: #272c32; color: #d8dde3; padding: 6px; border-bottom: 1px solid #3c434c;");
+    viewportLayout->addWidget(partitionNameLabel_);
+    viewportLayout->addWidget(partitionViewport_, 1);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(header);
-    layout->addWidget(splitter, 1);
+    layout->addWidget(viewportPanel, 1);
 }
 
 PrintableInterlockWidget::~PrintableInterlockWidget()
@@ -139,16 +125,53 @@ PrintableInterlockWidget::~PrintableInterlockWidget()
     reset();
 }
 
+void PrintableInterlockWidget::stopWorker()
+{
+    if (!worker_)
+        return;
+    worker_->requestStop();
+    worker_->wait();
+    worker_->deleteLater();
+    worker_ = nullptr;
+    emit runningChanged(false);
+}
+
+bool PrintableInterlockWidget::loadPreview(
+    const QString& meshPath, QString* errorMessage)
+{
+    stopWorker();
+    SteadyDissectionMeshData preview;
+    if (!PrintableInterlockAlgorithm::loadPreview(meshPath, &preview, errorMessage))
+        return false;
+
+    meshPath_ = meshPath;
+    previewModel_ = std::move(preview);
+    lastSnapshot_ = PrintableInterlockSnapshot();
+    assemblyProgress_ = 0.0f;
+    partitionViewport_->setPieceOffsets({});
+    partitionViewport_->setModelData(previewModel_, 0);
+    partitionNameLabel_->setText("Input model  |  " + QFileInfo(meshPath_).fileName());
+    phaseLabel_->setText("Input model loaded");
+    metricsLabel_->setText(QString("%1 triangles")
+        .arg(previewModel_.faces.size() / 3));
+    emit statusChanged("Input model loaded. Run all stages or advance one stage at a time.");
+    emit snapshotChanged(lastSnapshot_);
+    emit runningChanged(false);
+    return true;
+}
+
 void PrintableInterlockWidget::loadAndStart(
     const QString& meshPath, const PrintableInterlockParameters& parameters,
     bool continuous)
 {
-    reset();
+    stopWorker();
     meshPath_ = meshPath;
     lastParameters_ = parameters;
+    lastSnapshot_ = PrintableInterlockSnapshot();
+    assemblyProgress_ = 0.0f;
+    partitionViewport_->setPieceOffsets({});
     const QString name = QFileInfo(meshPath).fileName();
-    originalNameLabel_->setText("Original model  |  " + name);
-    partitionNameLabel_->setText("Interlocking parts  |  " + name);
+    partitionNameLabel_->setText("Input model  |  " + name);
     phaseLabel_->setText("Validating and analyzing local voxel shape");
     metricsLabel_->clear();
     worker_ = new PrintableInterlockWorker(meshPath, parameters, this);
@@ -159,6 +182,7 @@ void PrintableInterlockWidget::loadAndStart(
     connect(worker_, &QThread::finished,
             this, &PrintableInterlockWidget::handleFinished);
     worker_->setContinuous(continuous);
+    emit snapshotChanged(lastSnapshot_);
     emit runningChanged(true);
     emit statusChanged("Validating the solid and sampling local shape inside each voxel...");
     worker_->start();
@@ -186,27 +210,31 @@ void PrintableInterlockWidget::step()
 
 void PrintableInterlockWidget::reset()
 {
-    if (worker_) {
-        worker_->requestStop();
-        worker_->wait();
-        worker_->deleteLater();
-        worker_ = nullptr;
-    }
-    originalViewport_->clearModel();
-    partitionViewport_->clearModel();
-    originalNameLabel_->setText("Original model");
-    partitionNameLabel_->setText("Interlocking parts");
-    phaseLabel_->setText("Select one watertight triangle mesh");
+    stopWorker();
     metricsLabel_->clear();
     lastSnapshot_ = PrintableInterlockSnapshot();
     assemblyProgress_ = 0.0f;
-    emit statusChanged("Ready");
+    partitionViewport_->setPieceOffsets({});
+    if (previewModel_.faces.isEmpty()) {
+        partitionViewport_->clearModel();
+        partitionNameLabel_->setText("Model preview");
+        phaseLabel_->setText("Select one watertight triangle mesh");
+        emit statusChanged("Ready");
+    } else {
+        partitionViewport_->setModelData(previewModel_, 0);
+        partitionNameLabel_->setText(
+            "Input model  |  " + QFileInfo(meshPath_).fileName());
+        phaseLabel_->setText("Input model loaded");
+        metricsLabel_->setText(QString("%1 triangles")
+            .arg(previewModel_.faces.size() / 3));
+        emit statusChanged("Construction reset to the input model.");
+    }
+    emit snapshotChanged(lastSnapshot_);
     emit runningChanged(false);
 }
 
 void PrintableInterlockWidget::setWireframeVisible(bool visible)
 {
-    originalViewport_->setShowWireframeOverlay(visible);
     partitionViewport_->setShowWireframeOverlay(visible);
 }
 
@@ -267,7 +295,6 @@ void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
 
 void PrintableInterlockWidget::resetViews()
 {
-    originalViewport_->resetView();
     partitionViewport_->resetView();
 }
 
@@ -341,7 +368,6 @@ void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& s
     lastSnapshot_ = snapshot;
     if (firstCompleteSnapshot)
         assemblyProgress_ = float(assemblyStepCount());
-    originalViewport_->setModelData(snapshot.originalModel, snapshot.requestedPieces);
     const SteadyDissectionMeshData& displayedModel = snapshot.complete
         && !surfaceClippedMode_ ? snapshot.voxelizedModel : snapshot.partitionedModel;
     partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
@@ -351,6 +377,9 @@ void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& s
         partitionNameLabel_->setText(
             QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
             + QFileInfo(meshPath_).fileName());
+    } else {
+        partitionNameLabel_->setText(
+            "Current construction stage  |  " + QFileInfo(meshPath_).fileName());
     }
     phaseLabel_->setText(snapshot.phase);
     metricsLabel_->setText(QString("%1 / %2 pieces  |  %3^3 voxels")

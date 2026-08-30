@@ -71,8 +71,8 @@ inline QWidget* createPrintableInterlockControlPanel(
     QGroupBox* parametersGroup = new QGroupBox("2015 Paper Parameters", panel);
     QFormLayout* parametersLayout = new QFormLayout(parametersGroup);
     QSpinBox* resolution = new QSpinBox(parametersGroup);
-    resolution->setRange(8, 35);
-    resolution->setValue(14);
+    resolution->setRange(8, 100);
+    resolution->setValue(50);
     resolution->setSuffix(" cells");
     QSpinBox* samples = new QSpinBox(parametersGroup);
     samples->setRange(2, 6);
@@ -122,13 +122,13 @@ inline QWidget* createPrintableInterlockControlPanel(
     QHBoxLayout* iterationLayout = new QHBoxLayout(iterationGroup);
     QPushButton* runButton = new QPushButton(iterationGroup);
     runButton->setIcon(panel->style()->standardIcon(QStyle::SP_MediaPlay));
-    runButton->setToolTip("Run or resume");
+    runButton->setToolTip("Run all remaining construction stages");
     QPushButton* pauseButton = new QPushButton(iterationGroup);
     pauseButton->setIcon(panel->style()->standardIcon(QStyle::SP_MediaPause));
     pauseButton->setToolTip("Pause after the current stage");
     QPushButton* stepButton = new QPushButton(iterationGroup);
     stepButton->setIcon(panel->style()->standardIcon(QStyle::SP_MediaSkipForward));
-    stepButton->setToolTip("Advance one construction stage");
+    stepButton->setToolTip("Advance exactly one construction stage");
     QPushButton* resetButton = new QPushButton(iterationGroup);
     resetButton->setIcon(panel->style()->standardIcon(QStyle::SP_BrowserReload));
     resetButton->setToolTip("Stop and reset");
@@ -239,13 +239,22 @@ inline QWidget* createPrintableInterlockControlPanel(
         }
         widget->loadAndStart(meshPath->text(), parameters(), continuous);
     };
+    auto loadPreview = [=](const QString& path) {
+        QString error;
+        if (!widget->loadPreview(path, &error)) {
+            QMessageBox::warning(mainWindow, "Printable Interlocking Parts", error);
+            return false;
+        }
+        meshPath->setText(path);
+        return true;
+    };
 
     QObject::connect(loadButton, &QPushButton::clicked, panel, [=]() {
         const QString path = QFileDialog::getOpenFileName(
             mainWindow, "Open watertight triangle mesh", QString(),
             "Triangle meshes (*.obj *.off *.ply)");
         if (!path.isEmpty())
-            meshPath->setText(path);
+            loadPreview(path);
     });
     QObject::connect(sampleButton, &QPushButton::clicked, panel, [=]() {
         const QString samplePath = printableInterlockSamplePath("rock.obj");
@@ -254,8 +263,9 @@ inline QWidget* createPrintableInterlockControlPanel(
                                  "The bundled sample mesh was not found.");
             return;
         }
-        meshPath->setText(samplePath);
-        resolution->setValue(14);
+        if (!loadPreview(samplePath))
+            return;
+        resolution->setValue(50);
         samples->setValue(4);
         pieceCount->setValue(6);
         candidateLimit->setValue(20);
@@ -372,8 +382,16 @@ inline QWidget* createPrintableInterlockControlPanel(
     });
     QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
                      assemblyGroup, [=](const PrintableInterlockSnapshot& snapshot) {
-        if (!snapshot.complete)
+        if (!snapshot.complete) {
+            stopAssemblyPlayback();
+            assemblyProgress->setRange(0, 0);
+            assemblyProgress->setEnabled(false);
+            previousAssemblyButton->setEnabled(false);
+            playAssemblyButton->setEnabled(false);
+            nextAssemblyButton->setEnabled(false);
+            assemblyStepLabel->setText("Assembly 0 / 0");
             return;
+        }
         stopAssemblyPlayback();
         const int steps = (std::max)(0, snapshot.extractionDirections.size() - 1);
         const bool available = snapshot.interlocking && steps > 0;

@@ -9,7 +9,7 @@
 #include <functional>
 
 struct PrintableInterlockParameters {
-    int resolution = 16;
+    int resolution = 50;
     int samplesPerVoxel = 4;
     int pieceCount = 8;
     int candidateLimit = 20;
@@ -53,6 +53,9 @@ class PrintableInterlockAlgorithm {
 public:
     using SnapshotCallback = std::function<bool(const PrintableInterlockSnapshot&)>;
 
+    static bool loadPreview(const QString& meshPath,
+                            SteadyDissectionMeshData* preview,
+                            QString* errorMessage);
     static bool run(const QString& meshPath,
                     const PrintableInterlockParameters& parameters,
                     const SnapshotCallback& callback,

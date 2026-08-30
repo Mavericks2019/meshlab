@@ -48,6 +48,7 @@ public:
     explicit PrintableInterlockWidget(QWidget* parent = nullptr);
     ~PrintableInterlockWidget() override;
 
+    bool loadPreview(const QString& meshPath, QString* errorMessage);
     void loadAndStart(const QString& meshPath,
                       const PrintableInterlockParameters& parameters,
                       bool continuous);
@@ -75,9 +76,7 @@ private slots:
     void handleFinished();
 
 private:
-    SteadyDissectionViewport* originalViewport_ = nullptr;
     SteadyDissectionViewport* partitionViewport_ = nullptr;
-    QLabel* originalNameLabel_ = nullptr;
     QLabel* partitionNameLabel_ = nullptr;
     QLabel* phaseLabel_ = nullptr;
     QLabel* metricsLabel_ = nullptr;
@@ -85,8 +84,10 @@ private:
     QString meshPath_;
     PrintableInterlockParameters lastParameters_;
     PrintableInterlockSnapshot lastSnapshot_;
+    SteadyDissectionMeshData previewModel_;
     bool surfaceClippedMode_ = true;
     float assemblyProgress_ = 0.0f;
 
+    void stopWorker();
     void updateAssemblyOffsets();
 };

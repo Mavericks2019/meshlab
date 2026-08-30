@@ -1514,8 +1514,8 @@ public:
 
     bool execute(const QString& meshPath, QString* error)
     {
-        if (parameters_.resolution < 8 || parameters_.resolution > 35) {
-            *error = "Voxel resolution must be between 8 and 35.";
+        if (parameters_.resolution < 8 || parameters_.resolution > 100) {
+            *error = "Voxel resolution must be between 8 and 100.";
             return false;
         }
         if (parameters_.samplesPerVoxel < 2 || parameters_.samplesPerVoxel > 6) {
@@ -1660,6 +1660,58 @@ private:
     int seamSwapCount_ = 0;
 };
 } // namespace
+
+bool PrintableInterlockAlgorithm::loadPreview(
+    const QString& meshPath, SteadyDissectionMeshData* preview,
+    QString* errorMessage)
+{
+    QString error;
+    if (!preview) {
+        error = "No preview output was provided.";
+    } else if (!QFileInfo::exists(meshPath)) {
+        error = QString("Mesh file does not exist: %1").arg(meshPath);
+    } else {
+        SurfaceMesh mesh;
+        if (!CGAL::IO::read_polygon_mesh(meshPath.toStdString(), mesh)
+            || mesh.is_empty()) {
+            error = QString("Could not read mesh: %1").arg(meshPath);
+        } else if (!CGAL::is_triangle_mesh(mesh)) {
+            error = QString("%1 is not a triangle-only mesh.")
+                        .arg(QFileInfo(meshPath).fileName());
+        } else {
+            CGAL::Bbox_3 box;
+            bool first = true;
+            for (SurfaceMesh::Vertex_index vertex : mesh.vertices()) {
+                const CGAL::Bbox_3 pointBox = mesh.point(vertex).bbox();
+                box = first ? pointBox : box + pointBox;
+                first = false;
+            }
+            const double extent = (std::max)({
+                box.xmax() - box.xmin(), box.ymax() - box.ymin(),
+                box.zmax() - box.zmin()});
+            if (!(extent > 1e-12) || !std::isfinite(extent)) {
+                error = QString("%1 has no usable size.")
+                            .arg(QFileInfo(meshPath).fileName());
+            } else {
+                const double centerX = 0.5 * (box.xmin() + box.xmax());
+                const double centerY = 0.5 * (box.ymin() + box.ymax());
+                const double centerZ = 0.5 * (box.zmin() + box.zmax());
+                const double scale = 2.0 / extent;
+                for (SurfaceMesh::Vertex_index vertex : mesh.vertices()) {
+                    const Point point = mesh.point(vertex);
+                    mesh.point(vertex) = Point(
+                        (CGAL::to_double(point.x()) - centerX) * scale,
+                        (CGAL::to_double(point.y()) - centerY) * scale,
+                        (CGAL::to_double(point.z()) - centerZ) * scale);
+                }
+                *preview = buildOriginalMesh(mesh);
+            }
+        }
+    }
+    if (errorMessage)
+        *errorMessage = error;
+    return error.isEmpty();
+}
 
 bool PrintableInterlockAlgorithm::run(
     const QString& meshPath, const PrintableInterlockParameters& parameters,
