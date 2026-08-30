@@ -1,4 +1,0 @@
-interface:
-  display_name: "Progressive Parameterization"
-  short_description: "Develop and verify the progressive parameterization tab"
-  default_prompt: "Use $progressive-parameterization to debug or extend the M/Mr/Mp workflow in this repository."

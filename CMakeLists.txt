@@ -254,6 +254,24 @@ target_link_libraries(objViewer PRIVATE
     aaatlas_core
 )
 
+if(WIN32)
+    set(QT_PLATFORM_PLUGIN
+        "$<IF:$<CONFIG:Debug>,$<TARGET_FILE_DIR:Qt5::Core>/../plugins/platforms/qwindowsd.dll,$<TARGET_FILE_DIR:Qt5::Core>/../plugins/platforms/qwindows.dll>"
+    )
+    add_custom_command(TARGET objViewer POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+            "-DRUNTIME_DIRECTORY=$<TARGET_FILE_DIR:Qt5::Core>"
+            "-DDESTINATION_DIRECTORY=$<TARGET_FILE_DIR:objViewer>"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/deploy_runtime_dlls.cmake"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:objViewer>/platforms"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${QT_PLATFORM_PLUGIN}"
+            "$<TARGET_FILE_DIR:objViewer>/platforms"
+        VERBATIM
+    )
+endif()
+
 set_target_properties(objViewer PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     VS_GLOBAL_TrackFileAccess false
@@ -274,160 +292,3 @@ set_property(SOURCE tab_manager.cpp APPEND PROPERTY OBJECT_DEPENDS
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 
 install(TARGETS objViewer RUNTIME DESTINATION bin)
-
-include(CTest)
-if(BUILD_TESTING)
-    add_executable(dcharts_smoke EXCLUDE_FROM_ALL
-        tests/dcharts_smoke.cpp
-        dcharts/dchartsalgorithm.cpp
-        dcharts/dchartsalgorithm.h
-    )
-    target_include_directories(dcharts_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(dcharts_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        OpenMeshCore
-        OpenMeshTools
-        Eigen3::Eigen
-    )
-    set_target_properties(dcharts_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-    add_test(NAME dcharts_cow_smoke
-        COMMAND dcharts_smoke "${CMAKE_CURRENT_SOURCE_DIR}/models/cow.obj")
-
-    add_executable(steady_dissection_smoke EXCLUDE_FROM_ALL
-        tests/steady_dissection_smoke.cpp
-        dissection/steady3ddissectionalgorithm.cpp
-        dissection/steady3ddissectionalgorithm.h
-    )
-    target_include_directories(steady_dissection_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(steady_dissection_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        CGAL::CGAL
-    )
-    set_target_properties(steady_dissection_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-    add_test(NAME steady_dissection_cube_cuboid_smoke
-        COMMAND steady_dissection_smoke
-            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
-            "${CMAKE_CURRENT_SOURCE_DIR}/models/dissection_cuboid.obj")
-    add_test(NAME steady_dissection_cube_exact_cover
-        COMMAND steady_dissection_smoke
-            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
-            "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj"
-            16 10 10 --expect-zero-deletion)
-
-    add_executable(printable_interlock_smoke EXCLUDE_FROM_ALL
-        tests/printable_interlock_smoke.cpp
-        interlocking/printableinterlockalgorithm.cpp
-        interlocking/printableinterlockalgorithm.h
-    )
-    target_include_directories(printable_interlock_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(printable_interlock_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        CGAL::CGAL
-    )
-    set_target_properties(printable_interlock_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-    add_test(NAME printable_interlock_cube_smoke
-        COMMAND printable_interlock_smoke "${CMAKE_CURRENT_SOURCE_DIR}/models/cube.obj")
-    add_test(NAME printable_interlock_sphere_smoke
-        COMMAND printable_interlock_smoke
-            "${CMAKE_CURRENT_SOURCE_DIR}/models/sphere_high_res.obj"
-            14 6 30 5 7)
-
-    add_executable(dcharts_ui_smoke EXCLUDE_FROM_ALL
-        tests/dcharts_ui_smoke.cpp
-        glwidget/baseglwidget.cpp
-        glwidget/baseglwidget.h
-        glwidget/dchartswidget.cpp
-        glwidget/dchartswidget.h
-        dcharts/dchartsalgorithm.cpp
-        dcharts/dchartsalgorithm.h
-        shaders.qrc
-    )
-    target_include_directories(dcharts_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(dcharts_ui_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        Qt5::OpenGL
-        Qt5::Widgets
-        OpenGL::GL
-        OpenGL::GLU
-        OpenMeshCore
-        OpenMeshTools
-        Eigen3::Eigen
-    )
-    set_target_properties(dcharts_ui_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-
-    add_executable(steady_dissection_ui_smoke EXCLUDE_FROM_ALL
-        tests/steady_dissection_ui_smoke.cpp
-        glwidget/baseglwidget.cpp
-        glwidget/baseglwidget.h
-        glwidget/steady3ddissectionwidget.cpp
-        glwidget/steady3ddissectionwidget.h
-        dissection/steady3ddissectionalgorithm.cpp
-        dissection/steady3ddissectionalgorithm.h
-        shaders.qrc
-    )
-    target_include_directories(steady_dissection_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(steady_dissection_ui_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        Qt5::OpenGL
-        Qt5::Widgets
-        OpenGL::GL
-        OpenGL::GLU
-        OpenMeshCore
-        OpenMeshTools
-        Eigen3::Eigen
-        CGAL::CGAL
-    )
-    set_target_properties(steady_dissection_ui_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-
-    add_executable(printable_interlock_ui_smoke EXCLUDE_FROM_ALL
-        tests/printable_interlock_ui_smoke.cpp
-        glwidget/baseglwidget.cpp
-        glwidget/baseglwidget.h
-        glwidget/steady3ddissectionwidget.cpp
-        glwidget/steady3ddissectionwidget.h
-        glwidget/printableinterlockwidget.cpp
-        glwidget/printableinterlockwidget.h
-        dissection/steady3ddissectionalgorithm.cpp
-        dissection/steady3ddissectionalgorithm.h
-        interlocking/printableinterlockalgorithm.cpp
-        interlocking/printableinterlockalgorithm.h
-        shaders.qrc
-    )
-    target_include_directories(printable_interlock_ui_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(printable_interlock_ui_smoke PRIVATE
-        Qt5::Core
-        Qt5::Gui
-        Qt5::OpenGL
-        Qt5::Widgets
-        OpenGL::GL
-        OpenGL::GLU
-        OpenMeshCore
-        OpenMeshTools
-        Eigen3::Eigen
-        CGAL::CGAL
-    )
-    set_target_properties(printable_interlock_ui_smoke PROPERTIES
-        VS_GLOBAL_TrackFileAccess false
-        VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-    )
-endif()

@@ -1,4 +1,0 @@
-interface:
-  display_name: "D-Charts Study"
-  short_description: "Study and extend the D-Charts segmentation implementation"
-  default_prompt: "Use $dcharts-study to explain, experiment with, or extend the D-Charts implementation in this repository."

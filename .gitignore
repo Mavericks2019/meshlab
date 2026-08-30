@@ -1,5 +1,15 @@
+/build/
 /build-vs/
 /build-ninja/
 /build-progressive/
 /vcpkg_installed/
 /progressive_smoke.obj
+/tmp/
+
+# Runtime-generated parameterization and printable-part exports.
+/*_mp.obj
+/*_mr.obj
+/*_comp_*.obj
+/*_comp_*.txt
+/models/**/*_surface_part_*.obj
+/models/**/*_voxel_part_*.obj
