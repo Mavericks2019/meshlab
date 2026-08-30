@@ -276,7 +276,9 @@ bool voxelizeAndAnalyze(const SurfaceMesh& mesh,
                                 grid->origin + (x + double(sx) / subdivisions) * grid->cellSize,
                                 grid->origin + (y + double(sy) / subdivisions) * grid->cellSize,
                                 grid->origin + (z + double(sz) / subdivisions) * grid->cellSize);
-                            const bool isInside = classify(sample) != CGAL::ON_UNBOUNDED_SIDE;
+                            // Points exactly on the source surface have zero material volume.
+                            // Treating them as solid creates point- and edge-only voxel bridges.
+                            const bool isInside = classify(sample) == CGAL::ON_BOUNDED_SIDE;
                             inside[localSampleIndex(sx, sy, sz, side)] = isInside ? 1 : 0;
                             count += isInside ? 1 : 0;
                         }
@@ -889,6 +891,48 @@ bool pieceConnected(const Grid& grid, int piece)
     return reached == expected;
 }
 
+bool pieceMaterialConnected(const Grid& grid, int piece)
+{
+    int start = -1;
+    int expected = 0;
+    for (int index = 0; index < int(grid.labels.size()); ++index) {
+        if (grid.labels[index] == piece) {
+            start = index;
+            ++expected;
+        }
+    }
+    if (expected == 0)
+        return false;
+
+    std::vector<unsigned char> visited(grid.labels.size(), 0);
+    std::queue<int> queue;
+    queue.push(start);
+    visited[start] = 1;
+    int reached = 0;
+    while (!queue.empty()) {
+        const int index = queue.front();
+        queue.pop();
+        ++reached;
+        const Coord point = grid.coord(index);
+        for (int direction = 0; direction < 6; ++direction) {
+            const Coord next = point + kDirections[direction];
+            if (!grid.contains(next))
+                continue;
+            const int nextIndex = grid.index(next);
+            if (visited[nextIndex] || grid.labels[nextIndex] != piece)
+                continue;
+            const double contact = (std::min)(
+                grid.cells[index].faceArea[direction],
+                grid.cells[nextIndex].faceArea[direction ^ 1]);
+            if (contact <= 0.0)
+                continue;
+            visited[nextIndex] = 1;
+            queue.push(nextIndex);
+        }
+    }
+    return reached == expected;
+}
+
 double localSeamEnergy(const Grid& grid, int index, int proposedLabel)
 {
     const Coord point = grid.coord(index);
@@ -1180,7 +1224,8 @@ SteadyDissectionMeshData buildPartitionMesh(const SurfaceMesh& mesh, const Grid&
     return output;
 }
 
-bool buildVoxelSolid(const Grid& grid, int piece, SurfaceMesh* output, QString* error)
+bool buildVoxelSolid(const Grid& grid, int piece, SurfaceMesh* output,
+                     QString* error)
 {
     output->clear();
     const int vertexSide = grid.resolution + 1;
@@ -1323,16 +1368,8 @@ bool buildVoxelSolid(const Grid& grid, int piece, SurfaceMesh* output, QString* 
                      .arg(singularGroupCount);
         return false;
     }
-    auto componentMap = output->add_property_map<
-        SurfaceMesh::Face_index, std::size_t>("f:voxel_component", 0).first;
-    const std::size_t componentCount = PMP::connected_components(*output, componentMap);
-    output->remove_property_map(componentMap);
-    if (componentCount != 1) {
-        *error = QString("Part %1 contains %2 disconnected voxel shells. "
-                         "Try a different seed or a higher voxel resolution.")
-                     .arg(piece + 1).arg(componentCount);
-        return false;
-    }
+    // The voxel model is a preview of the uncut partition. Its shell count must
+    // not block the printable result, which is defined by source solid intersection.
     PMP::orient_to_bound_a_volume(*output);
     return true;
 }
@@ -1394,8 +1431,9 @@ bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
 
     for (int piece = 0; piece < pieceCount; ++piece) {
         SurfaceMesh voxelSolid;
-        if (!buildVoxelSolid(grid, piece, &voxelSolid, error))
+        if (!buildVoxelSolid(grid, piece, &voxelSolid, error)) {
             return false;
+        }
         SteadyDissectionMeshData voxelData = surfaceMeshData(voxelSolid, piece);
         appendMeshData(voxelCombined, voxelData);
         voxelParts->push_back(std::move(voxelData));
@@ -1426,15 +1464,17 @@ bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
                          .arg(selfIntersecting ? "self-intersection" : "invalid orientation");
             return false;
         }
-        auto componentMap = intersection.add_property_map<
-            SurfaceMesh::Face_index, std::size_t>("f:printable_component", 0).first;
-        const std::size_t componentCount = PMP::connected_components(
-            intersection, componentMap);
-        intersection.remove_property_map(componentMap);
-        if (componentCount != 1) {
+        auto volumeMap = intersection.add_property_map<
+            SurfaceMesh::Face_index, std::size_t>("f:printable_volume", 0).first;
+        const std::size_t volumeCount = PMP::volume_connected_components(
+            intersection, volumeMap,
+            CGAL::parameters::do_orientation_tests(true)
+                .do_self_intersection_tests(false));
+        intersection.remove_property_map(volumeMap);
+        if (volumeCount != 1) {
             *error = QString("Part %1 intersects the original solid in %2 disconnected volumes. "
-                             "Try a different seed or a higher voxel resolution.")
-                         .arg(piece + 1).arg(componentCount);
+                             "The partition will be retried automatically.")
+                         .arg(piece + 1).arg(volumeCount);
             return false;
         }
         PMP::orient_to_bound_a_volume(intersection);
@@ -1504,6 +1544,57 @@ QVector<int> pieceCounts(const Grid& grid, int pieceCount)
     return counts;
 }
 
+bool constructPartitionAttempt(const Grid& analyzedGrid,
+                               const PrintableInterlockParameters& parameters,
+                               std::mt19937& generator, Grid* result,
+                               QVector<int>* directions, int* attachedBoundaryCount,
+                               int* seamSwapCount, QString* error)
+{
+    CoreSearch search(parameters, generator);
+    Grid trial;
+    QVector<int> trialDirections;
+    if (!search.run(analyzedGrid, &trial, &trialDirections)) {
+        *error = "Could not construct an interlocking core.";
+        return false;
+    }
+
+    int attached = 0;
+    if (!attachBoundaryVoxels(&trial, trialDirections, parameters, &attached)) {
+        *error = "Some boundary voxels could not be attached to the trial partition.";
+        return false;
+    }
+
+    int swaps = 0;
+    if (parameters.refineSalientSeams)
+        swaps = refineSalientSeams(&trial, trialDirections, parameters);
+    if (parameters.enforceInterlocking
+        && !localModelSatisfied(trial, trialDirections)) {
+        *error = "The trial partition does not preserve the disassembly sequence.";
+        return false;
+    }
+
+    for (int index = 0; index < int(trial.cells.size()); ++index) {
+        if (trial.cells[index].occupied && trial.labels[index] < 0) {
+            *error = "The trial partition did not cover every occupied voxel.";
+            return false;
+        }
+    }
+    for (int piece = 0; piece < parameters.pieceCount; ++piece) {
+        if (!pieceConnected(trial, piece)
+            || !pieceMaterialConnected(trial, piece)) {
+            *error = QString("Part %1 is not connected through material-bearing voxel faces.")
+                         .arg(piece + 1);
+            return false;
+        }
+    }
+
+    *result = std::move(trial);
+    *directions = std::move(trialDirections);
+    *attachedBoundaryCount = attached;
+    *seamSwapCount = swaps;
+    return true;
+}
+
 class Engine {
 public:
     Engine(const PrintableInterlockParameters& parameters,
@@ -1545,6 +1636,7 @@ public:
         if (!publish("Voxelized model and analyzed local shape", false,
                      buildAnalysisMesh(grid_), false))
             return true;
+        const Grid analyzedGrid = grid_;
 
         CoreSearch search(parameters_, generator_);
         Grid coreResult;
@@ -1582,8 +1674,16 @@ public:
                 return false;
             }
         }
+        bool materialConnected = true;
+        for (int piece = 0; piece < parameters_.pieceCount; ++piece) {
+            if (!pieceConnected(grid_, piece)
+                || !pieceMaterialConnected(grid_, piece)) {
+                materialConnected = false;
+                break;
+            }
+        }
         if (!publish("Preparing watertight voxel solids", false,
-                     buildPartitionMesh(mesh_.mesh, grid_), interlocking))
+                      buildPartitionMesh(mesh_.mesh, grid_), interlocking))
             return true;
         const SteadyDissectionMeshData preview = buildPartitionMesh(mesh_.mesh, grid_);
         if (!publish("Computing watertight solid intersections", false,
@@ -1591,16 +1691,76 @@ public:
             return true;
         SteadyDissectionMeshData voxelModel;
         SteadyDissectionMeshData printableModel;
-        if (!buildPrintableSolidParts(mesh_.mesh, grid_, parameters_.pieceCount,
-                                      &voxelParts_, &voxelModel,
-                                      &printableParts_, &printableModel, error))
+        QString solidError;
+        bool built = materialConnected
+            && buildPrintableSolidParts(mesh_.mesh, grid_, parameters_.pieceCount,
+                                        &voxelParts_, &voxelModel,
+                                        &printableParts_, &printableModel,
+                                        &solidError);
+
+        const int automaticAttempts = (std::max)(3, (std::min)(8,
+            parameters_.candidateLimit / 5 + 2));
+        int successfulAttempt = 0;
+        QString lastAttemptError = materialConnected
+            ? solidError
+            : "The initial partition was not connected through material-bearing voxel faces.";
+        for (int attempt = 1; !built && attempt < automaticAttempts; ++attempt) {
+            std::mt19937 retryGenerator(
+                parameters_.randomSeed + 0x9e3779b9U * unsigned(attempt));
+            Grid trialGrid;
+            QVector<int> trialDirections;
+            int trialAttachedCount = 0;
+            int trialSeamSwapCount = 0;
+            QString trialError;
+            if (!constructPartitionAttempt(
+                    analyzedGrid, parameters_, retryGenerator, &trialGrid,
+                    &trialDirections, &trialAttachedCount, &trialSeamSwapCount,
+                    &trialError)) {
+                lastAttemptError = trialError;
+                continue;
+            }
+
+            QVector<SteadyDissectionMeshData> trialVoxelParts;
+            QVector<SteadyDissectionMeshData> trialPrintableParts;
+            SteadyDissectionMeshData trialVoxelModel;
+            SteadyDissectionMeshData trialPrintableModel;
+            if (!buildPrintableSolidParts(
+                    mesh_.mesh, trialGrid, parameters_.pieceCount,
+                    &trialVoxelParts, &trialVoxelModel,
+                    &trialPrintableParts, &trialPrintableModel,
+                    &trialError)) {
+                lastAttemptError = trialError;
+                continue;
+            }
+
+            grid_ = std::move(trialGrid);
+            directions_ = std::move(trialDirections);
+            attachedBoundaryCount_ = trialAttachedCount;
+            seamSwapCount_ = trialSeamSwapCount;
+            voxelParts_ = std::move(trialVoxelParts);
+            printableParts_ = std::move(trialPrintableParts);
+            voxelModel = std::move(trialVoxelModel);
+            printableModel = std::move(trialPrintableModel);
+            interlocking = localModelSatisfied(grid_, directions_);
+            successfulAttempt = attempt;
+            built = true;
+        }
+        if (!built) {
+            *error = QString("Could not produce connected surface-cut parts after %1 "
+                             "automatic partition attempts. Last attempt: %2")
+                         .arg(automaticAttempts).arg(lastAttemptError);
             return false;
+        }
         voxelModel_ = std::move(voxelModel);
-        return publish(parameters_.refineSalientSeams
-                           ? QString("Complete watertight solids (%1 seam swaps)")
-                                 .arg(seamSwapCount_)
-                           : "Complete watertight interlocking solids",
-                       true, printableModel, interlocking);
+        QString completePhase = parameters_.refineSalientSeams
+            ? QString("Complete watertight solids (%1 seam swaps)")
+                  .arg(seamSwapCount_)
+            : QString("Complete watertight interlocking solids");
+        if (successfulAttempt > 0)
+            completePhase += QString("; accepted automatic retry %1")
+                                 .arg(successfulAttempt);
+        return publish(completePhase,
+                        true, printableModel, interlocking);
     }
 
 private:
