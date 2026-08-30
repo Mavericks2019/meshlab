@@ -253,6 +253,8 @@ bool MeshViewerWidget::openMesh_VTK(const char* filename)
 			break;
 		}
 	}
+	fclose(input_f);
+	return true;
 }
 
 void MeshViewerWidget::printBasicMeshInfo()
@@ -260,10 +262,12 @@ void MeshViewerWidget::printBasicMeshInfo()
 	checkMeshMode();
 
 	printf("Information of the input mesh:\nVertices : %d;\nFaces : %d; HalfFaces : %d\nEdges : %d; HalfEdges : %d;\nCells : %d\n", 
-		mesh_.n_vertices(),mesh_.n_faces(),mesh_.n_halffaces(),mesh_.n_edges(),mesh_.n_halfedges(),mesh_.n_cells());
+		int(mesh_.n_vertices()),int(mesh_.n_faces()),int(mesh_.n_halffaces()),
+		int(mesh_.n_edges()),int(mesh_.n_halfedges()),int(mesh_.n_cells()));
 
 	printf("Information of the boundary mesh:\nVertices : %d;\nFaces : %d;\nEdges : %d; HalfEdges : %d\n", 
-		boundaryMesh.n_vertices(),boundaryMesh.n_faces(),boundaryMesh.n_edges(),boundaryMesh.n_halfedges());
+		int(boundaryMesh.n_vertices()),int(boundaryMesh.n_faces()),
+		int(boundaryMesh.n_edges()),int(boundaryMesh.n_halfedges()));
 
 	printf("BoundingBox Of the Mesh:\nX : [ %f , %f ]\nY : [ %f , %f ]\nZ : [ %f , %f ]\n",
 		bbMin[0],bbMax[0],bbMin[1],bbMax[1],bbMin[2],bbMax[2]);
@@ -641,7 +645,7 @@ bool MeshViewerWidget::saveMesh_VTK(const char* filename)
 		//fprintf(vtk_file, "8 %d %d %d %d %d %d %d %d\n", one_cell[0], one_cell[3], one_cell[2], one_cell[1], one_cell[4], one_cell[7], one_cell[6], one_cell[5]);
 	}//end for all cell
 
-	fprintf(vtk_file,"CELL_TYPES %d\n",mesh_.n_cells());
+	fprintf(vtk_file,"CELL_TYPES %d\n",int(mesh_.n_cells()));
 	c_it = mesh_.cells_begin();
 	for(c_it; c_it != mesh_.cells_end(); ++c_it)
 	{
@@ -695,7 +699,7 @@ bool MeshViewerWidget::saveMesh_VOFF(const char* filename)
 
 	int nv = mesh_.n_vertices();
 	int nc = mesh_.n_cells();
-	fprintf(voff_file, "VOFF\n", nv);
+	fprintf(voff_file, "VOFF\n");
 	fprintf(voff_file, "%d %d 0 0\n",nv, nc);
 	OpenVolumeMesh::VertexIter v_it = mesh_.vertices_begin();
 	OpenVolumeMesh::Geometry::Vec3d P;
@@ -716,7 +720,7 @@ bool MeshViewerWidget::saveMesh_VOFF(const char* filename)
 			{
 				vertices.push_back(cv_it->idx());
 			}
-			fprintf(voff_file, "%d", vertices.size());
+			fprintf(voff_file, "%d", int(vertices.size()));
 			for(unsigned int i=0;i<vertices.size();++i)
 			{
 				fprintf(voff_file, " %d", vertices[i]);
@@ -738,7 +742,7 @@ bool MeshViewerWidget::saveMesh_VOFF(const char* filename)
 			++hfv_it;  vertices[0] = hfv_it->idx();
 			vh = adjVertexBetweenTwoFace(hfh_vec[0], *hfv_it, opp_hf, &mesh_); vertices[4] = vh.idx();
 
-			fprintf(voff_file, "%d", vertices.size());
+			fprintf(voff_file, "%d", int(vertices.size()));
 			for(unsigned int i=0;i<vertices.size();++i)
 			{
 				fprintf(voff_file, " %d", vertices[i]);
@@ -993,7 +997,7 @@ void MeshViewerWidget::save_mesh_graph(const char* filename)
 	for (OpenVolumeMesh::VertexIter v_it = mesh_.vertices_begin(); v_it != mesh_.vertices_end(); ++v_it)
 	{
 		OpenVolumeMesh::VertexHandle vh = v_it.cur_handle();
-		fprintf(f_g, "\n%d", mesh_.valence(vh));
+		fprintf(f_g, "\n%d", int(mesh_.valence(vh)));
 		for (OpenVolumeMesh::VertexOHalfEdgeIter voh_it = mesh_.voh_iter(vh); voh_it; ++voh_it)
 		{
 			OpenVolumeMesh::OpenVolumeMeshEdge e = mesh_.edge(mesh_.edge_handle(voh_it.cur_handle()));
@@ -1051,7 +1055,7 @@ void MeshViewerWidget::save_hex_mesh_graph(const char* filename)
 		{
 			face_flag[vertex_face[i]] = -1;
 		}
-		fprintf(f_g, "\n%d", vertex_vertex.size());
+		fprintf(f_g, "\n%d", int(vertex_vertex.size()));
 		for (int i = 0; i < vertex_vertex.size(); ++i)
 		{
 			fprintf(f_g, " %d", vertex_vertex[i]);

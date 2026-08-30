@@ -657,7 +657,7 @@ void InteractiveWidget::create_slice_mesh()
 		{
 			s_mesh_.delete_vertex(v_it);
 		}
-		printf("%d %d\n", v_it.handle().idx(), s_mesh_.n_vertices());
+		printf("%d %d\n", v_it.handle().idx(), int(s_mesh_.n_vertices()));
 	}
 	s_mesh_.delete_isolated_vertices();
 	s_mesh_.garbage_collection();

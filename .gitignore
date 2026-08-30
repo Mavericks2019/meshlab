@@ -5,6 +5,10 @@
 /vcpkg_installed/
 /progressive_smoke.obj
 /tmp/
+/third_party/OpenVolumeMesh/
+/third_party/nanoflann/
+/third_party/nanoflann-tmp/
+/third_party/*.tar.gz
 
 # Runtime-generated parameterization and printable-part exports.
 /*_mp.obj

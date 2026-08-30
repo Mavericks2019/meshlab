@@ -8,45 +8,53 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
 
 if(MSVC)
-    add_compile_options(/utf-8 /bigobj)
+    add_compile_options(/utf-8 /bigobj /W3 /wd4267 /wd4305 /wd4996 /wd4477 /wd4101 /wd4244 /wd4834)
     add_compile_definitions(NOMINMAX _USE_MATH_DEFINES)
 endif()
 
-include(FetchContent)
+# Prefer local vendored deps when present (avoids network during configure).
+set(MESHLAB_THIRD_PARTY "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+set(OVM_SOURCE_DIR "${MESHLAB_THIRD_PARTY}/OpenVolumeMesh")
+if(NOT EXISTS "${OVM_SOURCE_DIR}/CMakeLists.txt")
+    include(FetchContent)
+    set(FETCHCONTENT_QUIET ON)
+    set(OVM_ENABLE_APPLICATIONS OFF CACHE BOOL "" FORCE)
+    set(OVM_ENABLE_UNITTESTS OFF CACHE BOOL "" FORCE)
+    set(OVM_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(OVM_BUILD_DOCUMENTATION OFF CACHE BOOL "" FORCE)
+    set(OVM_ENABLE_DEPRECATED_APIS ON CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        openvolumemesh
+        GIT_REPOSITORY https://github.com/OpenVolumeMesh/OpenVolumeMesh.git
+        GIT_TAG v3.4.1
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_GetProperties(openvolumemesh)
+    if(NOT openvolumemesh_POPULATED)
+        FetchContent_Populate(openvolumemesh)
+        set(OVM_SOURCE_DIR "${openvolumemesh_SOURCE_DIR}")
+    endif()
+endif()
 
-# ANN 1.1.2 is not available in the Visual Studio vcpkg registry. Build the
-# small upstream library directly so the project remains self-contained.
-FetchContent_Declare(
-    ann
-    URL https://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz
-    URL_HASH SHA256=eea03f2e224b66813226d775053316675375dcec45bd263674c052d9324a49a5
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_MakeAvailable(ann)
-file(GLOB ANN_SOURCES CONFIGURE_DEPENDS "${ann_SOURCE_DIR}/src/*.cpp")
-add_library(ann STATIC ${ANN_SOURCES})
-target_include_directories(ann PUBLIC
-    "${ann_SOURCE_DIR}/include"
-    "${ann_SOURCE_DIR}/include/ANN"
-)
-target_compile_definitions(ann PUBLIC DLL_EXPORTS)
-set_target_properties(ann PROPERTIES AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
-
-# This project uses legacy OpenVolumeMesh mesh aliases.
 set(OVM_ENABLE_APPLICATIONS OFF CACHE BOOL "" FORCE)
 set(OVM_ENABLE_UNITTESTS OFF CACHE BOOL "" FORCE)
 set(OVM_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(OVM_BUILD_DOCUMENTATION OFF CACHE BOOL "" FORCE)
 set(OVM_ENABLE_DEPRECATED_APIS ON CACHE BOOL "" FORCE)
-FetchContent_Declare(
-    openvolumemesh
-    GIT_REPOSITORY https://github.com/OpenVolumeMesh/OpenVolumeMesh.git
-    GIT_TAG v3.4.1
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(openvolumemesh)
+add_subdirectory("${OVM_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/_deps/openvolumemesh-build" EXCLUDE_FROM_ALL)
+if(TARGET OpenVolumeMesh)
+    set_target_properties(OpenVolumeMesh PROPERTIES
+        FOLDER "ThirdParty"
+        AUTOMOC OFF
+        AUTORCC OFF
+        AUTOUIC OFF
+    )
+endif()
 
 find_package(Qt5 REQUIRED COMPONENTS Core Concurrent Gui OpenGL Widgets)
 find_package(OpenGL REQUIRED)
@@ -54,20 +62,6 @@ find_package(OpenMesh CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(CGAL CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
-
-add_library(aaatlas_triangle STATIC triangle/triangle.c)
-target_compile_definitions(aaatlas_triangle PRIVATE TRILIBRARY NO_TIMER)
-target_include_directories(aaatlas_triangle PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-set_target_properties(aaatlas_triangle PROPERTIES
-    AUTOMOC OFF
-    AUTOUIC OFF
-    AUTORCC OFF
-    VS_GLOBAL_TrackFileAccess false
-    VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-)
-if(MSVC)
-    target_compile_options(aaatlas_triangle PRIVATE /wd4477)
-endif()
 
 set(AAATLAS_CORE_SOURCES
     atlas/atlaspipeline.cpp
@@ -107,37 +101,6 @@ set(AAATLAS_CORE_SOURCES
     atlas/reference/Scaffold/StateManager.h
     atlas/reference/Scaffold/TriangleInterface.cpp
     atlas/reference/Scaffold/TriangleInterface.h
-)
-
-add_library(aaatlas_core STATIC ${AAATLAS_CORE_SOURCES})
-target_include_directories(aaatlas_core PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference"
-    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference/rectpack2D/src"
-)
-target_compile_definitions(aaatlas_core PRIVATE
-    Mesh=AAAtlasMesh
-    MeshTraits=AAAtlasMeshTraits
-    Mesh_doubleIO=AAAtlasMesh_doubleIO
-    Parafun=AAAtlasParafun
-    PardisoSolver=AAAtlasPardisoSolver
-)
-set_target_properties(aaatlas_core PROPERTIES
-    AUTOMOC OFF
-    AUTOUIC OFF
-    AUTORCC OFF
-    VS_GLOBAL_TrackFileAccess false
-    VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
-)
-if(MSVC)
-    target_compile_options(aaatlas_core PRIVATE /wd4828)
-endif()
-target_link_libraries(aaatlas_core PRIVATE
-    Qt5::Core
-    OpenMeshCore
-    OpenMeshTools
-    Eigen3::Eigen
-    aaatlas_triangle
 )
 
 set(OBJVIEWER_SOURCES
@@ -227,15 +190,57 @@ set(OBJVIEWER_SOURCES
     include/QGLViewerWidget.cpp
     include/QGLViewerWidget.h
     include/auxiliary_function_mesh.cpp
+
+    triangle/triangle.c
+    third_party/ann_shim/ANN.cpp
+    third_party/ann_shim/ANN.h
+    ${AAATLAS_CORE_SOURCES}
 )
 
 add_executable(objViewer WIN32 ${OBJVIEWER_SOURCES})
+
 target_include_directories(objViewer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/Common"
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/meshutils"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference"
+    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/reference/rectpack2D/src"
+    "${MESHLAB_THIRD_PARTY}/ann_shim"
+    "${MESHLAB_THIRD_PARTY}/nanoflann/include"
 )
+
+set_source_files_properties(${AAATLAS_CORE_SOURCES} PROPERTIES
+    COMPILE_DEFINITIONS
+        "Mesh=AAAtlasMesh;MeshTraits=AAAtlasMeshTraits;Mesh_doubleIO=AAAtlasMesh_doubleIO;Parafun=AAAtlasParafun;PardisoSolver=AAAtlasPardisoSolver"
+    SKIP_AUTOMOC ON
+    SKIP_AUTOUIC ON
+    SKIP_AUTORCC ON
+)
+
+set_source_files_properties(triangle/triangle.c PROPERTIES
+    COMPILE_DEFINITIONS "TRILIBRARY;NO_TIMER"
+    SKIP_AUTOMOC ON
+    SKIP_AUTOUIC ON
+    SKIP_AUTORCC ON
+)
+
+set_source_files_properties(
+    third_party/ann_shim/ANN.cpp
+    PROPERTIES
+        SKIP_AUTOMOC ON
+        SKIP_AUTOUIC ON
+        SKIP_AUTORCC ON
+)
+
+if(MSVC)
+    set_source_files_properties(
+        triangle/triangle.c
+        ${AAATLAS_CORE_SOURCES}
+        PROPERTIES COMPILE_OPTIONS "/W0"
+    )
+endif()
+
 target_link_libraries(objViewer PRIVATE
     Qt5::Core
     Qt5::Concurrent
@@ -250,8 +255,6 @@ target_link_libraries(objViewer PRIVATE
     CGAL::CGAL
     glm::glm
     OpenVolumeMesh::OpenVolumeMesh
-    ann
-    aaatlas_core
 )
 
 if(WIN32)
@@ -278,17 +281,7 @@ set_target_properties(objViewer PROPERTIES
     VS_USER_PROPS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc-x64-host.props"
 )
 
-set_property(SOURCE atlas/atlaspipeline.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/atlaspipeline.h"
-)
-set_property(SOURCE glwidget/atlasparameterizationwidget.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/atlas/atlaspipeline.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/glwidget/atlasparameterizationwidget.h"
-)
-set_property(SOURCE tab_manager.cpp APPEND PROPERTY OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/glwidget/atlasparameterizationwidget.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tabs/atlas_parameterization_tab.h"
-)
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Source" FILES ${OBJVIEWER_SOURCES})
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT objViewer)
 
 install(TARGETS objViewer RUNTIME DESTINATION bin)

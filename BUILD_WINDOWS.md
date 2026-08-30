@@ -19,6 +19,14 @@ $env:VCPKG_ROOT = "D:\dev\vcpkg"
 
 Restart Visual Studio after setting `VCPKG_ROOT`.
 
+Before the first configure, clone the local dependency checkouts used by CMake
+(SSH recommended when HTTPS is flaky):
+
+```powershell
+git clone --depth 1 --branch v3.4.1 git@github.com:OpenVolumeMesh/OpenVolumeMesh.git third_party/OpenVolumeMesh
+git clone --depth 1 git@github.com:jlblancoc/nanoflann.git third_party/nanoflann
+```
+
 ## Configure and build
 
 ```powershell
@@ -29,9 +37,11 @@ cmake --build --preset vs2022-release
 ```
 
 You can also open the repository folder directly in Visual Studio and select the
-`Visual Studio 2022 x64` configure preset.
+`Visual Studio 2022 x64` configure preset. The generated solution focuses on a
+single application project (`objViewer`); atlas/triangle/ANN shim sources are
+compiled into that executable. OpenVolumeMesh remains a small excluded
+dependency library under `ThirdParty`.
 
 The vcpkg manifest installs CGAL, Eigen3, GLM, OpenMesh, and Qt 5 Base
-automatically. CMake also downloads ANN 1.1.2 and OpenVolumeMesh 3.4.1 during the
-first configure. The first configure can take a long time because Qt and CGAL
+automatically. The first configure can take a long time because Qt and CGAL
 may need to be built locally; later incremental builds are much faster.

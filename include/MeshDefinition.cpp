@@ -1220,6 +1220,7 @@ bool flip_edge_32(VolumeMesh* mesh_, OpenVolumeMesh::EdgeHandle eh)
 	mesh_->delete_face(fh[delete_index[0]]); mesh_->delete_face(fh[delete_index[1]]); mesh_->delete_face(fh[delete_index[2]]);
 
 	mesh_->delete_edge(eh);
+	return true;
 }
 
 bool baryCoord( const OpenMesh::Vec3d& _p, const OpenMesh::Vec3d& _u, const OpenMesh::Vec3d& _v, const OpenMesh::Vec3d& _w, OpenMesh::Vec3d&_result )
