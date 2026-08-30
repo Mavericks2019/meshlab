@@ -20,6 +20,7 @@ public:
     void setModelData(const SteadyDissectionMeshData& data, int pieceCount);
     void clearModel();
     void setExplosion(float amount);
+    void setPieceOffsets(const QVector<QVector3D>& offsets);
     void setFeatureWireframeOnly(bool enabled);
 
 protected:
@@ -36,6 +37,7 @@ private:
     bool featureWireframeOnly_ = false;
     int pieceCount_ = 0;
     float explosion_ = 0.08f;
+    QVector<QVector3D> pieceOffsets_;
     SteadyDissectionMeshData modelData_;
     QVector<QVector3D> faceColors_;
     QOpenGLShaderProgram pieceProgram_;

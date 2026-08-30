@@ -11,6 +11,8 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include <algorithm>
+
 PrintableInterlockWorker::PrintableInterlockWorker(
     const QString& meshPath, const PrintableInterlockParameters& parameters,
     QObject* parent)
@@ -197,6 +199,7 @@ void PrintableInterlockWidget::reset()
     phaseLabel_->setText("Select one watertight triangle mesh");
     metricsLabel_->clear();
     lastSnapshot_ = PrintableInterlockSnapshot();
+    assemblyProgress_ = 0.0f;
     emit statusChanged("Ready");
     emit runningChanged(false);
 }
@@ -210,6 +213,41 @@ void PrintableInterlockWidget::setWireframeVisible(bool visible)
 void PrintableInterlockWidget::setExplosion(float amount)
 {
     partitionViewport_->setExplosion(amount);
+}
+
+void PrintableInterlockWidget::setAssemblyProgress(float progress)
+{
+    const int steps = assemblyStepCount();
+    assemblyProgress_ = (std::clamp)(progress, 0.0f, float(steps));
+    updateAssemblyOffsets();
+}
+
+int PrintableInterlockWidget::assemblyStepCount() const
+{
+    return (std::max)(0, lastSnapshot_.extractionDirections.size() - 1);
+}
+
+void PrintableInterlockWidget::updateAssemblyOffsets()
+{
+    const int pieceCount = lastSnapshot_.extractionDirections.size();
+    QVector<QVector3D> offsets(pieceCount, QVector3D());
+    const int steps = assemblyStepCount();
+    static const QVector<QVector3D> directions = {
+        {1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}
+    };
+    constexpr float kSeparatedDistance = 2.5f;
+    for (int piece = 0; piece < steps; ++piece) {
+        const int direction = lastSnapshot_.extractionDirections[piece];
+        if (direction < 0 || direction >= directions.size())
+            continue;
+        // Extraction is piece 0 first; assembly inserts the pieces in reverse order.
+        const float assemblyOrder = float(steps - piece);
+        const float separated = (std::clamp)(assemblyOrder - assemblyProgress_, 0.0f, 1.0f);
+        offsets[piece] = directions[direction] * (kSeparatedDistance * separated);
+    }
+    partitionViewport_->setPieceOffsets(offsets);
 }
 
 void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
@@ -299,11 +337,16 @@ bool PrintableInterlockWidget::isRunning() const
 
 void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& snapshot)
 {
+    const bool firstCompleteSnapshot = snapshot.complete && !lastSnapshot_.complete;
     lastSnapshot_ = snapshot;
+    if (firstCompleteSnapshot)
+        assemblyProgress_ = float(assemblyStepCount());
     originalViewport_->setModelData(snapshot.originalModel, snapshot.requestedPieces);
     const SteadyDissectionMeshData& displayedModel = snapshot.complete
         && !surfaceClippedMode_ ? snapshot.voxelizedModel : snapshot.partitionedModel;
     partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
+    if (snapshot.complete)
+        updateAssemblyOffsets();
     if (snapshot.complete) {
         partitionNameLabel_->setText(
             QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")

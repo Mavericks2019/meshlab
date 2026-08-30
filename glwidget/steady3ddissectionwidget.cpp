@@ -74,6 +74,7 @@ void SteadyDissectionViewport::clearModel()
 {
     modelData_ = SteadyDissectionMeshData();
     pieceCount_ = 0;
+    pieceOffsets_.clear();
     clearMeshData();
     faceColors_.clear();
     update();
@@ -82,6 +83,13 @@ void SteadyDissectionViewport::clearModel()
 void SteadyDissectionViewport::setExplosion(float amount)
 {
     explosion_ = (std::max)(0.0f, amount);
+    if (!modelData_.faces.isEmpty())
+        rebuildMesh();
+}
+
+void SteadyDissectionViewport::setPieceOffsets(const QVector<QVector3D>& offsets)
+{
+    pieceOffsets_ = offsets;
     if (!modelData_.faces.isEmpty())
         rebuildMesh();
 }
@@ -141,8 +149,10 @@ void SteadyDissectionViewport::rebuildMesh()
     for (int face = 0; face < faceCount; ++face) {
         const int piece = face < modelData_.facePieces.size()
             ? modelData_.facePieces[face] : -1;
-        const QVector3D offset = piece >= 0 && piece < pieceCenters.size()
+        QVector3D offset = piece >= 0 && piece < pieceCenters.size()
             ? (pieceCenters[piece] - globalCenter) * explosion_ : QVector3D();
+        if (piece >= 0 && piece < pieceOffsets_.size())
+            offset += pieceOffsets_[piece];
         std::array<unsigned int, 3> sourceVertices;
         bool validFace = true;
         for (int corner = 0; corner < 3; ++corner) {

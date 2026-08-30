@@ -57,10 +57,12 @@ public:
     void reset();
     void setWireframeVisible(bool visible);
     void setExplosion(float amount);
+    void setAssemblyProgress(float progress);
     void setSurfaceClippedMode(bool surfaceClipped);
     void resetViews();
     bool exportPrintableParts(const QString& directory, QString* errorMessage) const;
     bool isRunning() const;
+    int assemblyStepCount() const;
 
 signals:
     void statusChanged(const QString& text);
@@ -84,4 +86,7 @@ private:
     PrintableInterlockParameters lastParameters_;
     PrintableInterlockSnapshot lastSnapshot_;
     bool surfaceClippedMode_ = true;
+    float assemblyProgress_ = 0.0f;
+
+    void updateAssemblyOffsets();
 };
