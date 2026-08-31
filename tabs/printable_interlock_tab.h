@@ -180,6 +180,39 @@ inline QWidget* createPrintableInterlockControlPanel(
     displayLayout->addLayout(explosionLayout);
     displayLayout->addWidget(resetViewsButton);
 
+    QGroupBox* processGroup = new QGroupBox("Construction Replay", panel);
+    QVBoxLayout* processLayout = new QVBoxLayout(processGroup);
+    QHBoxLayout* processButtons = new QHBoxLayout;
+    QPushButton* previousProcessButton = new QPushButton(processGroup);
+    previousProcessButton->setIcon(
+        panel->style()->standardIcon(QStyle::SP_MediaSkipBackward));
+    previousProcessButton->setToolTip("Previous construction stage");
+    QPushButton* playProcessButton = new QPushButton(processGroup);
+    playProcessButton->setIcon(panel->style()->standardIcon(QStyle::SP_MediaPlay));
+    playProcessButton->setToolTip("Loop construction-stage playback");
+    QPushButton* nextProcessButton = new QPushButton(processGroup);
+    nextProcessButton->setIcon(
+        panel->style()->standardIcon(QStyle::SP_MediaSkipForward));
+    nextProcessButton->setToolTip("Next construction stage");
+    for (QPushButton* button : {
+             previousProcessButton, playProcessButton, nextProcessButton}) {
+        button->setEnabled(false);
+        button->setFixedHeight(32);
+        processButtons->addWidget(button);
+    }
+    QSlider* processProgress = new QSlider(Qt::Horizontal, processGroup);
+    processProgress->setObjectName("printableConstructionProgress");
+    processProgress->setRange(0, 0);
+    processProgress->setEnabled(false);
+    QLabel* processStepLabel = new QLabel("Stage 0 / 0", processGroup);
+    processStepLabel->setAlignment(Qt::AlignCenter);
+    processStepLabel->setWordWrap(true);
+    QTimer* processTimer = new QTimer(processGroup);
+    processTimer->setInterval(900);
+    processLayout->addLayout(processButtons);
+    processLayout->addWidget(processProgress);
+    processLayout->addWidget(processStepLabel);
+
     QGroupBox* assemblyGroup = new QGroupBox("Assembly Process", panel);
     QVBoxLayout* assemblyLayout = new QVBoxLayout(assemblyGroup);
     QHBoxLayout* assemblyButtons = new QHBoxLayout;
@@ -324,8 +357,60 @@ inline QWidget* createPrintableInterlockControlPanel(
         if (explosion->value() != 0)
             explosion->setValue(0);
     };
+    auto stopProcessPlayback = [=]() {
+        processTimer->stop();
+        playProcessButton->setIcon(
+            panel->style()->standardIcon(QStyle::SP_MediaPlay));
+        playProcessButton->setToolTip("Loop construction-stage playback");
+    };
+    QObject::connect(voxelModeButton, &QPushButton::clicked,
+                     panel, stopProcessPlayback);
+    QObject::connect(surfaceModeButton, &QPushButton::clicked,
+                     panel, stopProcessPlayback);
+    QObject::connect(processProgress, &QSlider::valueChanged,
+                     panel, [=](int value) {
+        stopAssemblyPlayback();
+        clearPartSpacing();
+        widget->showProcessFrame(value);
+    });
+    QObject::connect(previousProcessButton, &QPushButton::clicked,
+                     panel, [=]() {
+        stopProcessPlayback();
+        processProgress->setValue((std::max)(0, processProgress->value() - 1));
+    });
+    QObject::connect(nextProcessButton, &QPushButton::clicked,
+                     panel, [=]() {
+        stopProcessPlayback();
+        processProgress->setValue((std::min)(
+            processProgress->maximum(), processProgress->value() + 1));
+    });
+    QObject::connect(playProcessButton, &QPushButton::clicked,
+                     panel, [=]() {
+        if (processTimer->isActive()) {
+            stopProcessPlayback();
+            return;
+        }
+        stopAssemblyPlayback();
+        clearPartSpacing();
+        if (processProgress->value() >= processProgress->maximum())
+            processProgress->setValue(0);
+        processTimer->start();
+        playProcessButton->setIcon(
+            panel->style()->standardIcon(QStyle::SP_MediaPause));
+        playProcessButton->setToolTip("Pause construction-stage playback");
+    });
+    QObject::connect(processTimer, &QTimer::timeout, panel, [=]() {
+        if (processProgress->value() >= processProgress->maximum()) {
+            processProgress->setValue(0);
+            return;
+        }
+        processProgress->setValue(processProgress->value() + 1);
+    });
     QObject::connect(assemblyProgress, &QSlider::sliderPressed,
-                     panel, clearPartSpacing);
+                     panel, [=]() {
+        stopProcessPlayback();
+        clearPartSpacing();
+    });
     QObject::connect(assemblyProgress, &QSlider::valueChanged, panel, [=](int value) {
         widget->setAssemblyProgress(float(value) / 100.0f);
         const int steps = assemblyProgress->maximum() / 100;
@@ -334,6 +419,7 @@ inline QWidget* createPrintableInterlockControlPanel(
             .arg(steps));
     });
     QObject::connect(previousAssemblyButton, &QPushButton::clicked, panel, [=]() {
+        stopProcessPlayback();
         stopAssemblyPlayback();
         clearPartSpacing();
         const int value = assemblyProgress->value();
@@ -341,6 +427,7 @@ inline QWidget* createPrintableInterlockControlPanel(
             ? (std::max)(0, value - 100) : value - value % 100);
     });
     QObject::connect(nextAssemblyButton, &QPushButton::clicked, panel, [=]() {
+        stopProcessPlayback();
         stopAssemblyPlayback();
         clearPartSpacing();
         const int value = assemblyProgress->value();
@@ -352,6 +439,7 @@ inline QWidget* createPrintableInterlockControlPanel(
             stopAssemblyPlayback();
             return;
         }
+        stopProcessPlayback();
         clearPartSpacing();
         if (assemblyProgress->value() >= assemblyProgress->maximum())
             assemblyProgress->setValue(0);
@@ -393,6 +481,28 @@ inline QWidget* createPrintableInterlockControlPanel(
         exportButton->setEnabled(snapshot.complete
             && snapshot.voxelWatertightParts == snapshot.requestedPieces
             && snapshot.watertightParts == snapshot.requestedPieces);
+    });
+    QObject::connect(widget, &PrintableInterlockWidget::processHistoryChanged,
+                     processGroup,
+                     [=](int frameCount, int currentFrame,
+                         const QString& label, bool failed) {
+        const bool available = frameCount > 1;
+        if (!available)
+            stopProcessPlayback();
+        processProgress->blockSignals(true);
+        processProgress->setRange(0, (std::max)(0, frameCount - 1));
+        processProgress->setValue((std::max)(0, currentFrame));
+        processProgress->blockSignals(false);
+        processProgress->setEnabled(available);
+        previousProcessButton->setEnabled(available);
+        playProcessButton->setEnabled(available);
+        nextProcessButton->setEnabled(available);
+        processStepLabel->setText(frameCount > 0
+            ? QString("Stage %1 / %2  |  %3")
+                  .arg(currentFrame + 1).arg(frameCount).arg(label)
+            : "Stage 0 / 0");
+        processStepLabel->setStyleSheet(
+            failed ? QStringLiteral("color: #ff8a80;") : QString());
     });
     QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
                      displayGroup, [=](const PrintableInterlockSnapshot& snapshot) {
@@ -443,6 +553,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     layout->addWidget(sampleButton);
     layout->addWidget(parametersGroup);
     layout->addWidget(iterationGroup);
+    layout->addWidget(processGroup);
     layout->addWidget(displayGroup);
     layout->addWidget(assemblyGroup);
     layout->addWidget(outputGroup);

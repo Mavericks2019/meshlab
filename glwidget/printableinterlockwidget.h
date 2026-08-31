@@ -6,6 +6,7 @@
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
+#include <QVector>
 
 #include <atomic>
 
@@ -64,11 +65,14 @@ public:
     bool exportPrintableParts(const QString& directory, QString* errorMessage) const;
     bool isRunning() const;
     int assemblyStepCount() const;
+    void showProcessFrame(int index);
 
 signals:
     void statusChanged(const QString& text);
     void snapshotChanged(const PrintableInterlockSnapshot& snapshot);
     void runningChanged(bool running);
+    void processHistoryChanged(int frameCount, int currentFrame,
+                               const QString& label, bool failed);
 
 private slots:
     void applySnapshot(const PrintableInterlockSnapshot& snapshot);
@@ -76,6 +80,15 @@ private slots:
     void handleFinished();
 
 private:
+    struct ProcessFrame {
+        int stage = 0;
+        QString label;
+        QString detail;
+        SteadyDissectionMeshData model;
+        int pieceCount = 0;
+        bool failed = false;
+    };
+
     SteadyDissectionViewport* partitionViewport_ = nullptr;
     QLabel* partitionNameLabel_ = nullptr;
     QLabel* phaseLabel_ = nullptr;
@@ -85,9 +98,19 @@ private:
     PrintableInterlockParameters lastParameters_;
     PrintableInterlockSnapshot lastSnapshot_;
     SteadyDissectionMeshData previewModel_;
+    QVector<ProcessFrame> processFrames_;
+    int currentProcessFrame_ = -1;
+    bool viewingProcessFrame_ = false;
     bool surfaceClippedMode_ = true;
     float assemblyProgress_ = 0.0f;
 
     void stopWorker();
     void updateAssemblyOffsets();
+    void clearProcessHistory();
+    void recordProcessFrame(int stage, const QString& label,
+                            const QString& detail,
+                            const SteadyDissectionMeshData& model,
+                            int pieceCount, bool failed = false);
+    void recordSnapshotFrame(const PrintableInterlockSnapshot& snapshot);
+    void showFinalResult();
 };

@@ -1101,6 +1101,63 @@ QVector3D gridPoint(const Grid& grid, float x, float y, float z)
                      float(grid.origin + z * grid.cellSize));
 }
 
+SteadyDissectionMeshData buildVoxelPartitionPreview(const Grid& grid)
+{
+    SteadyDissectionMeshData output;
+    for (int index = 0; index < int(grid.labels.size()); ++index) {
+        const int piece = grid.labels[index];
+        if (piece < 0)
+            continue;
+        const Coord cell = grid.coord(index);
+        const float x = float(cell.x);
+        const float y = float(cell.y);
+        const float z = float(cell.z);
+        for (int direction = 0; direction < 6; ++direction) {
+            if (grid.label(cell + kDirections[direction]) == piece)
+                continue;
+            switch (direction) {
+            case 0:
+                appendQuad(&output, {{gridPoint(grid, x + 1, y, z),
+                                      gridPoint(grid, x + 1, y + 1, z),
+                                      gridPoint(grid, x + 1, y + 1, z + 1),
+                                      gridPoint(grid, x + 1, y, z + 1)}}, piece);
+                break;
+            case 1:
+                appendQuad(&output, {{gridPoint(grid, x, y, z + 1),
+                                      gridPoint(grid, x, y + 1, z + 1),
+                                      gridPoint(grid, x, y + 1, z),
+                                      gridPoint(grid, x, y, z)}}, piece);
+                break;
+            case 2:
+                appendQuad(&output, {{gridPoint(grid, x, y + 1, z + 1),
+                                      gridPoint(grid, x + 1, y + 1, z + 1),
+                                      gridPoint(grid, x + 1, y + 1, z),
+                                      gridPoint(grid, x, y + 1, z)}}, piece);
+                break;
+            case 3:
+                appendQuad(&output, {{gridPoint(grid, x, y, z),
+                                      gridPoint(grid, x + 1, y, z),
+                                      gridPoint(grid, x + 1, y, z + 1),
+                                      gridPoint(grid, x, y, z + 1)}}, piece);
+                break;
+            case 4:
+                appendQuad(&output, {{gridPoint(grid, x + 1, y, z + 1),
+                                      gridPoint(grid, x + 1, y + 1, z + 1),
+                                      gridPoint(grid, x, y + 1, z + 1),
+                                      gridPoint(grid, x, y, z + 1)}}, piece);
+                break;
+            default:
+                appendQuad(&output, {{gridPoint(grid, x, y, z),
+                                      gridPoint(grid, x, y + 1, z),
+                                      gridPoint(grid, x + 1, y + 1, z),
+                                      gridPoint(grid, x + 1, y, z)}}, piece);
+                break;
+            }
+        }
+    }
+    return output;
+}
+
 SteadyDissectionMeshData buildPartitionMesh(const SurfaceMesh& mesh, const Grid& grid)
 {
     SteadyDissectionMeshData output;
@@ -2089,7 +2146,7 @@ public:
         }
         grid_ = std::move(coreResult);
         if (!publish("Generated initial interlocking parts from internal voxels", false,
-                     buildPartitionMesh(mesh_.mesh, grid_),
+                     buildVoxelPartitionPreview(grid_),
                      localModelSatisfied(grid_, directions_)))
             return true;
 
@@ -2099,7 +2156,7 @@ public:
             return false;
         }
         if (!publish("Attached boundary voxels by shape connection strength", false,
-                     buildPartitionMesh(mesh_.mesh, grid_),
+                     buildVoxelPartitionPreview(grid_),
                      localModelSatisfied(grid_, directions_)))
             return true;
 
@@ -2125,9 +2182,9 @@ public:
             }
         }
         if (!publish("Preparing watertight voxel solids", false,
-                      buildPartitionMesh(mesh_.mesh, grid_), interlocking))
+                      buildVoxelPartitionPreview(grid_), interlocking))
             return true;
-        const SteadyDissectionMeshData preview = buildPartitionMesh(mesh_.mesh, grid_);
+        const SteadyDissectionMeshData preview = buildVoxelPartitionPreview(grid_);
         const QString cutPhase = parameters_.surfaceCutMethod
                 == PrintableSurfaceCutMethod::PerPartBoolean
             ? "Intersecting each voxel part with the source solid"

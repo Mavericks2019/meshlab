@@ -7,11 +7,73 @@
 #include <QLabel>
 #include <QLocale>
 #include <QSaveFile>
+#include <QStringList>
 #include <QTextStream>
 #include <QVBoxLayout>
 
 #include <algorithm>
 #include <utility>
+
+namespace {
+QString snapshotDetail(const PrintableInterlockSnapshot& snapshot)
+{
+    return QString(
+        "%1\nPieces %2 / %3\nOccupied voxels %4 | internal %5 | boundary %6\n"
+        "Boundary attached %7 / %6\nTiny/disconnected local cells %8 / %9\n"
+        "Interlocking sequence: %10\nWatertight voxel/surface parts: %11 / %12 / %3")
+        .arg(snapshot.phase)
+        .arg(snapshot.completedPieces)
+        .arg(snapshot.requestedPieces)
+        .arg(snapshot.occupiedVoxels)
+        .arg(snapshot.internalVoxels)
+        .arg(snapshot.boundaryVoxels)
+        .arg(snapshot.attachedBoundaryVoxels)
+        .arg(snapshot.tinyVoxels)
+        .arg(snapshot.disconnectedVoxels)
+        .arg(snapshot.interlocking ? "satisfied" : "pending")
+        .arg(snapshot.voxelWatertightParts)
+        .arg(snapshot.watertightParts);
+}
+
+QString processStageLabel(int stage)
+{
+    static const QStringList labels = {
+        "(A) Input watertight model",
+        "(B) Voxelization and shape analysis",
+        "(C) Initial interlocking parts",
+        "(D) Boundary voxel attachment",
+        "(E) Surface-cut final parts"
+    };
+    return labels[(std::clamp)(stage, 0, labels.size() - 1)];
+}
+
+int failureStageFromMessage(const QString& message, int fallback)
+{
+    const QString lower = message.toLower();
+    if (lower.contains("interlocking core"))
+        return 2;
+    if (lower.contains("boundary voxel")
+        || lower.contains("material-bearing")
+        || lower.contains("disassembly sequence")
+        || lower.contains("refinement broke")
+        || lower.contains("final partition")
+        || lower.contains("voxel solid")) {
+        return 3;
+    }
+    if (lower.contains("boolean") || lower.contains("intersection")
+        || lower.contains("surface-cut") || lower.contains("labeled solid")
+        || lower.contains("printable triangles")) {
+        return 4;
+    }
+    if (lower.contains("voxelization") || lower.contains("input mesh")
+        || lower.contains("mesh file") || lower.contains("triangle-only")
+        || lower.contains("watertight") || lower.contains("self-intersect")
+        || lower.contains("structurally strong internal")) {
+        return 1;
+    }
+    return (std::clamp)(fallback, 1, 4);
+}
+} // namespace
 
 PrintableInterlockWorker::PrintableInterlockWorker(
     const QString& meshPath, const PrintableInterlockParameters& parameters,
@@ -149,6 +211,7 @@ bool PrintableInterlockWidget::loadPreview(
     previewModel_ = std::move(preview);
     lastSnapshot_ = PrintableInterlockSnapshot();
     assemblyProgress_ = 0.0f;
+    clearProcessHistory();
     partitionViewport_->setPieceOffsets({});
     partitionViewport_->setModelData(previewModel_, 0);
     partitionNameLabel_->setText("Input model  |  " + QFileInfo(meshPath_).fileName());
@@ -156,6 +219,8 @@ bool PrintableInterlockWidget::loadPreview(
     metricsLabel_->setText(QString("%1 triangles")
         .arg(previewModel_.faces.size() / 3));
     emit statusChanged("Input model loaded. Run all stages or advance one stage at a time.");
+    recordProcessFrame(0, processStageLabel(0), "Input model loaded.",
+                       previewModel_, 0);
     emit snapshotChanged(lastSnapshot_);
     emit runningChanged(false);
     return true;
@@ -170,6 +235,11 @@ void PrintableInterlockWidget::loadAndStart(
     lastParameters_ = parameters;
     lastSnapshot_ = PrintableInterlockSnapshot();
     assemblyProgress_ = 0.0f;
+    clearProcessHistory();
+    if (!previewModel_.faces.isEmpty()) {
+        recordProcessFrame(0, processStageLabel(0), "Input model loaded.",
+                           previewModel_, 0);
+    }
     partitionViewport_->setPieceOffsets({});
     const QString name = QFileInfo(meshPath).fileName();
     partitionNameLabel_->setText("Input model  |  " + name);
@@ -215,6 +285,7 @@ void PrintableInterlockWidget::reset()
     metricsLabel_->clear();
     lastSnapshot_ = PrintableInterlockSnapshot();
     assemblyProgress_ = 0.0f;
+    clearProcessHistory();
     partitionViewport_->setPieceOffsets({});
     if (previewModel_.faces.isEmpty()) {
         partitionViewport_->clearModel();
@@ -229,6 +300,9 @@ void PrintableInterlockWidget::reset()
         metricsLabel_->setText(QString("%1 triangles")
             .arg(previewModel_.faces.size() / 3));
         emit statusChanged("Construction reset to the input model.");
+        recordProcessFrame(0, processStageLabel(0),
+                           "Construction reset to the input model.",
+                           previewModel_, 0);
     }
     emit snapshotChanged(lastSnapshot_);
     emit runningChanged(false);
@@ -241,11 +315,14 @@ void PrintableInterlockWidget::setWireframeVisible(bool visible)
 
 void PrintableInterlockWidget::setExplosion(float amount)
 {
+    if (lastSnapshot_.voxelComplete)
+        showFinalResult();
     partitionViewport_->setExplosion(amount);
 }
 
 void PrintableInterlockWidget::setAssemblyProgress(float progress)
 {
+    showFinalResult();
     const int steps = assemblyStepCount();
     assemblyProgress_ = (std::clamp)(progress, 0.0f, float(steps));
     updateAssemblyOffsets();
@@ -289,13 +366,8 @@ void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
     partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
     if (!lastSnapshot_.voxelComplete)
         return;
-    partitionViewport_->setModelData(
-        surfaceClippedMode_ ? lastSnapshot_.partitionedModel
-                            : lastSnapshot_.voxelizedModel,
-        lastSnapshot_.requestedPieces);
-    partitionNameLabel_->setText(
-        QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
-        + QFileInfo(meshPath_).fileName());
+    showFinalResult();
+    updateAssemblyOffsets();
 }
 
 void PrintableInterlockWidget::resetViews()
@@ -374,59 +446,170 @@ void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& s
     const bool firstAssemblySnapshot = snapshot.voxelComplete
         && !lastSnapshot_.voxelComplete;
     lastSnapshot_ = snapshot;
+    recordSnapshotFrame(snapshot);
     if (snapshot.voxelComplete && !snapshot.complete)
         surfaceClippedMode_ = false;
     partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
     if (firstAssemblySnapshot)
         assemblyProgress_ = float(assemblyStepCount());
-    const SteadyDissectionMeshData& displayedModel = snapshot.voxelComplete
-        && (!surfaceClippedMode_ || !snapshot.complete)
-            ? snapshot.voxelizedModel : snapshot.partitionedModel;
-    partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
+    if (!viewingProcessFrame_) {
+        const SteadyDissectionMeshData& displayedModel = snapshot.voxelComplete
+            && (!surfaceClippedMode_ || !snapshot.complete)
+                ? snapshot.voxelizedModel : snapshot.partitionedModel;
+        partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
+    }
     if (snapshot.voxelComplete)
         updateAssemblyOffsets();
-    if (snapshot.voxelComplete) {
-        partitionNameLabel_->setText(
-            QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
-            + QFileInfo(meshPath_).fileName());
-    } else {
-        partitionNameLabel_->setText(
-            "Current construction stage  |  " + QFileInfo(meshPath_).fileName());
+    if (!viewingProcessFrame_) {
+        if (snapshot.voxelComplete) {
+            partitionNameLabel_->setText(
+                QString(surfaceClippedMode_ ? "Surface-cut solids  |  "
+                                            : "Voxel solids  |  ")
+                + QFileInfo(meshPath_).fileName());
+        } else {
+            partitionNameLabel_->setText(
+                "Current construction stage  |  " + QFileInfo(meshPath_).fileName());
+        }
+        phaseLabel_->setText(snapshot.phase);
+        metricsLabel_->setText(QString("%1 / %2 pieces  |  %3^3 voxels")
+            .arg(snapshot.completedPieces).arg(snapshot.requestedPieces)
+            .arg(snapshot.resolution));
     }
-    phaseLabel_->setText(snapshot.phase);
-    metricsLabel_->setText(QString("%1 / %2 pieces  |  %3^3 voxels")
-        .arg(snapshot.completedPieces).arg(snapshot.requestedPieces).arg(snapshot.resolution));
-    emit statusChanged(QString(
-        "%1\nPieces %2 / %3\nOccupied voxels %4 | internal %5 | boundary %6\n"
-        "Boundary attached %7 / %6\nTiny/disconnected local cells %8 / %9\n"
-        "Interlocking sequence: %10\nWatertight voxel/surface parts: %11 / %12 / %3")
-        .arg(snapshot.phase)
-        .arg(snapshot.completedPieces)
-        .arg(snapshot.requestedPieces)
-        .arg(snapshot.occupiedVoxels)
-        .arg(snapshot.internalVoxels)
-        .arg(snapshot.boundaryVoxels)
-        .arg(snapshot.attachedBoundaryVoxels)
-        .arg(snapshot.tinyVoxels)
-        .arg(snapshot.disconnectedVoxels)
-        .arg(snapshot.interlocking ? "satisfied" : "pending")
-        .arg(snapshot.voxelWatertightParts)
-        .arg(snapshot.watertightParts));
+    emit statusChanged(snapshotDetail(snapshot));
     emit snapshotChanged(snapshot);
 }
 
 void PrintableInterlockWidget::handleFailure(const QString& message)
 {
+    int failedStage = 1;
+    SteadyDissectionMeshData failedModel = previewModel_;
+    int failedPieceCount = 0;
+    if (!processFrames_.isEmpty()) {
+        const ProcessFrame& latest = processFrames_.back();
+        failedStage = latest.stage >= 4 ? 4 : latest.stage + 1;
+        failedModel = latest.model;
+        failedPieceCount = latest.pieceCount;
+    }
+    failedStage = failureStageFromMessage(message, failedStage);
+    const QString detail = "Error: " + message;
+    recordProcessFrame(failedStage,
+                       processStageLabel(failedStage) + " - failed",
+                       detail, failedModel, failedPieceCount, true);
     if (lastSnapshot_.voxelComplete) {
-        phaseLabel_->setText("Surface cut failed; voxel result is available");
         emit statusChanged(
             "Surface cut error: " + message
             + "\nVoxel interlocking succeeded. Use the assembly controls to inspect it.");
     } else {
-        phaseLabel_->setText("Printable interlocking construction failed");
-        metricsLabel_->clear();
         emit statusChanged("Error: " + message);
     }
+}
+
+void PrintableInterlockWidget::clearProcessHistory()
+{
+    processFrames_.clear();
+    currentProcessFrame_ = -1;
+    viewingProcessFrame_ = false;
+    emit processHistoryChanged(0, -1, "No construction history", false);
+}
+
+void PrintableInterlockWidget::recordProcessFrame(
+    int stage, const QString& label, const QString& detail,
+    const SteadyDissectionMeshData& model, int pieceCount, bool failed)
+{
+    if (failed) {
+        for (int i = processFrames_.size() - 1; i >= 0; --i) {
+            if (processFrames_[i].stage > stage)
+                processFrames_.removeAt(i);
+        }
+    }
+    int index = -1;
+    for (int i = 0; i < processFrames_.size(); ++i) {
+        if (processFrames_[i].stage == stage) {
+            index = i;
+            break;
+        }
+    }
+    ProcessFrame frame;
+    frame.stage = stage;
+    frame.label = label;
+    frame.detail = detail;
+    frame.model = model;
+    frame.pieceCount = pieceCount;
+    frame.failed = failed;
+    if (index < 0) {
+        processFrames_.push_back(std::move(frame));
+        index = processFrames_.size() - 1;
+    } else {
+        processFrames_[index] = std::move(frame);
+    }
+    showProcessFrame(index);
+}
+
+void PrintableInterlockWidget::recordSnapshotFrame(
+    const PrintableInterlockSnapshot& snapshot)
+{
+    const QString detail = snapshotDetail(snapshot);
+    if (snapshot.voxelComplete) {
+        recordProcessFrame(3, processStageLabel(3), detail,
+                           snapshot.voxelizedModel, snapshot.requestedPieces);
+        recordProcessFrame(4,
+                           snapshot.complete ? processStageLabel(4)
+                                             : processStageLabel(4) + " - failed",
+                           detail,
+                           snapshot.complete ? snapshot.partitionedModel
+                                             : snapshot.voxelizedModel,
+                           snapshot.requestedPieces, !snapshot.complete);
+        return;
+    }
+    if (snapshot.phase.startsWith("Voxelized")) {
+        recordProcessFrame(1, processStageLabel(1), detail,
+                           snapshot.partitionedModel, snapshot.requestedPieces);
+    } else if (snapshot.phase.startsWith("Generated initial")) {
+        recordProcessFrame(2, processStageLabel(2), detail,
+                           snapshot.partitionedModel, snapshot.requestedPieces);
+    } else if (snapshot.phase.startsWith("Attached boundary")
+               || snapshot.phase.startsWith("Preparing watertight")) {
+        recordProcessFrame(3, processStageLabel(3), detail,
+                           snapshot.partitionedModel, snapshot.requestedPieces);
+    } else if (snapshot.phase.startsWith("Intersecting")
+               || snapshot.phase.startsWith("Cutting")) {
+        recordProcessFrame(4, processStageLabel(4) + " - running", detail,
+                           snapshot.partitionedModel, snapshot.requestedPieces);
+    }
+}
+
+void PrintableInterlockWidget::showProcessFrame(int index)
+{
+    if (index < 0 || index >= processFrames_.size())
+        return;
+    currentProcessFrame_ = index;
+    viewingProcessFrame_ = true;
+    const ProcessFrame& frame = processFrames_[index];
+    partitionViewport_->setPieceOffsets({});
+    partitionViewport_->setModelData(frame.model, frame.pieceCount);
+    phaseLabel_->setText(frame.label);
+    partitionNameLabel_->setText(
+        "Construction replay  |  " + QFileInfo(meshPath_).fileName());
+    metricsLabel_->setText(QString("Stage %1 / %2")
+                               .arg(index + 1).arg(processFrames_.size()));
+    emit statusChanged(frame.detail);
+    emit processHistoryChanged(processFrames_.size(), index,
+                               frame.label, frame.failed);
+}
+
+void PrintableInterlockWidget::showFinalResult()
+{
+    if (!lastSnapshot_.voxelComplete)
+        return;
+    viewingProcessFrame_ = false;
+    partitionViewport_->setModelData(
+        surfaceClippedMode_ && lastSnapshot_.complete
+            ? lastSnapshot_.partitionedModel : lastSnapshot_.voxelizedModel,
+        lastSnapshot_.requestedPieces);
+    partitionNameLabel_->setText(
+        QString(surfaceClippedMode_ && lastSnapshot_.complete
+                    ? "Surface-cut solids  |  " : "Voxel solids  |  ")
+        + QFileInfo(meshPath_).fileName());
 }
 
 void PrintableInterlockWidget::handleFinished()
