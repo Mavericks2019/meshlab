@@ -73,7 +73,8 @@ void PrintableInterlockWorker::run()
             if (stopRequested_.load())
                 return false;
             emit snapshotReady(snapshot);
-            return snapshot.complete ? !stopRequested_.load() : waitAfterSnapshot();
+            return snapshot.complete || snapshot.voxelComplete
+                ? !stopRequested_.load() : waitAfterSnapshot();
         },
         &error);
     if (!succeeded && !stopRequested_.load())
@@ -281,8 +282,12 @@ void PrintableInterlockWidget::updateAssemblyOffsets()
 void PrintableInterlockWidget::setSurfaceClippedMode(bool surfaceClipped)
 {
     surfaceClippedMode_ = surfaceClipped;
+    if (surfaceClippedMode_ && lastSnapshot_.voxelComplete
+        && !lastSnapshot_.complete) {
+        surfaceClippedMode_ = false;
+    }
     partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
-    if (!lastSnapshot_.complete)
+    if (!lastSnapshot_.voxelComplete)
         return;
     partitionViewport_->setModelData(
         surfaceClippedMode_ ? lastSnapshot_.partitionedModel
@@ -305,7 +310,9 @@ bool PrintableInterlockWidget::exportPrintableParts(
         ? lastSnapshot_.printableParts : lastSnapshot_.voxelParts;
     const int watertightParts = surfaceClippedMode_
         ? lastSnapshot_.watertightParts : lastSnapshot_.voxelWatertightParts;
-    if (!lastSnapshot_.complete || watertightParts != lastSnapshot_.requestedPieces
+    const bool selectedResultComplete = surfaceClippedMode_
+        ? lastSnapshot_.complete : lastSnapshot_.voxelComplete;
+    if (!selectedResultComplete || watertightParts != lastSnapshot_.requestedPieces
         || parts.size() != lastSnapshot_.requestedPieces) {
         if (errorMessage)
             *errorMessage = "Run the construction until all watertight parts are complete.";
@@ -364,16 +371,21 @@ bool PrintableInterlockWidget::isRunning() const
 
 void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& snapshot)
 {
-    const bool firstCompleteSnapshot = snapshot.complete && !lastSnapshot_.complete;
+    const bool firstAssemblySnapshot = snapshot.voxelComplete
+        && !lastSnapshot_.voxelComplete;
     lastSnapshot_ = snapshot;
-    if (firstCompleteSnapshot)
+    if (snapshot.voxelComplete && !snapshot.complete)
+        surfaceClippedMode_ = false;
+    partitionViewport_->setFeatureWireframeOnly(surfaceClippedMode_);
+    if (firstAssemblySnapshot)
         assemblyProgress_ = float(assemblyStepCount());
-    const SteadyDissectionMeshData& displayedModel = snapshot.complete
-        && !surfaceClippedMode_ ? snapshot.voxelizedModel : snapshot.partitionedModel;
+    const SteadyDissectionMeshData& displayedModel = snapshot.voxelComplete
+        && (!surfaceClippedMode_ || !snapshot.complete)
+            ? snapshot.voxelizedModel : snapshot.partitionedModel;
     partitionViewport_->setModelData(displayedModel, snapshot.requestedPieces);
-    if (snapshot.complete)
+    if (snapshot.voxelComplete)
         updateAssemblyOffsets();
-    if (snapshot.complete) {
+    if (snapshot.voxelComplete) {
         partitionNameLabel_->setText(
             QString(surfaceClippedMode_ ? "Surface-cut solids  |  " : "Voxel solids  |  ")
             + QFileInfo(meshPath_).fileName());
@@ -405,9 +417,16 @@ void PrintableInterlockWidget::applySnapshot(const PrintableInterlockSnapshot& s
 
 void PrintableInterlockWidget::handleFailure(const QString& message)
 {
-    phaseLabel_->setText("Printable interlocking construction failed");
-    metricsLabel_->clear();
-    emit statusChanged("Error: " + message);
+    if (lastSnapshot_.voxelComplete) {
+        phaseLabel_->setText("Surface cut failed; voxel result is available");
+        emit statusChanged(
+            "Surface cut error: " + message
+            + "\nVoxel interlocking succeeded. Use the assembly controls to inspect it.");
+    } else {
+        phaseLabel_->setText("Printable interlocking construction failed");
+        metricsLabel_->clear();
+        emit statusChanged("Error: " + message);
+    }
 }
 
 void PrintableInterlockWidget::handleFinished()

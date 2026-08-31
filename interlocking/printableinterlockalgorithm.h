@@ -8,8 +8,13 @@
 
 #include <functional>
 
+enum class PrintableSurfaceCutMethod {
+    PerPartBoolean,
+    GlobalLabeledCut
+};
+
 struct PrintableInterlockParameters {
-    int resolution = 50;
+    int resolution = 15;
     int samplesPerVoxel = 4;
     int pieceCount = 8;
     int candidateLimit = 20;
@@ -17,6 +22,8 @@ struct PrintableInterlockParameters {
     double internalVolumeThreshold = 0.5;
     double minimumFaceContact = 0.05;
     double maxPartExtentRatio = 1.0;
+    PrintableSurfaceCutMethod surfaceCutMethod =
+        PrintableSurfaceCutMethod::PerPartBoolean;
     bool refineSalientSeams = true;
     bool enforceInterlocking = true;
 };
@@ -44,6 +51,7 @@ struct PrintableInterlockSnapshot {
     int voxelWatertightParts = 0;
     int watertightParts = 0;
     bool interlocking = false;
+    bool voxelComplete = false;
     bool complete = false;
 };
 

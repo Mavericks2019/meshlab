@@ -1,6 +1,10 @@
 #include "printableinterlockalgorithm.h"
 
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Polygon_2.h>
+#include <CGAL/Polygon_mesh_slicer.h>
+#include <CGAL/Polygon_set_2.h>
+#include <CGAL/Polygon_triangulation_decomposition_2.h>
 #include <CGAL/Polygon_mesh_processing/connected_components.h>
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/measure.h>
@@ -9,6 +13,7 @@
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup_extension.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
+#include <CGAL/Polygon_mesh_processing/repair_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/self_intersections.h>
 #include <CGAL/Polygon_mesh_processing/shape_predicates.h>
 #include <CGAL/Polygon_mesh_processing/stitch_borders.h>
@@ -37,6 +42,10 @@ namespace {
 namespace PMP = CGAL::Polygon_mesh_processing;
 using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
 using Point = Kernel::Point_3;
+using Point2 = Kernel::Point_2;
+using Polygon2 = CGAL::Polygon_2<Kernel>;
+using PolygonWithHoles2 = CGAL::Polygon_with_holes_2<Kernel>;
+using PolygonSet2 = CGAL::Polygon_set_2<Kernel>;
 using SurfaceMesh = CGAL::Surface_mesh<Point>;
 
 constexpr int kEmpty = -3;
@@ -983,7 +992,10 @@ int refineSalientSeams(Grid* grid, const QVector<int>& directions,
                     continue;
                 Grid trial = *grid;
                 trial.labels[index] = piece;
-                if (!pieceConnected(trial, oldPiece) || !pieceConnected(trial, piece))
+                if (!pieceConnected(trial, oldPiece)
+                    || !pieceConnected(trial, piece)
+                    || !pieceMaterialConnected(trial, oldPiece)
+                    || !pieceMaterialConnected(trial, piece))
                     continue;
                 if (!extentAllowed(trial, cellsForPiece(trial, piece),
                                    parameters.maxPartExtentRatio))
@@ -1414,8 +1426,409 @@ void appendMeshData(SteadyDissectionMeshData* destination,
         destination->faces << offset + vertex;
 }
 
+struct PartSoup {
+    std::vector<Point> points;
+    std::vector<std::array<std::size_t, 3>> triangles;
+};
+
+Kernel::FT pointCoordinate(const Point& point, int axis)
+{
+    if (axis == 0)
+        return point.x();
+    if (axis == 1)
+        return point.y();
+    return point.z();
+}
+
+Kernel::FT vectorCoordinate(const Kernel::Vector_3& vector, int axis)
+{
+    if (axis == 0)
+        return vector.x();
+    if (axis == 1)
+        return vector.y();
+    return vector.z();
+}
+
+Kernel::FT gridCoordinate(const Grid& grid, int index)
+{
+    return Kernel::FT(grid.origin + double(index) * grid.cellSize);
+}
+
+Point2 projectToSlice(const Point& point, int axis)
+{
+    if (axis == 0)
+        return Point2(point.y(), point.z());
+    if (axis == 1)
+        return Point2(point.z(), point.x());
+    return Point2(point.x(), point.y());
+}
+
+Point liftFromSlice(const Point2& point, int axis, const Kernel::FT& coordinate)
+{
+    if (axis == 0)
+        return Point(coordinate, point.x(), point.y());
+    if (axis == 1)
+        return Point(point.y(), coordinate, point.x());
+    return Point(point.x(), point.y(), coordinate);
+}
+
+std::vector<Point> clipPolygonCoordinate(const std::vector<Point>& input,
+                                         int axis, const Kernel::FT& boundary,
+                                         bool keepGreater)
+{
+    std::vector<Point> output;
+    if (input.empty())
+        return output;
+    auto inside = [&](const Point& point) {
+        return keepGreater ? pointCoordinate(point, axis) >= boundary
+                           : pointCoordinate(point, axis) <= boundary;
+    };
+    Point previous = input.back();
+    bool previousInside = inside(previous);
+    for (const Point& current : input) {
+        const bool currentInside = inside(current);
+        if (currentInside != previousInside) {
+            const Kernel::FT denominator = pointCoordinate(current, axis)
+                - pointCoordinate(previous, axis);
+            if (denominator != Kernel::FT(0)) {
+                const Kernel::FT amount = (boundary - pointCoordinate(previous, axis))
+                    / denominator;
+                output.push_back(previous + (current - previous) * amount);
+            }
+        }
+        if (currentInside)
+            output.push_back(current);
+        previous = current;
+        previousInside = currentInside;
+    }
+    return output;
+}
+
+std::vector<Point> clipTriangleToCellExact(const std::array<Point, 3>& triangle,
+                                           const Grid& grid, const Coord& cell)
+{
+    std::vector<Point> polygon(triangle.begin(), triangle.end());
+    const std::array<int, 3> coordinates{{cell.x, cell.y, cell.z}};
+    for (int axis = 0; axis < 3 && !polygon.empty(); ++axis) {
+        polygon = clipPolygonCoordinate(
+            polygon, axis, gridCoordinate(grid, coordinates[axis]), true);
+        polygon = clipPolygonCoordinate(
+            polygon, axis, gridCoordinate(grid, coordinates[axis] + 1), false);
+    }
+    return polygon;
+}
+
+void appendSoupTriangle(PartSoup* soup, const Point& a, const Point& b,
+                        const Point& c, bool reverse = false)
+{
+    if (CGAL::collinear(a, b, c))
+        return;
+    const std::size_t base = soup->points.size();
+    soup->points.push_back(a);
+    soup->points.push_back(b);
+    soup->points.push_back(c);
+    soup->triangles.push_back(reverse
+        ? std::array<std::size_t, 3>{{base, base + 2, base + 1}}
+        : std::array<std::size_t, 3>{{base, base + 1, base + 2}});
+}
+
+void appendClippedSourceSurface(const SurfaceMesh& original, const Grid& grid,
+                                std::vector<PartSoup>* soups)
+{
+    for (SurfaceMesh::Face_index face : original.faces()) {
+        std::array<Point, 3> triangle;
+        int corner = 0;
+        for (SurfaceMesh::Vertex_index vertex :
+             CGAL::vertices_around_face(original.halfedge(face), original)) {
+            if (corner < 3)
+                triangle[corner++] = original.point(vertex);
+        }
+        if (corner != 3)
+            continue;
+
+        const Kernel::Vector_3 normal = CGAL::cross_product(
+            triangle[1] - triangle[0], triangle[2] - triangle[0]);
+        std::array<int, 3> firstCell;
+        std::array<int, 3> lastCell;
+        for (int axis = 0; axis < 3; ++axis) {
+            double minimum = CGAL::to_double(pointCoordinate(triangle[0], axis));
+            double maximum = minimum;
+            for (int i = 1; i < 3; ++i) {
+                const double value = CGAL::to_double(pointCoordinate(triangle[i], axis));
+                minimum = (std::min)(minimum, value);
+                maximum = (std::max)(maximum, value);
+            }
+            firstCell[axis] = int(std::floor((minimum - grid.origin) / grid.cellSize));
+            lastCell[axis] = int(std::floor((maximum - grid.origin) / grid.cellSize));
+
+            const double planePosition = (minimum - grid.origin) / grid.cellSize;
+            const int planeIndex = int(std::llround(planePosition));
+            if (minimum == maximum && planeIndex >= 0
+                && planeIndex <= grid.resolution
+                && pointCoordinate(triangle[0], axis) == gridCoordinate(grid, planeIndex)) {
+                const bool materialOnNegativeSide = vectorCoordinate(normal, axis) > 0;
+                firstCell[axis] = lastCell[axis] = materialOnNegativeSide
+                    ? planeIndex - 1 : planeIndex;
+            }
+            firstCell[axis] = (std::max)(0, firstCell[axis]);
+            lastCell[axis] = (std::min)(grid.resolution - 1, lastCell[axis]);
+        }
+
+        for (int z = firstCell[2]; z <= lastCell[2]; ++z) {
+            for (int y = firstCell[1]; y <= lastCell[1]; ++y) {
+                for (int x = firstCell[0]; x <= lastCell[0]; ++x) {
+                    const Coord cell{x, y, z};
+                    const int piece = grid.label(cell);
+                    if (piece < 0)
+                        continue;
+                    const std::vector<Point> polygon = clipTriangleToCellExact(
+                        triangle, grid, cell);
+                    if (polygon.size() < 3)
+                        continue;
+                    for (int i = 1; i + 1 < int(polygon.size()); ++i)
+                        appendSoupTriangle(&(*soups)[piece], polygon[0],
+                                           polygon[i], polygon[i + 1]);
+                }
+            }
+        }
+    }
+}
+
+PolygonSet2 solidSlice(const SurfaceMesh& original,
+                       const CGAL::Polygon_mesh_slicer<SurfaceMesh, Kernel>& slicer,
+                       int axis, const Kernel::FT& coordinate)
+{
+    Kernel::Plane_3 plane = axis == 0
+        ? Kernel::Plane_3(Kernel::FT(1), Kernel::FT(0), Kernel::FT(0), -coordinate)
+        : axis == 1
+            ? Kernel::Plane_3(Kernel::FT(0), Kernel::FT(1), Kernel::FT(0), -coordinate)
+            : Kernel::Plane_3(Kernel::FT(0), Kernel::FT(0), Kernel::FT(1), -coordinate);
+    std::vector<std::vector<Point>> polylines;
+    slicer(plane, std::back_inserter(polylines));
+
+    std::vector<Polygon2> loops;
+    for (const std::vector<Point>& polyline : polylines) {
+        if (polyline.size() < 4 || polyline.front() != polyline.back())
+            continue;
+        Polygon2 polygon;
+        for (std::size_t i = 0; i + 1 < polyline.size(); ++i) {
+            const Point2 point = projectToSlice(polyline[i], axis);
+            if (polygon.is_empty() || polygon[polygon.size() - 1] != point)
+                polygon.push_back(point);
+        }
+        if (polygon.size() >= 3 && polygon.is_simple()
+            && polygon.area() != Kernel::FT(0))
+            loops.push_back(std::move(polygon));
+    }
+    std::stable_sort(loops.begin(), loops.end(), [](const Polygon2& left,
+                                                     const Polygon2& right) {
+        return CGAL::abs(left.area()) > CGAL::abs(right.area());
+    });
+
+    PolygonSet2 result;
+    for (std::size_t i = 0; i < loops.size(); ++i) {
+        Polygon2& loop = loops[i];
+        int nestingDepth = 0;
+        const Point2 probe = loop[0];
+        for (std::size_t outer = 0; outer < i; ++outer) {
+            if (loops[outer].bounded_side(probe) == CGAL::ON_BOUNDED_SIDE)
+                ++nestingDepth;
+        }
+        if (loop.orientation() == CGAL::CLOCKWISE)
+            loop.reverse_orientation();
+        if (nestingDepth % 2 == 0)
+            result.join(loop);
+        else
+            result.difference(loop);
+    }
+    return result;
+}
+
+void appendInterfaceFaces(const SurfaceMesh& original, const Grid& grid,
+                          std::vector<PartSoup>* soups)
+{
+    CGAL::Polygon_mesh_slicer<SurfaceMesh, Kernel> slicer(original);
+    CGAL::Polygon_triangulation_decomposition_2<Kernel> triangulate;
+
+    for (int axis = 0; axis < 3; ++axis) {
+        for (int planeIndex = 0; planeIndex <= grid.resolution; ++planeIndex) {
+            struct InterfaceCell {
+                int u = 0;
+                int v = 0;
+                int negativePiece = -1;
+                int positivePiece = -1;
+            };
+            std::vector<InterfaceCell> interfaces;
+            for (int v = 0; v < grid.resolution; ++v) {
+                for (int u = 0; u < grid.resolution; ++u) {
+                    Coord negative;
+                    Coord positive;
+                    if (axis == 0) {
+                        negative = {planeIndex - 1, u, v};
+                        positive = {planeIndex, u, v};
+                    } else if (axis == 1) {
+                        negative = {v, planeIndex - 1, u};
+                        positive = {v, planeIndex, u};
+                    } else {
+                        negative = {u, v, planeIndex - 1};
+                        positive = {u, v, planeIndex};
+                    }
+                    const int negativePiece = grid.label(negative);
+                    const int positivePiece = grid.label(positive);
+                    if (negativePiece == positivePiece
+                        || (negativePiece < 0 && positivePiece < 0))
+                        continue;
+                    interfaces.push_back({u, v, negativePiece, positivePiece});
+                }
+            }
+            if (interfaces.empty())
+                continue;
+
+            const Kernel::FT coordinate = gridCoordinate(grid, planeIndex);
+            const PolygonSet2 section = solidSlice(original, slicer, axis, coordinate);
+            if (section.is_empty())
+                continue;
+
+            for (const InterfaceCell& interfaceCell : interfaces) {
+                const Kernel::FT u0 = gridCoordinate(grid, interfaceCell.u);
+                const Kernel::FT u1 = gridCoordinate(grid, interfaceCell.u + 1);
+                const Kernel::FT v0 = gridCoordinate(grid, interfaceCell.v);
+                const Kernel::FT v1 = gridCoordinate(grid, interfaceCell.v + 1);
+                Polygon2 square;
+                square.push_back(Point2(u0, v0));
+                square.push_back(Point2(u1, v0));
+                square.push_back(Point2(u1, v1));
+                square.push_back(Point2(u0, v1));
+                PolygonSet2 clipped = section;
+                clipped.intersection(square);
+                if (clipped.is_empty())
+                    continue;
+
+                std::vector<PolygonWithHoles2> regions;
+                clipped.polygons_with_holes(std::back_inserter(regions));
+                for (const PolygonWithHoles2& region : regions) {
+                    std::vector<Polygon2> triangles;
+                    triangulate(region, std::back_inserter(triangles));
+                    for (const Polygon2& triangle : triangles) {
+                        if (triangle.size() != 3)
+                            continue;
+                        Point a = liftFromSlice(triangle[0], axis, coordinate);
+                        Point b = liftFromSlice(triangle[1], axis, coordinate);
+                        Point c = liftFromSlice(triangle[2], axis, coordinate);
+                        const bool clockwise = triangle.orientation() == CGAL::CLOCKWISE;
+                        if (interfaceCell.negativePiece >= 0)
+                            appendSoupTriangle(&(*soups)[interfaceCell.negativePiece],
+                                               a, b, c, clockwise);
+                        if (interfaceCell.positivePiece >= 0)
+                            appendSoupTriangle(&(*soups)[interfaceCell.positivePiece],
+                                               a, b, c, !clockwise);
+                    }
+                }
+            }
+        }
+    }
+}
+
+bool buildSurfaceMeshFromSoup(PartSoup* soup, int piece, double singularInset,
+                              SurfaceMesh* output, QString* error)
+{
+    PMP::repair_polygon_soup(soup->points, soup->triangles);
+    if (soup->triangles.empty()) {
+        *error = QString("Part %1 produced no surface-cut triangles.").arg(piece + 1);
+        return false;
+    }
+    const bool soupWasManifold =
+        PMP::orient_polygon_soup(soup->points, soup->triangles);
+    PMP::duplicate_non_manifold_edges_in_polygon_soup(
+        soup->points, soup->triangles);
+    output->clear();
+    PMP::polygon_soup_to_polygon_mesh(soup->points, soup->triangles, *output);
+    PMP::stitch_borders(*output);
+    PMP::remove_isolated_vertices(*output);
+
+    if (!soupWasManifold) {
+        std::map<std::tuple<double, double, double>,
+                 std::vector<SurfaceMesh::Vertex_index>> coincidentVertices;
+        for (SurfaceMesh::Vertex_index vertex : output->vertices()) {
+            const Point point = output->point(vertex);
+            coincidentVertices[{CGAL::to_double(point.x()),
+                                CGAL::to_double(point.y()),
+                                CGAL::to_double(point.z())}].push_back(vertex);
+        }
+        std::unordered_set<int> singularVertices;
+        for (const auto& entry : coincidentVertices) {
+            if (entry.second.size() < 2)
+                continue;
+            for (SurfaceMesh::Vertex_index vertex : entry.second)
+                singularVertices.insert(vertex.idx());
+        }
+        std::vector<std::pair<SurfaceMesh::Vertex_index, Kernel::Vector_3>>
+            displacements;
+        for (SurfaceMesh::Vertex_index vertex : output->vertices()) {
+            if (!singularVertices.count(vertex.idx()))
+                continue;
+            Kernel::Vector_3 towardUmbrella = CGAL::NULL_VECTOR;
+            int neighborCount = 0;
+            for (SurfaceMesh::Vertex_index neighbor :
+                 CGAL::vertices_around_target(output->halfedge(vertex), *output)) {
+                towardUmbrella = towardUmbrella
+                    + (output->point(neighbor) - output->point(vertex));
+                ++neighborCount;
+            }
+            if (neighborCount == 0)
+                continue;
+            towardUmbrella = towardUmbrella / neighborCount;
+            const double length = std::sqrt(
+                CGAL::to_double(towardUmbrella.squared_length()));
+            if (length > 1e-12) {
+                displacements.push_back(
+                    {vertex, towardUmbrella * (singularInset / length)});
+            }
+        }
+        for (const auto& displacement : displacements) {
+            output->point(displacement.first) = output->point(displacement.first)
+                + displacement.second;
+        }
+    }
+    if (output->is_empty() || !CGAL::is_triangle_mesh(*output)
+        || !CGAL::is_closed(*output)) {
+        std::size_t borderHalfedges = 0;
+        for (SurfaceMesh::Halfedge_index halfedge : output->halfedges())
+            borderHalfedges += output->is_border(halfedge) ? 1U : 0U;
+        *error = QString("Part %1 did not produce a closed labeled solid "
+                         "(%2 vertices, %3 faces, %4 border halfedges).")
+                     .arg(piece + 1)
+                     .arg(output->number_of_vertices())
+                     .arg(output->number_of_faces())
+                     .arg(borderHalfedges);
+        return false;
+    }
+    const bool selfIntersecting = PMP::does_self_intersect(*output);
+    const bool boundsVolume = !selfIntersecting && PMP::does_bound_a_volume(*output);
+    if (selfIntersecting || !boundsVolume) {
+        *error = QString("Part %1 labeled solid is not printable (%2).")
+                     .arg(piece + 1)
+                     .arg(selfIntersecting ? "self-intersection" : "invalid orientation");
+        return false;
+    }
+    auto volumeMap = output->add_property_map<
+        SurfaceMesh::Face_index, std::size_t>("f:labeled_volume", 0).first;
+    const std::size_t volumeCount = PMP::volume_connected_components(
+        *output, volumeMap,
+        CGAL::parameters::do_orientation_tests(true)
+            .do_self_intersection_tests(false));
+    output->remove_property_map(volumeMap);
+    if (volumeCount != 1) {
+        *error = QString("Part %1 contains %2 disconnected labeled volumes.")
+                     .arg(piece + 1).arg(volumeCount);
+        return false;
+    }
+    PMP::orient_to_bound_a_volume(*output);
+    return true;
+}
+
 bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
-                              int pieceCount,
+                              int pieceCount, PrintableSurfaceCutMethod cutMethod,
                               QVector<SteadyDissectionMeshData>* voxelParts,
                               SteadyDissectionMeshData* voxelCombined,
                               QVector<SteadyDissectionMeshData>* clippedParts,
@@ -1438,47 +1851,76 @@ bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
         appendMeshData(voxelCombined, voxelData);
         voxelParts->push_back(std::move(voxelData));
 
-        SurfaceMesh source = original;
-        SurfaceMesh intersection;
-        bool computed = false;
-        try {
-            computed = PMP::corefine_and_compute_intersection(
-                source, voxelSolid, intersection);
-        } catch (const std::exception& exception) {
-            *error = QString("Boolean intersection failed for part %1: %2")
-                         .arg(piece + 1).arg(exception.what());
-            return false;
+        if (cutMethod == PrintableSurfaceCutMethod::PerPartBoolean) {
+            SurfaceMesh source = original;
+            SurfaceMesh intersection;
+            bool computed = false;
+            try {
+                computed = PMP::corefine_and_compute_intersection(
+                    source, voxelSolid, intersection);
+            } catch (const std::exception& exception) {
+                *error = QString("Boolean intersection failed for part %1: %2")
+                             .arg(piece + 1).arg(exception.what());
+                return false;
+            }
+            PMP::remove_isolated_vertices(intersection);
+            if (!computed || intersection.is_empty()
+                || !CGAL::is_triangle_mesh(intersection)
+                || !CGAL::is_closed(intersection)) {
+                *error = QString("Part %1 did not produce a closed solid intersection.")
+                             .arg(piece + 1);
+                return false;
+            }
+            const bool selfIntersecting = PMP::does_self_intersect(intersection);
+            const bool boundsVolume = !selfIntersecting
+                && PMP::does_bound_a_volume(intersection);
+            if (selfIntersecting || !boundsVolume) {
+                *error = QString("Part %1 intersection is not a printable watertight "
+                                 "volume (%2).")
+                             .arg(piece + 1)
+                             .arg(selfIntersecting
+                                      ? "self-intersection" : "invalid orientation");
+                return false;
+            }
+            auto volumeMap = intersection.add_property_map<
+                SurfaceMesh::Face_index, std::size_t>("f:printable_volume", 0).first;
+            const std::size_t volumeCount = PMP::volume_connected_components(
+                intersection, volumeMap,
+                CGAL::parameters::do_orientation_tests(true)
+                    .do_self_intersection_tests(false));
+            intersection.remove_property_map(volumeMap);
+            if (volumeCount != 1) {
+                *error = QString("Part %1 intersects the original solid in %2 "
+                                 "disconnected volumes. The partition will be "
+                                 "retried automatically.")
+                             .arg(piece + 1).arg(volumeCount);
+                return false;
+            }
+            PMP::orient_to_bound_a_volume(intersection);
+            SteadyDissectionMeshData data = surfaceMeshData(intersection, piece);
+            if (data.faces.isEmpty()) {
+                *error = QString("Part %1 produced no printable triangles.")
+                             .arg(piece + 1);
+                return false;
+            }
+            appendMeshData(clippedCombined, data);
+            clippedParts->push_back(std::move(data));
         }
-        PMP::remove_isolated_vertices(intersection);
-        if (!computed || intersection.is_empty() || !CGAL::is_triangle_mesh(intersection)
-            || !CGAL::is_closed(intersection)) {
-            *error = QString("Part %1 did not produce a closed solid intersection.")
-                         .arg(piece + 1);
+    }
+
+    if (cutMethod == PrintableSurfaceCutMethod::PerPartBoolean)
+        return true;
+
+    std::vector<PartSoup> soups(pieceCount);
+    appendClippedSourceSurface(original, grid, &soups);
+    appendInterfaceFaces(original, grid, &soups);
+    for (int piece = 0; piece < pieceCount; ++piece) {
+        SurfaceMesh surfacePart;
+        if (!buildSurfaceMeshFromSoup(&soups[piece], piece,
+                                      grid.cellSize * 0.02,
+                                      &surfacePart, error))
             return false;
-        }
-        const bool selfIntersecting = PMP::does_self_intersect(intersection);
-        const bool boundsVolume = !selfIntersecting && PMP::does_bound_a_volume(intersection);
-        if (selfIntersecting || !boundsVolume) {
-            *error = QString("Part %1 intersection is not a printable watertight volume (%2).")
-                         .arg(piece + 1)
-                         .arg(selfIntersecting ? "self-intersection" : "invalid orientation");
-            return false;
-        }
-        auto volumeMap = intersection.add_property_map<
-            SurfaceMesh::Face_index, std::size_t>("f:printable_volume", 0).first;
-        const std::size_t volumeCount = PMP::volume_connected_components(
-            intersection, volumeMap,
-            CGAL::parameters::do_orientation_tests(true)
-                .do_self_intersection_tests(false));
-        intersection.remove_property_map(volumeMap);
-        if (volumeCount != 1) {
-            *error = QString("Part %1 intersects the original solid in %2 disconnected volumes. "
-                             "The partition will be retried automatically.")
-                         .arg(piece + 1).arg(volumeCount);
-            return false;
-        }
-        PMP::orient_to_bound_a_volume(intersection);
-        SteadyDissectionMeshData data = surfaceMeshData(intersection, piece);
+        SteadyDissectionMeshData data = surfaceMeshData(surfacePart, piece);
         if (data.faces.isEmpty()) {
             *error = QString("Part %1 produced no printable triangles.").arg(piece + 1);
             return false;
@@ -1686,7 +2128,11 @@ public:
                       buildPartitionMesh(mesh_.mesh, grid_), interlocking))
             return true;
         const SteadyDissectionMeshData preview = buildPartitionMesh(mesh_.mesh, grid_);
-        if (!publish("Computing watertight solid intersections", false,
+        const QString cutPhase = parameters_.surfaceCutMethod
+                == PrintableSurfaceCutMethod::PerPartBoolean
+            ? "Intersecting each voxel part with the source solid"
+            : "Cutting the global labeled voxel structure with the source surface";
+        if (!publish(cutPhase, false,
                      preview, interlocking))
             return true;
         SteadyDissectionMeshData voxelModel;
@@ -1694,6 +2140,7 @@ public:
         QString solidError;
         bool built = materialConnected
             && buildPrintableSolidParts(mesh_.mesh, grid_, parameters_.pieceCount,
+                                         parameters_.surfaceCutMethod,
                                         &voxelParts_, &voxelModel,
                                         &printableParts_, &printableModel,
                                         &solidError);
@@ -1724,11 +2171,23 @@ public:
             QVector<SteadyDissectionMeshData> trialPrintableParts;
             SteadyDissectionMeshData trialVoxelModel;
             SteadyDissectionMeshData trialPrintableModel;
-            if (!buildPrintableSolidParts(
-                    mesh_.mesh, trialGrid, parameters_.pieceCount,
+            const bool trialBuilt = buildPrintableSolidParts(
+                      mesh_.mesh, trialGrid, parameters_.pieceCount,
+                      parameters_.surfaceCutMethod,
                     &trialVoxelParts, &trialVoxelModel,
                     &trialPrintableParts, &trialPrintableModel,
-                    &trialError)) {
+                    &trialError);
+            if (!trialBuilt) {
+                if (trialVoxelParts.size() == parameters_.pieceCount
+                    && !trialVoxelModel.faces.isEmpty()) {
+                    grid_ = std::move(trialGrid);
+                    directions_ = std::move(trialDirections);
+                    attachedBoundaryCount_ = trialAttachedCount;
+                    seamSwapCount_ = trialSeamSwapCount;
+                    voxelParts_ = std::move(trialVoxelParts);
+                    voxelModel = std::move(trialVoxelModel);
+                    interlocking = localModelSatisfied(grid_, directions_);
+                }
                 lastAttemptError = trialError;
                 continue;
             }
@@ -1749,6 +2208,12 @@ public:
             *error = QString("Could not produce connected surface-cut parts after %1 "
                              "automatic partition attempts. Last attempt: %2")
                          .arg(automaticAttempts).arg(lastAttemptError);
+            if (voxelParts_.size() == parameters_.pieceCount
+                && !voxelModel.faces.isEmpty()) {
+                voxelModel_ = std::move(voxelModel);
+                publish("Voxel interlocking complete; surface cut failed", false,
+                        voxelModel_, interlocking, true);
+            }
             return false;
         }
         voxelModel_ = std::move(voxelModel);
@@ -1756,6 +2221,10 @@ public:
             ? QString("Complete watertight solids (%1 seam swaps)")
                   .arg(seamSwapCount_)
             : QString("Complete watertight interlocking solids");
+        completePhase += parameters_.surfaceCutMethod
+                == PrintableSurfaceCutMethod::PerPartBoolean
+            ? "; per-part Boolean"
+            : "; global labeled cut";
         if (successfulAttempt > 0)
             completePhase += QString("; accepted automatic retry %1")
                                  .arg(successfulAttempt);
@@ -1765,19 +2234,21 @@ public:
 
 private:
     bool publish(const QString& phase, bool complete,
-                 const SteadyDissectionMeshData& partitioned, bool interlocking)
+                 const SteadyDissectionMeshData& partitioned, bool interlocking,
+                 bool voxelComplete = false)
     {
         if (!callback_)
             return true;
         PrintableInterlockSnapshot snapshot;
         snapshot.originalModel = original_;
-        if (complete)
+        voxelComplete = voxelComplete || complete;
+        if (voxelComplete)
             snapshot.voxelizedModel = voxelModel_;
         snapshot.partitionedModel = partitioned;
-        if (complete) {
+        if (voxelComplete)
             snapshot.voxelParts = voxelParts_;
+        if (complete)
             snapshot.printableParts = printableParts_;
-        }
         snapshot.pieceVoxelCounts = pieceCounts(grid_, parameters_.pieceCount);
         snapshot.extractionDirections = directions_;
         snapshot.sourceCenter = mesh_.sourceCenter;
@@ -1794,9 +2265,10 @@ private:
         snapshot.attachedBoundaryVoxels = attachedBoundaryCount_;
         snapshot.tinyVoxels = tinyCount_;
         snapshot.disconnectedVoxels = disconnectedCount_;
-        snapshot.voxelWatertightParts = complete ? voxelParts_.size() : 0;
+        snapshot.voxelWatertightParts = voxelComplete ? voxelParts_.size() : 0;
         snapshot.watertightParts = complete ? printableParts_.size() : 0;
         snapshot.interlocking = interlocking;
+        snapshot.voxelComplete = voxelComplete;
         snapshot.complete = complete;
         return callback_(snapshot);
     }

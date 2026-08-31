@@ -4,6 +4,7 @@
 
 #include <QButtonGroup>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QCoreApplication>
 #include <QDoubleSpinBox>
 #include <QFileDialog>
@@ -72,7 +73,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     QFormLayout* parametersLayout = new QFormLayout(parametersGroup);
     QSpinBox* resolution = new QSpinBox(parametersGroup);
     resolution->setRange(8, 100);
-    resolution->setValue(50);
+    resolution->setValue(15);
     resolution->setSuffix(" cells");
     QSpinBox* samples = new QSpinBox(parametersGroup);
     samples->setRange(2, 6);
@@ -102,6 +103,13 @@ inline QWidget* createPrintableInterlockControlPanel(
     maximumExtent->setRange(50.0, 100.0);
     maximumExtent->setValue(100.0);
     maximumExtent->setSuffix(" %");
+    QComboBox* surfaceCutMethod = new QComboBox(parametersGroup);
+    surfaceCutMethod->addItem("Pre-cut (per-part Boolean)");
+    surfaceCutMethod->addItem("Global labeled cut");
+    surfaceCutMethod->setCurrentIndex(0);
+    surfaceCutMethod->setToolTip(
+        "Choose whether each voxel part is intersected independently or the "
+        "complete labeled voxel structure is cut by the source surface");
     QCheckBox* refineSeams = new QCheckBox("Refine salient cutting seams", parametersGroup);
     refineSeams->setChecked(true);
     QCheckBox* strictInterlocking = new QCheckBox(
@@ -115,6 +123,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     parametersLayout->addRow("Internal volume", internalThreshold);
     parametersLayout->addRow("Face connection", faceContact);
     parametersLayout->addRow("Max part extent", maximumExtent);
+    parametersLayout->addRow("Surface cut method", surfaceCutMethod);
     parametersLayout->addRow(refineSeams);
     parametersLayout->addRow(strictInterlocking);
 
@@ -180,7 +189,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     previousAssemblyButton->setToolTip("Previous assembly step");
     QPushButton* playAssemblyButton = new QPushButton(assemblyGroup);
     playAssemblyButton->setIcon(panel->style()->standardIcon(QStyle::SP_MediaPlay));
-    playAssemblyButton->setToolTip("Play assembly");
+    playAssemblyButton->setToolTip("Loop assembly playback");
     QPushButton* nextAssemblyButton = new QPushButton(assemblyGroup);
     nextAssemblyButton->setIcon(
         panel->style()->standardIcon(QStyle::SP_MediaSkipForward));
@@ -227,6 +236,9 @@ inline QWidget* createPrintableInterlockControlPanel(
         result.internalVolumeThreshold = internalThreshold->value() / 100.0;
         result.minimumFaceContact = faceContact->value() / 100.0;
         result.maxPartExtentRatio = maximumExtent->value() / 100.0;
+        result.surfaceCutMethod = surfaceCutMethod->currentIndex() == 0
+            ? PrintableSurfaceCutMethod::PerPartBoolean
+            : PrintableSurfaceCutMethod::GlobalLabeledCut;
         result.refineSalientSeams = refineSeams->isChecked();
         result.enforceInterlocking = strictInterlocking->isChecked();
         return result;
@@ -265,7 +277,7 @@ inline QWidget* createPrintableInterlockControlPanel(
         }
         if (!loadPreview(samplePath))
             return;
-        resolution->setValue(50);
+        resolution->setValue(15);
         samples->setValue(4);
         pieceCount->setValue(6);
         candidateLimit->setValue(20);
@@ -306,7 +318,7 @@ inline QWidget* createPrintableInterlockControlPanel(
         assemblyTimer->stop();
         playAssemblyButton->setIcon(
             panel->style()->standardIcon(QStyle::SP_MediaPlay));
-        playAssemblyButton->setToolTip("Play assembly");
+        playAssemblyButton->setToolTip("Loop assembly playback");
     };
     auto clearPartSpacing = [=]() {
         if (explosion->value() != 0)
@@ -349,13 +361,15 @@ inline QWidget* createPrintableInterlockControlPanel(
         playAssemblyButton->setToolTip("Pause assembly");
     });
     QObject::connect(assemblyTimer, &QTimer::timeout, panel, [=]() {
-        const int next = assemblyProgress->value() + 4;
-        if (next >= assemblyProgress->maximum()) {
-            assemblyProgress->setValue(assemblyProgress->maximum());
-            stopAssemblyPlayback();
-        } else {
-            assemblyProgress->setValue(next);
+        if (assemblyProgress->value() >= assemblyProgress->maximum()) {
+            assemblyProgress->setValue(0);
+            return;
         }
+        const int next = assemblyProgress->value() + 4;
+        if (next >= assemblyProgress->maximum())
+            assemblyProgress->setValue(assemblyProgress->maximum());
+        else
+            assemblyProgress->setValue(next);
     });
     QObject::connect(resetViewsButton, &QPushButton::clicked,
                      widget, &PrintableInterlockWidget::resetViews);
@@ -381,8 +395,15 @@ inline QWidget* createPrintableInterlockControlPanel(
             && snapshot.watertightParts == snapshot.requestedPieces);
     });
     QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
+                     displayGroup, [=](const PrintableInterlockSnapshot& snapshot) {
+        const bool voxelOnly = snapshot.voxelComplete && !snapshot.complete;
+        surfaceModeButton->setEnabled(!voxelOnly);
+        if (voxelOnly)
+            voxelModeButton->setChecked(true);
+    });
+    QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
                      assemblyGroup, [=](const PrintableInterlockSnapshot& snapshot) {
-        if (!snapshot.complete) {
+        if (!snapshot.voxelComplete) {
             stopAssemblyPlayback();
             assemblyProgress->setRange(0, 0);
             assemblyProgress->setEnabled(false);
