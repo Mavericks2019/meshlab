@@ -1988,11 +1988,15 @@ bool buildPrintableSolidParts(const SurfaceMesh& original, const Grid& grid,
     return true;
 }
 
-SteadyDissectionMeshData buildAnalysisMesh(const Grid& grid)
+SteadyDissectionMeshData buildAnalysisMesh(const Grid& grid, bool internalOnly)
 {
     SteadyDissectionMeshData output;
+    const auto included = [&](int index) {
+        return grid.cells[index].occupied
+            && (!internalOnly || grid.cells[index].internal);
+    };
     for (int index = 0; index < int(grid.labels.size()); ++index) {
-        if (!grid.cells[index].occupied)
+        if (!included(index))
             continue;
         const int piece = grid.cells[index].internal ? 2 : -1;
         const Coord cell = grid.coord(index);
@@ -2001,7 +2005,7 @@ SteadyDissectionMeshData buildAnalysisMesh(const Grid& grid)
         const float z = float(cell.z);
         for (int direction = 0; direction < 6; ++direction) {
             const Coord neighbor = cell + kDirections[direction];
-            if (grid.contains(neighbor) && grid.cells[grid.index(neighbor)].occupied)
+            if (grid.contains(neighbor) && included(grid.index(neighbor)))
                 continue;
             switch (direction) {
             case 0:
@@ -2124,16 +2128,27 @@ public:
         if (!loadAndValidateMesh(meshPath, &mesh_, error))
             return false;
         original_ = buildOriginalMesh(mesh_.mesh);
-        if (!voxelizeAndAnalyze(mesh_.mesh, parameters_, &grid_, &tinyCount_,
-                                &disconnectedCount_, error))
-            return false;
+        const bool analysisSucceeded = voxelizeAndAnalyze(
+            mesh_.mesh, parameters_, &grid_, &tinyCount_, &disconnectedCount_, error);
         occupiedCount_ = int(std::count_if(grid_.cells.begin(), grid_.cells.end(),
             [](const CellInfo& info) { return info.occupied; }));
         internalCount_ = int(std::count_if(grid_.cells.begin(), grid_.cells.end(),
             [](const CellInfo& info) { return info.internal; }));
         boundaryCount_ = occupiedCount_ - internalCount_;
+        if (!analysisSucceeded) {
+            if (occupiedCount_ > 0) {
+                const SteadyDissectionMeshData internalModel =
+                    buildAnalysisMesh(grid_, true);
+                publish("Voxelized model and analyzed local shape", false,
+                        buildAnalysisMesh(grid_, false), false, false,
+                        internalModel);
+            }
+            return false;
+        }
+        const SteadyDissectionMeshData internalModel = buildAnalysisMesh(grid_, true);
         if (!publish("Voxelized model and analyzed local shape", false,
-                     buildAnalysisMesh(grid_), false))
+                     buildAnalysisMesh(grid_, false), false, false,
+                     internalModel))
             return true;
         const Grid analyzedGrid = grid_;
 
@@ -2291,13 +2306,15 @@ public:
 
 private:
     bool publish(const QString& phase, bool complete,
-                 const SteadyDissectionMeshData& partitioned, bool interlocking,
-                 bool voxelComplete = false)
+                  const SteadyDissectionMeshData& partitioned, bool interlocking,
+                  bool voxelComplete = false,
+                  const SteadyDissectionMeshData& internalVoxels = {})
     {
         if (!callback_)
             return true;
         PrintableInterlockSnapshot snapshot;
         snapshot.originalModel = original_;
+        snapshot.internalVoxelModel = internalVoxels;
         voxelComplete = voxelComplete || complete;
         if (voxelComplete)
             snapshot.voxelizedModel = voxelModel_;

@@ -18,6 +18,9 @@ public:
     ~SteadyDissectionViewport() override;
 
     void setModelData(const SteadyDissectionMeshData& data, int pieceCount);
+    void setOverlayModelData(const SteadyDissectionMeshData& data,
+                             const QVector3D& color, float opacity);
+    void clearOverlayModelData();
     void clearModel();
     void setExplosion(float amount);
     void setPieceOffsets(const QVector<QVector3D>& offsets);
@@ -32,6 +35,7 @@ private:
     QVector3D pieceColor(int piece) const;
     void rebuildMesh();
     void rebuildWireframeEdges();
+    void rebuildOverlayBuffers();
 
     bool glReady_ = false;
     bool featureWireframeOnly_ = false;
@@ -42,6 +46,13 @@ private:
     QVector<QVector3D> faceColors_;
     QOpenGLShaderProgram pieceProgram_;
     QOpenGLBuffer colorVbo_;
+    SteadyDissectionMeshData overlayModelData_;
+    QVector3D overlayColor_{0.30f, 0.38f, 0.46f};
+    float overlayOpacity_ = 0.32f;
+    QOpenGLShaderProgram overlayProgram_;
+    QOpenGLVertexArrayObject overlayVao_;
+    QOpenGLBuffer overlayVbo_;
+    QOpenGLBuffer overlayEbo_;
 };
 
 class SteadyDissectionWorker : public QThread {

@@ -66,13 +66,15 @@ public:
     bool isRunning() const;
     int assemblyStepCount() const;
     void showProcessFrame(int index);
+    void setVoxelAnalysisView(int mode);
 
 signals:
     void statusChanged(const QString& text);
     void snapshotChanged(const PrintableInterlockSnapshot& snapshot);
     void runningChanged(bool running);
-    void processHistoryChanged(int frameCount, int currentFrame,
+    void processHistoryChanged(int frameCount, int currentFrame, int currentStage,
                                const QString& label, bool failed);
+    void voxelAnalysisViewChanged(bool available, int mode);
 
 private slots:
     void applySnapshot(const PrintableInterlockSnapshot& snapshot);
@@ -98,8 +100,14 @@ private:
     PrintableInterlockParameters lastParameters_;
     PrintableInterlockSnapshot lastSnapshot_;
     SteadyDissectionMeshData previewModel_;
+    SteadyDissectionMeshData analysisInternalModel_;
+    SteadyDissectionMeshData analysisOriginalModel_;
     QVector<ProcessFrame> processFrames_;
     int currentProcessFrame_ = -1;
+    int voxelAnalysisView_ = 1;
+    int analysisInternalCount_ = 0;
+    int analysisBoundaryCount_ = 0;
+    int analysisOccupiedCount_ = 0;
     bool viewingProcessFrame_ = false;
     bool surfaceClippedMode_ = true;
     float assemblyProgress_ = 0.0f;
@@ -112,5 +120,6 @@ private:
                             const SteadyDissectionMeshData& model,
                             int pieceCount, bool failed = false);
     void recordSnapshotFrame(const PrintableInterlockSnapshot& snapshot);
+    void updateVoxelAnalysisView(const ProcessFrame& frame);
     void showFinalResult();
 };

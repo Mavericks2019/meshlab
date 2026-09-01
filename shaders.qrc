@@ -13,6 +13,8 @@
     <file>glwidget/shaders/progressive_checker.frag</file>
     <file>glwidget/shaders/progressive_component.vert</file>
     <file>glwidget/shaders/progressive_component.frag</file>
+    <file>glwidget/shaders/transparent_overlay.vert</file>
+    <file>glwidget/shaders/transparent_overlay.frag</file>
     <file>glwidget/shaders/axis.vert</file>
     <file>glwidget/shaders/axis.frag</file>
     <file>glwidget/shaders/flat.vert</file>

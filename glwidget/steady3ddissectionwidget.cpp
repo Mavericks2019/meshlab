@@ -13,7 +13,10 @@
 #include <map>
 
 SteadyDissectionViewport::SteadyDissectionViewport(QWidget* parent)
-    : BaseGLWidget(parent), colorVbo_(QOpenGLBuffer::VertexBuffer)
+    : BaseGLWidget(parent),
+      colorVbo_(QOpenGLBuffer::VertexBuffer),
+      overlayVbo_(QOpenGLBuffer::VertexBuffer),
+      overlayEbo_(QOpenGLBuffer::IndexBuffer)
 {
     bgColor = QColor("#20242a");
     setWireframeColor(QVector4D(0.035f, 0.04f, 0.05f, 0.55f));
@@ -26,7 +29,11 @@ SteadyDissectionViewport::~SteadyDissectionViewport()
     if (context()) {
         makeCurrent();
         colorVbo_.destroy();
+        overlayVao_.destroy();
+        overlayVbo_.destroy();
+        overlayEbo_.destroy();
         pieceProgram_.removeAllShaders();
+        overlayProgram_.removeAllShaders();
         doneCurrent();
     }
 }
@@ -35,14 +42,24 @@ void SteadyDissectionViewport::initializeGL()
 {
     BaseGLWidget::initializeGL();
     colorVbo_.create();
+    overlayVao_.create();
+    overlayVbo_.create();
+    overlayEbo_.create();
     pieceProgram_.addShaderFromSourceFile(
         QOpenGLShader::Vertex, ":/glwidget/shaders/progressive_component.vert");
     pieceProgram_.addShaderFromSourceFile(
         QOpenGLShader::Fragment, ":/glwidget/shaders/progressive_component.frag");
     pieceProgram_.link();
+    overlayProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Vertex, ":/glwidget/shaders/transparent_overlay.vert");
+    overlayProgram_.addShaderFromSourceFile(
+        QOpenGLShader::Fragment, ":/glwidget/shaders/transparent_overlay.frag");
+    overlayProgram_.link();
     glReady_ = true;
     if (!modelData_.faces.isEmpty())
         rebuildMesh();
+    if (!overlayModelData_.faces.isEmpty())
+        rebuildOverlayBuffers();
 }
 
 QVector3D SteadyDissectionViewport::pieceColor(int piece) const
@@ -65,9 +82,30 @@ QVector3D SteadyDissectionViewport::pieceColor(int piece) const
 void SteadyDissectionViewport::setModelData(const SteadyDissectionMeshData& data,
                                             int pieceCount)
 {
+    clearOverlayModelData();
     modelData_ = data;
     pieceCount_ = pieceCount;
     rebuildMesh();
+}
+
+void SteadyDissectionViewport::setOverlayModelData(
+    const SteadyDissectionMeshData& data, const QVector3D& color, float opacity)
+{
+    overlayModelData_ = data;
+    overlayColor_ = color;
+    overlayOpacity_ = (std::clamp)(opacity, 0.0f, 1.0f);
+    if (glReady_) {
+        makeCurrent();
+        rebuildOverlayBuffers();
+        doneCurrent();
+    }
+    update();
+}
+
+void SteadyDissectionViewport::clearOverlayModelData()
+{
+    overlayModelData_ = SteadyDissectionMeshData();
+    update();
 }
 
 void SteadyDissectionViewport::clearModel()
@@ -75,6 +113,7 @@ void SteadyDissectionViewport::clearModel()
     modelData_ = SteadyDissectionMeshData();
     pieceCount_ = 0;
     pieceOffsets_.clear();
+    clearOverlayModelData();
     clearMeshData();
     faceColors_.clear();
     update();
@@ -270,10 +309,40 @@ void SteadyDissectionViewport::updateBuffersFromOpenMesh()
     vao.release();
 }
 
+void SteadyDissectionViewport::rebuildOverlayBuffers()
+{
+    if (!glReady_ || !overlayProgram_.isLinked()
+        || overlayModelData_.vertices.isEmpty()
+        || overlayModelData_.faces.isEmpty()) {
+        return;
+    }
+    overlayVao_.bind();
+    overlayProgram_.bind();
+    overlayVbo_.bind();
+    overlayVbo_.allocate(overlayModelData_.vertices.constData(),
+                         overlayModelData_.vertices.size() * int(sizeof(QVector3D)));
+    const int positionLocation = overlayProgram_.attributeLocation("aPos");
+    if (positionLocation >= 0) {
+        overlayProgram_.enableAttributeArray(positionLocation);
+        overlayProgram_.setAttributeBuffer(
+            positionLocation, GL_FLOAT, 0, 3, sizeof(QVector3D));
+    }
+    overlayEbo_.bind();
+    overlayEbo_.allocate(overlayModelData_.faces.constData(),
+                         overlayModelData_.faces.size() * int(sizeof(unsigned int)));
+    overlayVbo_.release();
+    overlayProgram_.release();
+    overlayVao_.release();
+}
+
 void SteadyDissectionViewport::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (!modelLoaded || openMesh.n_vertices() == 0)
+    const bool hasMainModel = modelLoaded && openMesh.n_vertices() > 0;
+    const bool hasOverlay = overlayProgram_.isLinked()
+        && !overlayModelData_.vertices.isEmpty()
+        && !overlayModelData_.faces.isEmpty();
+    if (!hasMainModel && !hasOverlay)
         return;
 
     QMatrix4x4 model;
@@ -287,7 +356,7 @@ void SteadyDissectionViewport::paintGL()
 
     GLint oldPolygonMode[2];
     glGetIntegerv(GL_POLYGON_MODE, oldPolygonMode);
-    if (!hideFaces) {
+    if (hasMainModel && !hideFaces) {
         if (showWireframeOverlay) {
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(1.0f, 1.0f);
@@ -307,8 +376,37 @@ void SteadyDissectionViewport::paintGL()
             glDisable(GL_POLYGON_OFFSET_FILL);
             drawWireframeOverlay(model, view, projection);
         }
-    } else {
+    } else if (hasMainModel) {
         drawWireframe(model, view, projection);
+    }
+    if (hasOverlay) {
+        const GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+        const GLboolean cullWasEnabled = glIsEnabled(GL_CULL_FACE);
+        GLboolean depthMask = GL_TRUE;
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDepthMask(GL_FALSE);
+        overlayProgram_.bind();
+        overlayVao_.bind();
+        overlayEbo_.bind();
+        overlayProgram_.setUniformValue("model", model);
+        overlayProgram_.setUniformValue("view", view);
+        overlayProgram_.setUniformValue("projection", projection);
+        overlayProgram_.setUniformValue(
+            "overlayColor", QVector4D(overlayColor_, overlayOpacity_));
+        glDrawElements(GL_TRIANGLES, GLsizei(overlayModelData_.faces.size()),
+                       GL_UNSIGNED_INT, nullptr);
+        overlayEbo_.release();
+        overlayVao_.release();
+        overlayProgram_.release();
+        glDepthMask(depthMask);
+        if (!cullWasEnabled)
+            glDisable(GL_CULL_FACE);
+        if (!blendWasEnabled)
+            glDisable(GL_BLEND);
     }
     if (showAxis)
         drawXYZAxis(view, projection);

@@ -507,9 +507,16 @@ void PrintableInterlockWidget::handleFailure(const QString& message)
 void PrintableInterlockWidget::clearProcessHistory()
 {
     processFrames_.clear();
+    analysisInternalModel_ = SteadyDissectionMeshData();
+    analysisOriginalModel_ = SteadyDissectionMeshData();
     currentProcessFrame_ = -1;
+    voxelAnalysisView_ = 1;
+    analysisInternalCount_ = 0;
+    analysisBoundaryCount_ = 0;
+    analysisOccupiedCount_ = 0;
     viewingProcessFrame_ = false;
-    emit processHistoryChanged(0, -1, "No construction history", false);
+    emit processHistoryChanged(0, -1, -1, "No construction history", false);
+    emit voxelAnalysisViewChanged(false, voxelAnalysisView_);
 }
 
 void PrintableInterlockWidget::recordProcessFrame(
@@ -562,6 +569,11 @@ void PrintableInterlockWidget::recordSnapshotFrame(
         return;
     }
     if (snapshot.phase.startsWith("Voxelized")) {
+        analysisInternalModel_ = snapshot.internalVoxelModel;
+        analysisOriginalModel_ = snapshot.originalModel;
+        analysisInternalCount_ = snapshot.internalVoxels;
+        analysisBoundaryCount_ = snapshot.boundaryVoxels;
+        analysisOccupiedCount_ = snapshot.occupiedVoxels;
         recordProcessFrame(1, processStageLabel(1), detail,
                            snapshot.partitionedModel, snapshot.requestedPieces);
     } else if (snapshot.phase.startsWith("Generated initial")) {
@@ -586,15 +598,56 @@ void PrintableInterlockWidget::showProcessFrame(int index)
     viewingProcessFrame_ = true;
     const ProcessFrame& frame = processFrames_[index];
     partitionViewport_->setPieceOffsets({});
-    partitionViewport_->setModelData(frame.model, frame.pieceCount);
+    if (frame.stage == 1)
+        updateVoxelAnalysisView(frame);
+    else
+        partitionViewport_->setModelData(frame.model, frame.pieceCount);
     phaseLabel_->setText(frame.label);
-    partitionNameLabel_->setText(
-        "Construction replay  |  " + QFileInfo(meshPath_).fileName());
-    metricsLabel_->setText(QString("Stage %1 / %2")
-                               .arg(index + 1).arg(processFrames_.size()));
+    if (frame.stage != 1) {
+        partitionNameLabel_->setText(
+            "Construction replay  |  " + QFileInfo(meshPath_).fileName());
+        metricsLabel_->setText(QString("Stage %1 / 5").arg(frame.stage + 1));
+    }
     emit statusChanged(frame.detail);
-    emit processHistoryChanged(processFrames_.size(), index,
+    emit processHistoryChanged(processFrames_.size(), index, frame.stage,
                                frame.label, frame.failed);
+    emit voxelAnalysisViewChanged(frame.stage == 1, voxelAnalysisView_);
+}
+
+void PrintableInterlockWidget::setVoxelAnalysisView(int mode)
+{
+    voxelAnalysisView_ = (std::clamp)(mode, 0, 2);
+    const bool available = viewingProcessFrame_
+        && currentProcessFrame_ >= 0
+        && currentProcessFrame_ < processFrames_.size()
+        && processFrames_[currentProcessFrame_].stage == 1;
+    if (available)
+        updateVoxelAnalysisView(processFrames_[currentProcessFrame_]);
+    emit voxelAnalysisViewChanged(available, voxelAnalysisView_);
+}
+
+void PrintableInterlockWidget::updateVoxelAnalysisView(const ProcessFrame& frame)
+{
+    static const QStringList modeNames = {
+        "Internal voxels", "All occupied voxels", "Surface + internal voxels"
+    };
+    if (voxelAnalysisView_ == 1) {
+        partitionViewport_->setModelData(frame.model, frame.pieceCount);
+    } else {
+        partitionViewport_->setModelData(analysisInternalModel_, frame.pieceCount);
+        if (voxelAnalysisView_ == 2) {
+            partitionViewport_->setOverlayModelData(
+                analysisOriginalModel_, QVector3D(0.30f, 0.38f, 0.46f), 0.32f);
+        }
+    }
+    partitionNameLabel_->setText(
+        QString("Stage B - %1  |  %2")
+            .arg(modeNames[voxelAnalysisView_], QFileInfo(meshPath_).fileName()));
+    metricsLabel_->setText(
+        QString("%1 occupied | %2 internal | %3 boundary")
+            .arg(analysisOccupiedCount_)
+            .arg(analysisInternalCount_)
+            .arg(analysisBoundaryCount_));
 }
 
 void PrintableInterlockWidget::showFinalResult()
@@ -602,6 +655,7 @@ void PrintableInterlockWidget::showFinalResult()
     if (!lastSnapshot_.voxelComplete)
         return;
     viewingProcessFrame_ = false;
+    emit voxelAnalysisViewChanged(false, voxelAnalysisView_);
     partitionViewport_->setModelData(
         surfaceClippedMode_ && lastSnapshot_.complete
             ? lastSnapshot_.partitionedModel : lastSnapshot_.voxelizedModel,

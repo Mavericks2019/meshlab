@@ -30,6 +30,7 @@ struct PrintableInterlockParameters {
 
 struct PrintableInterlockSnapshot {
     SteadyDissectionMeshData originalModel;
+    SteadyDissectionMeshData internalVoxelModel;
     SteadyDissectionMeshData voxelizedModel;
     SteadyDissectionMeshData partitionedModel;
     QVector<SteadyDissectionMeshData> voxelParts;

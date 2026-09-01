@@ -207,11 +207,42 @@ inline QWidget* createPrintableInterlockControlPanel(
     QLabel* processStepLabel = new QLabel("Stage 0 / 0", processGroup);
     processStepLabel->setAlignment(Qt::AlignCenter);
     processStepLabel->setWordWrap(true);
+    QLabel* voxelAnalysisLabel = new QLabel("Stage B voxel view", processGroup);
+    QHBoxLayout* voxelAnalysisLayout = new QHBoxLayout;
+    QPushButton* internalVoxelsButton = new QPushButton("Internal", processGroup);
+    QPushButton* allVoxelsButton = new QPushButton("All", processGroup);
+    QPushButton* surfaceInternalButton = new QPushButton("Surface", processGroup);
+    internalVoxelsButton->setToolTip("Show only structurally strong internal voxels");
+    allVoxelsButton->setToolTip(
+        "Show internal voxels in green and boundary voxels in gray");
+    surfaceInternalButton->setToolTip(
+        "Show the transparent input surface around the internal voxels");
+    QButtonGroup* voxelAnalysisMode = new QButtonGroup(processGroup);
+    voxelAnalysisMode->setExclusive(true);
+    voxelAnalysisMode->addButton(internalVoxelsButton, 0);
+    voxelAnalysisMode->addButton(allVoxelsButton, 1);
+    voxelAnalysisMode->addButton(surfaceInternalButton, 2);
+    for (QPushButton* button : {
+             internalVoxelsButton, allVoxelsButton, surfaceInternalButton}) {
+        button->setCheckable(true);
+        button->setEnabled(false);
+        button->setFixedHeight(29);
+        button->setStyleSheet(
+            "QPushButton:checked { background: #397a69; color: white; "
+            "border: 1px solid #69a894; }");
+        voxelAnalysisLayout->addWidget(button);
+    }
+    internalVoxelsButton->setObjectName("printableStageBInternal");
+    allVoxelsButton->setObjectName("printableStageBAll");
+    surfaceInternalButton->setObjectName("printableStageBSurface");
+    allVoxelsButton->setChecked(true);
     QTimer* processTimer = new QTimer(processGroup);
     processTimer->setInterval(900);
     processLayout->addLayout(processButtons);
     processLayout->addWidget(processProgress);
     processLayout->addWidget(processStepLabel);
+    processLayout->addWidget(voxelAnalysisLabel);
+    processLayout->addLayout(voxelAnalysisLayout);
 
     QGroupBox* assemblyGroup = new QGroupBox("Assembly Process", panel);
     QVBoxLayout* assemblyLayout = new QVBoxLayout(assemblyGroup);
@@ -367,6 +398,10 @@ inline QWidget* createPrintableInterlockControlPanel(
                      panel, stopProcessPlayback);
     QObject::connect(surfaceModeButton, &QPushButton::clicked,
                      panel, stopProcessPlayback);
+    QObject::connect(
+        voxelAnalysisMode,
+        QOverload<int>::of(&QButtonGroup::buttonClicked),
+        widget, &PrintableInterlockWidget::setVoxelAnalysisView);
     QObject::connect(processProgress, &QSlider::valueChanged,
                      panel, [=](int value) {
         stopAssemblyPlayback();
@@ -484,7 +519,7 @@ inline QWidget* createPrintableInterlockControlPanel(
     });
     QObject::connect(widget, &PrintableInterlockWidget::processHistoryChanged,
                      processGroup,
-                     [=](int frameCount, int currentFrame,
+                     [=](int frameCount, int currentFrame, int currentStage,
                          const QString& label, bool failed) {
         const bool available = frameCount > 1;
         if (!available)
@@ -499,10 +534,20 @@ inline QWidget* createPrintableInterlockControlPanel(
         nextProcessButton->setEnabled(available);
         processStepLabel->setText(frameCount > 0
             ? QString("Stage %1 / %2  |  %3")
-                  .arg(currentFrame + 1).arg(frameCount).arg(label)
+                  .arg(currentStage + 1).arg(5).arg(label)
             : "Stage 0 / 0");
         processStepLabel->setStyleSheet(
             failed ? QStringLiteral("color: #ff8a80;") : QString());
+    });
+    QObject::connect(widget, &PrintableInterlockWidget::voxelAnalysisViewChanged,
+                     processGroup, [=](bool available, int mode) {
+        for (QPushButton* button : {
+                 internalVoxelsButton, allVoxelsButton, surfaceInternalButton}) {
+            button->setEnabled(available);
+        }
+        if (QAbstractButton* selected = voxelAnalysisMode->button(mode))
+            selected->setChecked(true);
+        voxelAnalysisLabel->setEnabled(available);
     });
     QObject::connect(widget, &PrintableInterlockWidget::snapshotChanged,
                      displayGroup, [=](const PrintableInterlockSnapshot& snapshot) {
